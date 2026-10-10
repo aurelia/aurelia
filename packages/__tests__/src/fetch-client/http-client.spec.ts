@@ -1,643 +1,774 @@
-// import { PLATFORM } from '@aurelia/kernel';
-// import {
-//   HTMLTestContext,
-//   TestContext
-// } from '@aurelia/testing';
-// import {
-//   HttpClient,
-//   HttpClientConfiguration,
-//   Interceptor,
-//   retryStrategy,
-//   json
-// } from '@aurelia/fetch-client';
+import { DI, IPlatform, Registration, Writable } from '@aurelia/kernel';
+import { BrowserPlatform } from '@aurelia/platform-browser';
+import {
+  IFetchInterceptor,
+  IFetchFn,
+  IHttpClient,
+  RetryStrategy,
+} from '@aurelia/fetch-client';
+import { assert } from '@aurelia/testing';
 
-// describe('fetch-client/http-client.spec.ts', function () {
-//   let ctx: HTMLTestContext;
-//   let originalFetch: (input: string | Request, init?: RequestInit) => Promise<Response>;
-//   let client: HttpClient;
-//   let fetch: SinonStub;
+describe('fetch-client/http-client.spec.ts', function () {
+  const baseUrl = 'https://api.example.com/';
 
-//   beforeEach(function () {
-//     ctx = TestContext.createHTMLTestContext();
-//     originalFetch = ctx.dom.window.fetch;
-//     client = ctx.container.get(HttpClient);
-//     fetch = ctx.dom.window.fetch = stub();
-//   });
+  interface RecordedRequest {
+    method: string;
+    url: string;
+    headers: Record<string, string>;
+    body?: string;
+  }
 
-//   afterEach(function () {
-//     fetch = ctx.dom.window.fetch = originalFetch as SinonStub;
-//   });
+  function headerRecord(headers: Headers): Record<string, string> {
+    const result: Record<string, string> = {};
+    headers.forEach((value, key) => {
+      result[key] = value;
+    });
+    return result;
+  }
 
-//   describe('default request parameters', function () {
+  function createTestClient(fetchFn: (request: Request, record: (request: Request) => Promise<void>) => Promise<Response>) {
+    const requests: RecordedRequest[] = [];
+    // pushes synchronously so aborted/hung requests are still recorded; body fills in async
+    const record = async (request: Request): Promise<void> => {
+      const entry: RecordedRequest = { method: request.method, url: request.url, headers: headerRecord(request.headers) };
+      requests.push(entry);
+      if (request.method !== 'GET' && request.method !== 'HEAD') {
+        entry.body = await request.text();
+      }
+    };
+    const platform = new BrowserPlatform(globalThis);
+    const delays: number[] = [];
+    // record the requested delay but fire immediately so tests stay fast
+    (platform as Writable<BrowserPlatform>).setTimeout = ((callback: () => void, ms?: number) => {
+      delays.push(ms ?? 0);
+      return globalThis.setTimeout(callback, 0);
+    }) as BrowserPlatform['setTimeout'];
+    const container = DI.createContainer();
+    container.register(
+      Registration.instance(IPlatform, platform),
+      Registration.instance(IFetchFn, ((request: Request) => fetchFn(request, record)) as typeof fetch),
+    );
+    return { client: container.get(IHttpClient), delays, requests, record, platform };
+  }
 
-//     it('applies baseUrl to requests', function(done) {
-//       fetch.returns(emptyResponse(200));
-//       client.baseUrl = 'http://aurelia.io/';
+  function serverError(): Promise<Response> {
+    return Promise.resolve(new Response(null, { status: 500 }));
+  }
 
-//       client.fetch('path')
-//         .then(() => {
-//           const [request] = fetch.getCall(0).args;
-//           assert.strictEqual(request.url, 'http://aurelia.io/path', `request.url`);
-//           done();
-//         }).catch(() => { done('Unexpected catch'); });
-//     });
+  function rejector<T>(promise: Promise<T>): Promise<unknown> {
+    return promise.then(() => { throw new Error('expected the fetch to reject'); }, e => e);
+  }
 
-//     it('doesn\'t apply baseUrl to absolute URLs', function(done) {
-//       fetch.returns(emptyResponse(200));
-//       client.baseUrl = 'http://aurelia.io/';
+  describe('retry', function () {
+    it('throws AUR5004 when multiple retry interceptors are defined', function () {
+      const { client } = createTestClient(() => Promise.resolve(new Response('ok')));
 
-//       client.fetch('https://example.com/test')
-//         .then(() => {
-//           const [request] = fetch.getCall(0).args;
-//           assert.strictEqual(request.url, 'https://example.com/test', `request.url`);
-//           done();
-//         }).catch(() => { done('Unexpected catch'); });
-//     });
+      assert.throws(
+        () => client.configure(config => config.withRetry().withRetry()),
+        /AUR5004/,
+      );
+    });
 
-//     it('applies default headers to requests with no headers', function(done) {
-//       fetch.returns(emptyResponse(200));
-//       client.defaults = { headers: { 'x-foo': 'bar' } };
+    it('throws AUR5005 when the retry interceptor is not the last interceptor', function () {
+      const { client } = createTestClient(() => Promise.resolve(new Response('ok')));
 
-//       client.fetch('path')
-//         .then(() => {
-//           const [request] = fetch.getCall(0).args;
-//           assert.strictEqual(request.headers.has('x-foo'), true, `request.headers.has('x-foo')`);
-//           assert.strictEqual(request.headers.get('x-foo'), 'bar', `request.headers.get('x-foo')`);
-//           done();
-//         }).catch(() => { done('Unexpected catch'); });
-//     });
+      assert.throws(
+        () => client.configure(config => config.withRetry().rejectErrorResponses()),
+        /AUR5005/,
+      );
+    });
 
-//     it('applies default headers to requests with other headers', function(done) {
-//       fetch.returns(emptyResponse(200));
-//       client.defaults = { headers: { 'x-foo': 'bar' } };
+    it('retries the request maxRetries times', async function () {
+      const { client, requests } = createTestClient(async (req, record) => {
+        await record(req);
+        return serverError();
+      });
+      client.configure(config => config
+        .withBaseUrl(baseUrl)
+        .rejectErrorResponses()
+        .withRetry({ maxRetries: 3, interval: 1 }));
 
-//       client.fetch('path', { headers: { 'x-baz': 'bat' } })
-//         .then(() => {
-//           const [request] = fetch.getCall(0).args;
-//           assert.strictEqual(request.headers.has('x-foo'), true, `request.headers.has('x-foo')`);
-//           assert.strictEqual(request.headers.has('x-baz'), true, `request.headers.has('x-baz')`);
-//           assert.strictEqual(request.headers.get('x-foo'), 'bar', `request.headers.get('x-foo')`);
-//           assert.strictEqual(request.headers.get('x-baz'), 'bat', `request.headers.get('x-baz')`);
-//           done();
-//         }).catch(() => { done('Unexpected catch'); });
-//     });
+      const err = await rejector(client.fetch('users/1'));
 
-//     it('applies default headers to requests using Headers instance', function(done) {
-//       fetch.returns(emptyResponse(200));
-//       client.defaults = { headers: { 'x-foo': 'bar' } };
+      assert.instanceOf(err, Response);
+      assert.strictEqual((err as Response).status, 500);
+      // 1 original call plus 3 retries
+      assert.strictEqual(requests.length, 4);
+    });
 
-//       client.fetch('path', { headers: new Headers({ 'x-baz': 'bat' }) })
-//         .then(() => {
-//           const [request] = fetch.getCall(0).args;
-//           assert.strictEqual(request.headers.has('x-foo'), true, `request.headers.has('x-foo')`);
-//           assert.strictEqual(request.headers.has('x-baz'), true, `request.headers.has('x-baz')`);
-//           assert.strictEqual(request.headers.get('x-foo'), 'bar', `request.headers.get('x-foo')`);
-//           assert.strictEqual(request.headers.get('x-baz'), 'bat', `request.headers.get('x-baz')`);
-//           done();
-//         }).catch(() => { done('Unexpected catch'); });
-//     });
+    it('continues with retry when doRetry returns true', async function () {
+      let doRetryCalls = 0;
+      const { client, requests } = createTestClient(async (req, record) => {
+        await record(req);
+        return serverError();
+      });
+      client.configure(config => config
+        .withBaseUrl(baseUrl)
+        .rejectErrorResponses()
+        .withRetry({
+          maxRetries: 2,
+          interval: 1,
+          doRetry: () => {
+            doRetryCalls++;
+            return true;
+          },
+        }));
 
-//     it('does not overwrite request headers with default headers', function(done) {
-//       fetch.returns(emptyResponse(200));
-//       client.defaults = { headers: { 'x-foo': 'bar' } };
+      const err = await rejector(client.fetch('users/1'));
 
-//       client.fetch('path', { headers: { 'x-foo': 'baz' } })
-//         .then(() => {
-//           const [request] = fetch.getCall(0).args;
-//           assert.strictEqual(request.headers.has('x-foo'), true, `request.headers.has('x-foo')`);
-//           assert.strictEqual(request.headers.get('x-foo'), 'baz', `request.headers.get('x-foo')`);
-//           done();
-//         }).catch(() => { done('Unexpected catch'); });
-//     });
+      assert.instanceOf(err, Response);
+      // 1 original call plus 2 retries
+      assert.strictEqual(requests.length, 3);
+      assert.strictEqual(doRetryCalls, 2);
+    });
 
-//     it('evaluates default header function values with no headers', function(done) {
-//       const headers: Partial<HeadersInit> & {[key: string]: () => string} = { 'x-foo': () => 'bar' };
-//       fetch.returns(emptyResponse(200));
-//       client.defaults = { headers: headers as unknown as HeadersInit };
+    it('does not retry when doRetry returns false', async function () {
+      let doRetryCalls = 0;
+      const { client, requests } = createTestClient(async (req, record) => {
+        await record(req);
+        return serverError();
+      });
+      client.configure(config => config
+        .withBaseUrl(baseUrl)
+        .rejectErrorResponses()
+        .withRetry({
+          maxRetries: 2,
+          interval: 1,
+          doRetry: () => {
+            doRetryCalls++;
+            return false;
+          },
+        }));
 
-//       client.fetch('path')
-//         .then(() => {
-//           const [request] = fetch.getCall(0).args;
-//           assert.strictEqual(request.headers.has('x-foo'), true, `request.headers.has('x-foo')`);
-//           assert.strictEqual(request.headers.get('x-foo'), 'bar', `request.headers.get('x-foo')`);
-//           done();
-//         }).catch(() => { done('Unexpected catch'); });
-//     });
+      const err = await rejector(client.fetch('users/1'));
 
-//     it('evaluates default header function values with other headers', function(done) {
-//       const headers: Partial<HeadersInit> & {[key: string]: () => string} = { 'x-foo': () => 'bar' };
-//       fetch.returns(emptyResponse(200));
-//       client.defaults = { headers: headers as unknown as HeadersInit };
+      assert.instanceOf(err, Response);
+      assert.strictEqual(requests.length, 1);
+      assert.strictEqual(doRetryCalls, 1);
+    });
 
-//       client.fetch('path', { headers: { 'x-baz': 'bat' } })
-//         .then(() => {
-//           const [request] = fetch.getCall(0).args;
-//           assert.strictEqual(request.headers.has('x-foo'), true, `request.headers.has('x-foo')`);
-//           assert.strictEqual(request.headers.has('x-baz'), true, `request.headers.has('x-baz')`);
-//           assert.strictEqual(request.headers.get('x-foo'), 'bar', `request.headers.get('x-foo')`);
-//           assert.strictEqual(request.headers.get('x-baz'), 'bat', `request.headers.get('x-baz')`);
-//           done();
-//         }).catch(() => { done('Unexpected catch'); });
-//     });
+    it('calls beforeRetry callback when specified', async function () {
+      let beforeRetryCalls = 0;
+      const { client, requests } = createTestClient(async (req, record) => {
+        await record(req);
+        return serverError();
+      });
+      client.configure(config => config
+        .withBaseUrl(baseUrl)
+        .rejectErrorResponses()
+        .withRetry({
+          maxRetries: 2,
+          interval: 1,
+          beforeRetry: request => {
+            beforeRetryCalls++;
+            request.headers.set('x-retry', '1');
+            return request;
+          },
+        }));
 
-//     it('evaluates default header function values on each request', function(done) {
-//       const headers: Partial<HeadersInit> & {[key: string]: () => number} = { 'x-foo': () => {
-//         value++;
-//         return value;
-//       } };
-//       fetch.returns(emptyResponse(200));
-//       let value = 0;
-//       client.defaults = {
-//         headers: headers as unknown as HeadersInit
-//       };
+      const err = await rejector(client.fetch('users/1'));
 
-//       const promises = [];
-//       promises.push(client.fetch('path1'));
-//       promises.push(client.fetch('path2'));
+      assert.instanceOf(err, Response);
+      // 1 original call plus 2 retries
+      assert.strictEqual(requests.length, 3);
+      assert.strictEqual(beforeRetryCalls, 2);
+      assert.strictEqual(requests[0].headers['x-retry'], undefined);
+      assert.strictEqual(requests[1].headers['x-retry'], '1');
+      assert.strictEqual(requests[2].headers['x-retry'], '1');
+    });
 
-//       Promise.all(promises)
-//         .then(() => {
-//           const [request1] = fetch.getCall(0).args;
-//           const [request2] = fetch.lastCall.args;
-//           assert.strictEqual(request1.headers.has('x-foo'), true, `request1.headers.has('x-foo')`);
-//           assert.strictEqual(request1.headers.get('x-foo'), '1', `request1.headers.get('x-foo')`);
-//           assert.strictEqual(request2.headers.has('x-foo'), true, `request2.headers.has('x-foo')`);
-//           assert.strictEqual(request2.headers.get('x-foo'), '2', `request2.headers.get('x-foo')`);
-//           done();
-//         }).catch(() => { done('Unexpected catch'); });
-//     });
+    it('fetches a brand-new Request returned from beforeRetry and still stops after maxRetries', async function () {
+      const { client, requests } = createTestClient(async (req, record) => {
+        await record(req);
+        return serverError();
+      });
+      client.configure(config => config
+        .withBaseUrl(baseUrl)
+        .rejectErrorResponses()
+        .withRetry({
+          maxRetries: 2,
+          interval: 1,
+          beforeRetry: () => new Request(`${baseUrl}users/1`, { method: 'PUT' }),
+        }));
 
-//     it('uses default content-type header', function(done) {
-//       fetch.returns(emptyResponse(200));
-//       const contentType = 'application/octet-stream';
-//       client.defaults = { method: 'post', body: '{}', headers: { 'content-type': contentType } };
+      const err = await rejector(client.fetch('users/1'));
 
-//       client.fetch('path')
-//         .then(() => {
-//           const [request] = fetch.getCall(0).args;
-//           assert.strictEqual(request.headers.has('content-type'), true, `request.headers.has('content-type')`);
-//           assert.strictEqual(request.headers.get('content-type'), contentType, `request.headers.get('content-type')`);
-//           done();
-//         }).catch(() => { done('Unexpected catch'); });
-//     });
-//   });
+      assert.instanceOf(err, Response);
+      // 1 original call plus 2 retries; retries must not be unbounded
+      assert.strictEqual(requests.length, 3);
+      assert.strictEqual(requests[1].method, 'PUT');
+      assert.strictEqual(requests[1].url, 'https://api.example.com/users/1');
+      assert.strictEqual(requests[2].method, 'PUT');
+    });
 
-//   describe('retry', function () {
-//     this.timeout(10000);
+    it('calls custom retry strategy callback when specified', async function () {
+      const counters: number[] = [];
+      const { client, requests, delays } = createTestClient(async (req, record) => {
+        await record(req);
+        return serverError();
+      });
+      client.configure(config => config
+        .withBaseUrl(baseUrl)
+        .rejectErrorResponses()
+        .withRetry({
+          maxRetries: 2,
+          strategy: retryCount => {
+            counters.push(retryCount);
+            return retryCount * 10;
+          },
+        }));
 
-//     it('fails if multiple RetryInterceptors are defined', function () {
-//       const configure = () => {
-//         client.configure(config => config.withRetry().withRetry());
-//       };
+      const err = await rejector(client.fetch('users/1'));
 
-//       assert.throws(configure, 'Only one RetryInterceptor is allowed.', `configure`);
-//     });
+      assert.instanceOf(err, Response);
+      assert.strictEqual(requests.length, 3);
+      assert.deepStrictEqual(counters, [1, 2]);
+      assert.deepStrictEqual(delays, [10, 20]);
+    });
 
-//     it('fails if RetryInterceptor is not last interceptor defined', function () {
-//       const configure = () => {
-//         client.configure(config => config.withRetry().rejectErrorResponses());
-//       };
+    it('waits the configured interval with the fixed retry strategy', async function () {
+      const { client, delays } = createTestClient(async () => serverError());
+      client.configure(config => config
+        .withBaseUrl(baseUrl)
+        .rejectErrorResponses()
+        .withRetry({ maxRetries: 2, interval: 250, strategy: RetryStrategy.fixed }));
 
-//       assert.throws(configure, 'The retry interceptor must be the last interceptor defined.', `configure`);
-//     });
+      await rejector(client.fetch('users/1'));
 
-//     // it('retries the specified number of times', function(done) {
-//     //   const response = new Response(null, { status: 500 });
-//     //   fetch.returns(Promise.resolve(response));
-//     //
-//     //   client.configure(config => config.rejectErrorResponses().withRetry({
-//     //     maxRetries: 3,
-//     //     interval: 10
-//     //   }));
-//     //   client.fetch('path')
-//     //     .then((r) => {
-//     //       done('fetch did not error');
-//     //     })
-//     //     .catch((r) => {
-//     //       // 1 original call plus 3 retries
-//     //       expect(fetch).to.have.callCount(4);
-//     //       done();
-//     //     });
-//     // });
-//     //
-//     // it('continues with retry when doRetry returns true', function(done) {
-//     //   const response = new Response(null, { status: 500 });
-//     //   fetch.returns(Promise.resolve(response));
-//     //
-//     //   const doRetryCallback = stub().returns(true);
-//     //
-//     //   client.configure(config => config.rejectErrorResponses().withRetry({
-//     //     maxRetries: 2,
-//     //     interval: 10,
-//     //     doRetry: doRetryCallback
-//     //   }));
-//     //   client.fetch('path')
-//     //     .then((r) => {
-//     //       done('fetch did not error');
-//     //     })
-//     //     .catch((r) => {
-//     //       // 1 original call plus 2 retries
-//     //       expect(fetch).to.have.callCount(3);
-//     //       // only called on retries
-//     //       expect(doRetryCallback).to.have.callCount(2);
-//     //       done();
-//     //     });
-//     // });
+      assert.deepStrictEqual(delays, [250, 250]);
+    });
 
-//     it('does not retry when doRetry returns false', function(done) {
-//       const response = new Response(null, { status: 500 });
-//       fetch.returns(Promise.resolve(response));
+    it('waits increasing intervals with the incremental retry strategy', async function () {
+      const { client, delays } = createTestClient(async () => serverError());
+      client.configure(config => config
+        .withBaseUrl(baseUrl)
+        .rejectErrorResponses()
+        .withRetry({ maxRetries: 2, interval: 250, strategy: RetryStrategy.incremental }));
 
-//       const doRetryCallback = stub().returns(false);
+      await rejector(client.fetch('users/1'));
 
-//       client.configure(config => config.rejectErrorResponses().withRetry({
-//         maxRetries: 2,
-//         interval: 10,
-//         doRetry: doRetryCallback
-//       }));
-//       client.fetch('path')
-//         .then((r) => {
-//           done('fetch did not error');
-//         })
-//         .catch((r) => {
-//           // 1 original call plus 0 retries
-//           expect(fetch).to.have.callCount(1);
-//           // only called on retries
-//           expect(doRetryCallback).to.have.callCount(1);
-//           done();
-//         });
-//     });
+      assert.deepStrictEqual(delays, [250, 500]);
+    });
 
-//     // it('calls beforeRetry callback when specified', function(done) {
-//     //   const response = new Response(null, { status: 500 });
-//     //   fetch.returns(Promise.resolve(response));
-//     //
-//     //   const beforeRetryCallback = stub().returns(new Request('path'));
-//     //
-//     //   client.configure(config => config.rejectErrorResponses().withRetry({
-//     //     maxRetries: 2,
-//     //     interval: 10,
-//     //     beforeRetry: beforeRetryCallback
-//     //   }));
-//     //   return client
-//     //     .fetch('path')
-//     //     .then(
-//     //       () => done('fetch did not error'),
-//     //       () => {
-//     //         // 1 original call plus 2 retries
-//     //         expect(fetch).to.have.callCount(3);
-//     //         // only called on retries
-//     //         expect(beforeRetryCallback).to.have.callCount(2);
-//     //         done();
-//     //       }).catch(() => { done('Unexpected catch'); });
-//     // });
-//     //
-//     // it('calls custom retry strategy callback when specified', function(done) {
-//     //   const response = new Response(null, { status: 500 });
-//     //   fetch.returns(Promise.resolve(response));
-//     //
-//     //   const strategyRetryCallback = stub().returns(10);
-//     //
-//     //   client.configure(config => config.rejectErrorResponses().withRetry({
-//     //     maxRetries: 2,
-//     //     strategy: strategyRetryCallback
-//     //   }));
-//     //   return client.fetch('path')
-//     //     .then(
-//     //       () => done('fetch did not error'),
-//     //       () => {
-//     //         // 1 original call plus 2 retries
-//     //         expect(fetch).to.have.callCount(3);
-//     //         // only called on retries
-//     //         expect(strategyRetryCallback).to.have.callCount(2);
-//     //         done();
-//     //       }).catch(() => { done('Unexpected catch'); });
-//     // });
-//     //
-//     // it('waits correct number amount of time with fixed retry strategy', function(done) {
-//     //   const response = new Response(null, { status: 500 });
-//     //   fetch.returns(Promise.resolve(response));
-//     //
-//     //   const stubSettimeout = stub(PLATFORM, 'setTimeout').callThrough();
-//     //
-//     //   client.configure(config => config.rejectErrorResponses().withRetry({
-//     //     maxRetries: 2,
-//     //     interval: 250,
-//     //     strategy: retryStrategy.fixed
-//     //   }));
-//     //   return client.fetch('path')
-//     //     .then(
-//     //       () => {
-//     //         stubSettimeout.restore();
-//     //         done('fetch did not error');
-//     //       },
-//     //       () => {
-//     //         stubSettimeout.restore();
-//     //         // setTimeout is called when request starts and end, so those args need to filtered out
-//     //         const callArgs = stubSettimeout.args.filter(args => args[1] > 1);
-//     //         // only called on retries
-//     //         assert.strictEqual(callArgs[0], [match.instanceOf(Function), 250], `callArgs[0]`);
-//     //         assert.strictEqual(callArgs[1], [match.instanceOf(Function), 250], `callArgs[1]`);
-//     //         done();
-//     //       }).catch(() => { done('Unexpected catch'); });
-//     // });
-//     //
-//     // it('waits correct number amount of time with incremental retry strategy', function(done) {
-//     //   const response = new Response(null, { status: 500 });
-//     //   fetch.returns(Promise.resolve(response));
-//     //
-//     //   const stubSettimeout = stub(PLATFORM, 'setTimeout').callThrough();
-//     //
-//     //   client.configure(config => config.rejectErrorResponses().withRetry({
-//     //     maxRetries: 2,
-//     //     interval: 250,
-//     //     strategy: retryStrategy.incremental
-//     //   }));
-//     //   return client
-//     //     .fetch('path')
-//     //     .then(
-//     //       () => {
-//     //         stubSettimeout.restore();
-//     //         done('fetch did not error');
-//     //       },
-//     //       () => {
-//     //         stubSettimeout.restore();
-//     //         // setTimeout is called when request starts and end, so those args need to filtered out
-//     //         const callArgs = stubSettimeout.args.filter(args => args[1] > 1);
-//     //         // only called on retries
-//     //         assert.strictEqual(callArgs.length, 2, `callArgs.length`);
-//     //         assert.strictEqual(callArgs[0], [match.instanceOf(Function), 250], `callArgs[0]`);
-//     //         assert.strictEqual(callArgs[1], [match.instanceOf(Function), 500], `callArgs[1]`);
-//     //         done();
-//     //       }).catch(() => { done('Unexpected catch'); });
-//     // });
-//     //
-//     // it('waits correct number amount of time with exponential retry strategy', function(done) {
-//     //   const response = new Response(null, { status: 500 });
-//     //   fetch.returns(Promise.resolve(response));
-//     //
-//     //   const stubSettimeout = stub(PLATFORM, 'setTimeout').callThrough();
-//     //
-//     //   client.configure(config => config.rejectErrorResponses().withRetry({
-//     //     maxRetries: 2,
-//     //     interval: 2000,
-//     //     strategy: retryStrategy.exponential
-//     //   }));
-//     //   return client
-//     //     .fetch('path')
-//     //     .then(
-//     //       () => {
-//     //         stubSettimeout.restore();
-//     //         done('fetch did not error');
-//     //       },
-//     //       () => {
-//     //         stubSettimeout.restore();
-//     //         // setTimeout is called when request starts and end, so those args need to filtered out
-//     //         const callArgs = stubSettimeout.args.filter(args => args[1] > 1);
-//     //         // only called on retries
-//     //         assert.strictEqual(callArgs.length, 2, `callArgs.length`);
-//     //         assert.strictEqual(callArgs[0], [match.instanceOf(Function), 2000], `callArgs[0]`);
-//     //         assert.strictEqual(callArgs[1], [match.instanceOf(Function), 4000], `callArgs[1]`);
-//     //         done();
-//     //       }).catch(() => { done('Unexpected catch'); });
-//     // });
-//     //
-//     // it('waits correct number amount of time with random retry strategy', function(done) {
-//     //   const response = new Response(null, { status: 500 });
-//     //   const firstRandom = 0.1;
-//     //   const secondRandom = 0.4;
-//     //
-//     //   fetch.returns(Promise.resolve(response));
-//     //
-//     //   const stubSettimeout = stub(PLATFORM, 'setTimeout').callThrough();
-//     //   stub(Math, 'random').onCall(0).returns(firstRandom);
-//     //   stub(Math, 'random').onCall(1).returns(secondRandom);
-//     //
-//     //   client.configure(config => config.rejectErrorResponses().withRetry({
-//     //     maxRetries: 2,
-//     //     interval: 2000,
-//     //     strategy: retryStrategy.random,
-//     //     minRandomInterval: 1000,
-//     //     maxRandomInterval: 3000
-//     //   }));
-//     //
-//     //   const firstInterval = firstRandom * (3000 - 1000) + 1000;
-//     //   const secondInterval = secondRandom * (3000 - 1000) + 1000;
-//     //
-//     //   return client
-//     //     .fetch('path')
-//     //     .then(
-//     //       () => {
-//     //         stubSettimeout.restore();
-//     //         done('fetch did not error');
-//     //       },
-//     //       () => {
-//     //         stubSettimeout.restore();
-//     //         // setTimeout is called when request starts and end, so those args need to filtered out
-//     //         const callArgs = stubSettimeout.args.filter(args => args[1] > 1);
-//     //         // only called on retries
-//     //         assert.strictEqual(callArgs[0], [match.instanceOf(Function), firstInterval], `callArgs[0]`);
-//     //         assert.strictEqual(callArgs[1], [match.instanceOf(Function), secondInterval], `callArgs[1]`);
-//     //         done();
-//     //       }
-//     //     ).catch(() => { done('Unexpected catch'); });
-//     // });
-//     //
-//     // it('successfully returns without error if a retry succeeds', function(done) {
-//     //   const firstResponse = new Response(null, { status: 500 });
-//     //   const secondResponse = new Response(null, { status: 200 });
-//     //
-//     //   fetch.onCall(0).returns(Promise.resolve(firstResponse));
-//     //   fetch.onCall(1).returns(Promise.resolve(secondResponse));
-//     //
-//     //   client.configure(config => config.rejectErrorResponses().withRetry({
-//     //     maxRetries: 3,
-//     //     interval: 1,
-//     //     strategy: retryStrategy.fixed
-//     //   }));
-//     //
-//     //   return client.fetch('path')
-//     //     .then(
-//     //       (r) => {
-//     //         // 1 original call plus 1 retry
-//     //         expect(fetch).to.have.callCount(2);
-//     //         assert.strictEqual(r, secondResponse, `r`);
-//     //         done();
-//     //       },
-//     //       () => done('retry was unsuccessful')
-//     //      ).catch(() => { done('Unexpected catch'); });
-//     // });
-//   });
+    it('waits doubling intervals with the exponential retry strategy', async function () {
+      const { client, delays } = createTestClient(async () => serverError());
+      client.configure(config => config
+        .withBaseUrl(baseUrl)
+        .rejectErrorResponses()
+        .withRetry({ maxRetries: 2, interval: 2000, strategy: RetryStrategy.exponential }));
 
-//   describe('isRequesting', function () {
-//     it('is set to true when starting a request', function(done) {
-//       fetch.returns(emptyResponse(200));
+      await rejector(client.fetch('users/1'));
 
-//       assert.strictEqual(client.isRequesting, 'Before start', false, `client.isRequesting, 'Before start'`);
-//       const request = client.fetch('http://example.com/some/cool/path');
-//       assert.strictEqual(client.isRequesting, 'When started', true, `client.isRequesting, 'When started'`);
-//       request.then(() => {
-//         expect(fetch).to.have.callCount(1);
-//         done();
-//       }).catch(() => { done('Unexpected catch'); });
-//     });
-//     it('is set to false when request is finished', function(done) {
-//       fetch.returns(emptyResponse(200));
+      assert.deepStrictEqual(delays, [2000, 4000]);
+    });
 
-//       assert.strictEqual(client.isRequesting, 'Before start', false, `client.isRequesting, 'Before start'`);
-//       const request = client.fetch('http://example.com/some/cool/path');
-//       assert.strictEqual(client.isRequesting, 'When started', true, `client.isRequesting, 'When started'`);
-//       request.then(() => {
-//         assert.strictEqual(client.isRequesting, 'When finished', false, `client.isRequesting, 'When finished'`);
-//       }).then(() => {
-//         expect(fetch).to.have.callCount(1);
-//         done();
-//       }).catch(() => { done('Unexpected catch'); });
-//     });
-//     it('is still true when a request is still in progress', function(done) {
-//       const firstResponse = emptyResponse(200);
-//       const secondResponse = new Promise((resolve) => {
-//         PLATFORM.setTimeout(() => { resolve(emptyResponse(200)); }, 200);
-//       });
+    it('waits random intervals within the configured bounds with the random retry strategy', async function () {
+      const originalRandom = Math.random;
+      const randoms = [0.1, 0.4];
+      Math.random = () => randoms.shift()!;
+      try {
+        const { client, delays } = createTestClient(async () => serverError());
+        client.configure(config => config
+          .withBaseUrl(baseUrl)
+          .rejectErrorResponses()
+          .withRetry({
+            maxRetries: 2,
+            strategy: RetryStrategy.random,
+            minRandomInterval: 1000,
+            maxRandomInterval: 3000,
+          }));
 
-//       fetch.onCall(0).returns(firstResponse);
-//       fetch.onCall(1).returns(secondResponse);
-//       assert.strictEqual(client.isRequesting, 'Before start', false, `client.isRequesting, 'Before start'`);
+        await rejector(client.fetch('users/1'));
 
-//       const request1 = client.fetch('http://example.com/some/cool/path');
-//       const request2 = client.fetch('http://example.com/some/cool/path');
-//       assert.strictEqual(client.isRequesting, 'When started', true, `client.isRequesting, 'When started'`);
-//       request1.then(() => {
-//         assert.strictEqual(client.isRequesting, 'When request 1 is completed', true, `client.isRequesting, 'When request 1 is completed'`);
-//       }).catch(() => { done('Unexpected catch'); });
-//       PLATFORM.setTimeout(() => { assert.strictEqual(client.isRequesting, 'After 100ms', true); }, 100, `client.isRequesting, 'After 100ms'`);
-//       request2.then(() => {
-//         assert.strictEqual(client.isRequesting, 'When all requests are finished', false, `client.isRequesting, 'When all requests are finished'`);
-//       }).then(() => {
-//         expect(fetch).to.have.callCount(2);
-//         done();
-//       }).catch(() => { done('Unexpected catch'); });
-//     });
-//     it('is set to false when request is rejected', function(done) {
-//       fetch.returns(Promise.reject(new Error('Failed to fetch')));
+        assert.deepStrictEqual(delays, [1200, 1800]);
+      } finally {
+        Math.random = originalRandom;
+      }
+    });
 
-//       assert.strictEqual(client.isRequesting, 'Before start', false, `client.isRequesting, 'Before start'`);
-//       client.fetch('http://example.com/some/cool/path').then(result => {
-//         assert.notStrictEqual(result, result, `result`);
-//       }).catch((result) => {
-//         assert.strictEqual(result instanceof Error, true, `result instanceof Error`);
-//         assert.strictEqual(result.message, 'Failed to fetch', `result.message`);
-//         assert.strictEqual(client.isRequesting, 'When finished', false, `client.isRequesting, 'When finished'`);
-//         return Promise.resolve();
-//       }).then(() => {
-//         expect(fetch).to.have.callCount(1);
-//         done();
-//       }).catch(() => { done('Unexpected catch'); });
-//     });
+    it('resolves without error when a retry succeeds', async function () {
+      const { client, requests } = createTestClient(async (req, record) => {
+        await record(req);
+        return requests.length === 1 ? serverError() : Promise.resolve(new Response('ok', { status: 200 }));
+      });
+      client.configure(config => config
+        .withBaseUrl(baseUrl)
+        .rejectErrorResponses()
+        .withRetry({ maxRetries: 3, interval: 1, strategy: RetryStrategy.fixed }));
 
-//     // it('stays true during a series of retries', function(done) {
-//     //   const response = new Response(null, { status: 500 });
-//     //   fetch.returns(Promise.resolve(response));
-//     //
-//     //   client.configure(config => config.rejectErrorResponses().withRetry({
-//     //     maxRetries: 3,
-//     //     interval: 100
-//     //   }));
-//     //
-//     //   assert.strictEqual(client.isRequesting, 'Before start', false, `client.isRequesting, 'Before start'`);
-//     //   const request = client.fetch('path');
-//     //   assert.strictEqual(client.isRequesting, 'When started', true, `client.isRequesting, 'When started'`);
-//     //   PLATFORM.setTimeout(() => { assert.strictEqual(client.isRequesting, 'After 100ms', true); }, 100, `client.isRequesting, 'After 100ms'`);
-//     //   PLATFORM.setTimeout(() => { assert.strictEqual(client.isRequesting, 'After 200ms', true); }, 200, `client.isRequesting, 'After 200ms'`);
-//     //   request.then((result) => {
-//     //     done('fetch did not error');
-//     //   }).catch((r) => {
-//     //     // 1 original call plus 3 retries
-//     //     expect(fetch).to.have.callCount(4);
-//     //     done();
-//     //   });
-//     // });
-//     // it('is set to false after a series of retry that fail', function(done) {
-//     //   const response = new Response(null, { status: 500 });
-//     //   fetch.returns(Promise.resolve(response));
-//     //
-//     //   client.configure(config => config.rejectErrorResponses().withRetry({
-//     //     maxRetries: 3,
-//     //     interval: 100
-//     //   }));
-//     //
-//     //   assert.strictEqual(client.isRequesting, 'Before start', false, `client.isRequesting, 'Before start'`);
-//     //   const request = client.fetch('path');
-//     //   assert.strictEqual(client.isRequesting, 'When started', true, `client.isRequesting, 'When started'`);
-//     //   request.then((result) => {
-//     //     done('fetch did not error');
-//     //   }).catch(() => {
-//     //     // 1 original call plus 3 retries
-//     //     expect(fetch).to.have.callCount(4);
-//     //     assert.strictEqual(client.isRequesting, 'When finished', false, `client.isRequesting, 'When finished'`);
-//     //     done();
-//     //   });
-//     // });
-//     it('is set to false after a series of retry that fail that succeed', function(done) {
-//       const firstResponse = new Response(null, { status: 500 });
-//       const secondResponse = new Response(null, { status: 200 });
+      const response = await client.fetch('users/1');
 
-//       fetch.onCall(0).returns(Promise.resolve(firstResponse));
-//       fetch.onCall(1).returns(Promise.resolve(secondResponse));
+      assert.strictEqual(requests.length, 2);
+      assert.strictEqual(response.status, 200);
+    });
 
-//       client.configure(config => config.rejectErrorResponses().withRetry({
-//         maxRetries: 3,
-//         interval: 1,
-//         strategy: retryStrategy.fixed
-//       }));
+    // https://github.com/aurelia/aurelia/issues/2502
+    it('preserves the original request on retry #2502', async function () {
+      let calls = 0;
+      const { client, requests } = createTestClient(async (req, record) => {
+        await record(req);
+        if (calls++ === 0) {
+          throw new TypeError('Failed to fetch');
+        }
+        return new Response('ok', { status: 200 });
+      });
+      client.configure(config => config
+        .withBaseUrl(baseUrl)
+        .withDefaults({ headers: { 'x-token': 'abc' } })
+        .withRetry({ maxRetries: 2, interval: 1 }));
 
-//       assert.strictEqual(client.isRequesting, 'Before start', false, `client.isRequesting, 'Before start'`);
-//       const request = client.fetch('path');
-//       assert.strictEqual(client.isRequesting, 'When started', true, `client.isRequesting, 'When started'`);
-//       request.then(() => {
-//         // 1 original call plus 1 retry
-//         expect(fetch).to.have.callCount(2);
-//         assert.strictEqual(client.isRequesting, 'When finished', false, `client.isRequesting, 'When finished'`);
-//         done();
-//       }).catch((result) => {
-//         done('fetch did error');
-//       });
-//     });
-//     it('forward requests', function(done) {
-//       const path = 'retry';
-//       let retry = 3;
-//       fetch.returns(Promise.reject(new Response(null, { status: 500 })));
-//       const interceptor: Interceptor = {
-//         response(r) { return r; },
-//         responseError(r) {
-//           if (retry--) {
-//             return client.fetch(client.buildRequest(path, {}));
-//           } else {
-//             throw r;
-//           }
-//         }
-//       };
-//       stub(interceptor, 'response').callThrough();
-//       stub(interceptor, 'responseError').callThrough();
+      const response = await client.fetch('users/1', {
+        method: 'PUT',
+        body: 'payload',
+        headers: { 'x-token': 'per-request' },
+      });
 
-//       client.interceptors.push(interceptor);
+      assert.strictEqual(response.status, 200);
+      assert.strictEqual(requests.length, 2);
+      for (const req of requests) {
+        assert.strictEqual(req.method, 'PUT');
+        assert.strictEqual(req.url, 'https://api.example.com/users/1');
+        assert.strictEqual(req.headers['x-token'], 'per-request');
+        assert.strictEqual(req.body, 'payload');
+      }
+    });
 
-//       // add check before fetch, this one passes.
-//       assert.strictEqual(client.isRequesting, false, `client.isRequesting`);
+    // https://github.com/aurelia/aurelia/issues/2502
+    it('stops retrying a persistent network error after maxRetries #2502', async function () {
+      const { client, requests } = createTestClient(async (req, record) => {
+        await record(req);
+        throw new TypeError('Failed to fetch');
+      });
+      client.configure(config => config
+        .withBaseUrl(baseUrl)
+        .withRetry({ maxRetries: 2, interval: 1 }));
 
-//       client.fetch(path)
-//         .catch(() => {
-//           expect(interceptor.response).not.to.have.callCount(1);
-//           expect(interceptor.responseError).to.have.been.calledWith(match.instanceOf(Response), match.instanceOf(Request), client);
-//           expect(fetch).to.have.callCount(4);
-//           assert.strictEqual(client.activeRequestCount, 0, `client.activeRequestCount`);
-//           assert.strictEqual(client.isRequesting, false, `client.isRequesting`);
-//           done();
-//         });
-//     });
-//   });
-// });
+      const err = await rejector(client.fetch('users/1'));
 
-// function emptyResponse(status: number) {
-//   return Promise.resolve(new Response(null, { status }));
-// }
+      assert.instanceOf(err, TypeError);
+      // 1 original call plus 2 retries
+      assert.strictEqual(requests.length, 3);
+    });
+
+    // https://github.com/aurelia/aurelia/issues/2502
+    it('does not retry an aborted request #2502', async function () {
+      let doRetryCalls = 0;
+      const { client, requests } = createTestClient((req, record) => {
+        void record(req);
+        return new Promise<Response>((_resolve, reject) => {
+          if (req.signal.aborted) {
+            reject(new DOMException('Aborted', 'AbortError'));
+          } else {
+            req.signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')));
+          }
+        });
+      });
+      client.configure(config => config
+        .withBaseUrl(baseUrl)
+        .withRetry({
+          maxRetries: 2,
+          interval: 1,
+          doRetry: () => {
+            doRetryCalls++;
+            return true;
+          },
+        }));
+      const controller = new AbortController();
+
+      const promise = client.fetch('users/1', { signal: controller.signal });
+      controller.abort();
+      const err = await rejector(promise);
+
+      assert.strictEqual((err as DOMException).name, 'AbortError');
+      assert.strictEqual(requests.length, 1);
+      assert.strictEqual(doRetryCalls, 0);
+    });
+
+    // https://github.com/aurelia/aurelia/issues/2502
+    for (const method of ['POST', 'PATCH']) {
+      it(`does not retry ${method} on a network error by default #2502`, async function () {
+        const { client, requests } = createTestClient(async (req, record) => {
+          await record(req);
+          throw new TypeError('Failed to fetch');
+        });
+        client.configure(config => config
+          .withBaseUrl(baseUrl)
+          .withRetry({ maxRetries: 2, interval: 1 }));
+
+        const err = await rejector(client.fetch('users/1', { method, body: 'payload' }));
+
+        assert.instanceOf(err, TypeError);
+        assert.strictEqual(requests.length, 1);
+      });
+    }
+
+    // https://github.com/aurelia/aurelia/issues/2502
+    for (const method of ['GET', 'HEAD', 'OPTIONS', 'PUT', 'DELETE']) {
+      it(`retries ${method} on a network error by default #2502`, async function () {
+        const { client, requests } = createTestClient(async (req, record) => {
+          await record(req);
+          return requests.length === 1 ? Promise.reject(new TypeError('Failed to fetch')) : Promise.resolve(new Response('ok', { status: 200 }));
+        });
+        client.configure(config => config
+          .withBaseUrl(baseUrl)
+          .withRetry({ maxRetries: 2, interval: 1 }));
+
+        const response = await client.fetch('users/1', { method, ...(method === 'PUT' ? { body: 'payload' } : {}) });
+
+        assert.strictEqual(response.status, 200);
+        assert.strictEqual(requests.length, 2);
+        for (const req of requests) {
+          assert.strictEqual(req.method, method);
+          assert.strictEqual(req.url, 'https://api.example.com/users/1');
+        }
+      });
+    }
+
+    // https://github.com/aurelia/aurelia/issues/2502
+    it('retries a POST when doRetry opts it in #2502', async function () {
+      const { client, requests } = createTestClient(async (req, record) => {
+        await record(req);
+        return requests.length === 1 ? Promise.reject(new TypeError('Failed to fetch')) : Promise.resolve(new Response('ok', { status: 200 }));
+      });
+      client.configure(config => config
+        .withBaseUrl(baseUrl)
+        .withRetry({ maxRetries: 2, interval: 1, doRetry: () => true }));
+
+      const response = await client.fetch('users/1', { method: 'POST', body: 'payload' });
+
+      assert.strictEqual(response.status, 200);
+      assert.strictEqual(requests.length, 2);
+      for (const req of requests) {
+        assert.strictEqual(req.method, 'POST');
+        assert.strictEqual(req.body, 'payload');
+      }
+    });
+
+    // https://github.com/aurelia/aurelia/issues/2502
+    it('does not retry when a previous interceptor short-circuits the request #2502', async function () {
+      const { client, requests } = createTestClient(async (req, record) => {
+        await record(req);
+        return new Response('ok');
+      });
+      client.configure(config => config
+        .withBaseUrl(baseUrl)
+        .withInterceptor({ request: () => new Response(null, { status: 500 }) })
+        .rejectErrorResponses()
+        .withRetry({ maxRetries: 2 }));
+
+      const err = await rejector(client.fetch('users/1'));
+
+      // the 500 response must propagate, not a TypeError from a missing retryConfig
+      assert.instanceOf(err, Response);
+      assert.strictEqual((err as Response).status, 500);
+      assert.strictEqual(requests.length, 0);
+    });
+  });
+
+  describe('cancellation review (#2554)', function () {
+    for (const preserveSignal of [true, false]) {
+      it(`keeps cancellation effective during an async retry hook (replacement inherits signal=${preserveSignal})`, async function () {
+        let enterHook: () => void;
+        let releaseHook: () => void;
+        const entered = new Promise<void>(resolve => { enterHook = resolve; });
+        const released = new Promise<void>(resolve => { releaseHook = resolve; });
+        const nativeFetch = globalThis.fetch.bind(globalThis);
+        const controller = new AbortController();
+        const { client, requests } = createTestClient(async (request, record) => {
+          await record(request);
+          // One service failure enters retry handling; the retry uses actual Fetch
+          // cancellation semantics without contacting an external server.
+          return requests.length === 1 ? new Response(null, { status: 503 }) : nativeFetch(request);
+        });
+        client.configure(config => config.rejectErrorResponses().withRetry({
+          maxRetries: 1,
+          interval: 0,
+          beforeRetry: async request => {
+            enterHook!();
+            await released;
+            return new Request(preserveSignal ? request : request.url, { headers: { 'x-token': 'refreshed' } });
+          },
+        }));
+        const outcome = client.fetch('data:text/plain,retried', { signal: controller.signal })
+          .then(response => ({ response, error: null }), error => ({ response: null, error }));
+        await entered;
+        controller.abort();
+        releaseHook!();
+        const result = await outcome;
+        assert.strictEqual(result.response, null, 'the cancelled logical call must not succeed');
+        assert.strictEqual(result.error?.name, 'AbortError');
+        assert.strictEqual(client.isRequesting, false);
+      });
+    }
+
+    it('keeps the caller signal on a url-built replacement request once it is dispatched', async function () {
+      const nativeFetch = globalThis.fetch.bind(globalThis);
+      const controller = new AbortController();
+      const { client, requests } = createTestClient(async (request, record) => {
+        await record(request);
+        if (requests.length === 1) {
+          return new Response(null, { status: 503 });
+        }
+        // abort after the replacement is in flight; native Fetch rejects only if it carries the signal
+        controller.abort();
+        return nativeFetch(request);
+      });
+      client.configure(config => config.rejectErrorResponses().withRetry({
+        maxRetries: 1,
+        interval: 0,
+        beforeRetry: request => new Request(request.url, { headers: { 'x-token': 'refreshed' } }),
+      }));
+      const result = await client.fetch('data:text/plain,retried', { signal: controller.signal })
+        .then(response => ({ response, error: null }), error => ({ response: null, error }));
+      assert.strictEqual(result.response, null, 'the cancelled logical call must not succeed');
+      assert.strictEqual(result.error?.name, 'AbortError');
+      assert.strictEqual(requests[1].headers['x-token'], 'refreshed');
+      assert.strictEqual(client.isRequesting, false);
+    });
+
+    it('settles cancellation during backoff without waiting for its timer or running the retry hook', async function () {
+      let delayScheduled: () => void;
+      let releaseDelay: () => void;
+      const scheduled = new Promise<void>(resolve => { delayScheduled = resolve; });
+      const controller = new AbortController();
+      const nativeFetch = globalThis.fetch.bind(globalThis);
+      const { client, requests, platform } = createTestClient(async (request, record) => {
+        await record(request);
+        return requests.length === 1 ? new Response(null, { status: 503 }) : nativeFetch(request);
+      });
+      // Hold only the retry timer. A separate task below drains ordinary promise
+      // reactions so the test does not depend on guessed millisecond delays.
+      (platform as Writable<BrowserPlatform>).setTimeout = ((callback: () => void) => {
+        releaseDelay = callback;
+        delayScheduled!();
+        return 0;
+      }) as BrowserPlatform['setTimeout'];
+      let hookCalls = 0;
+      client.configure(config => config.rejectErrorResponses().withRetry({
+        maxRetries: 1,
+        interval: 30_000,
+        beforeRetry: request => { ++hookCalls; return request; },
+      }));
+      let settled = false;
+      const outcome = client.fetch('data:text/plain,retried', { signal: controller.signal })
+        .then(response => ({ response, error: null }), error => ({ response: null, error }));
+      void outcome.then(() => { settled = true; });
+      await scheduled;
+      controller.abort();
+      await new Promise<void>(resolve => globalThis.setTimeout(resolve, 0));
+      const settledOnAbort = settled;
+      const requestingAfterAbort = client.isRequesting;
+      // Release the held callback even on the broken implementation so no test
+      // leaves pending work behind. Native Fetch rejects its aborted clone.
+      releaseDelay!();
+      const result = await outcome;
+      assert.strictEqual(result.error?.name, 'AbortError');
+      assert.deepStrictEqual(
+        { settledOnAbort, requestingAfterAbort, hookCalls },
+        { settledOnAbort: true, requestingAfterAbort: false, hookCalls: 0 },
+        'abort should settle the call before the retry delay elapses and skip its hook',
+      );
+    });
+  });
+
+  describe('isRequesting', function () {
+    it('is set to true when starting a request', async function () {
+      const { client, requests } = createTestClient(async (req, record) => {
+        await record(req);
+        return new Response('ok');
+      });
+
+      assert.strictEqual(client.isRequesting, false);
+      const promise = client.fetch('https://example.com/some/cool/path');
+      assert.strictEqual(client.isRequesting, true);
+
+      await promise;
+      assert.strictEqual(requests.length, 1);
+    });
+
+    it('is set to false when the request is finished', async function () {
+      const { client } = createTestClient(() => Promise.resolve(new Response('ok')));
+
+      const promise = client.fetch('https://example.com/some/cool/path');
+      assert.strictEqual(client.isRequesting, true);
+
+      await promise;
+      assert.strictEqual(client.isRequesting, false);
+    });
+
+    it('is still true when a second request is in progress', async function () {
+      let resolveSecond: (response: Response) => void;
+      let call = 0;
+      const { client } = createTestClient(() => call++ === 0
+        ? Promise.resolve(new Response('ok'))
+        : new Promise<Response>(resolve => { resolveSecond = resolve; }));
+
+      const first = client.fetch('https://example.com/some/cool/path');
+      const second = client.fetch('https://example.com/some/other/path');
+      assert.strictEqual(client.isRequesting, true);
+
+      await first;
+      assert.strictEqual(client.isRequesting, true);
+
+      resolveSecond!(new Response('ok'));
+      await second;
+      assert.strictEqual(client.isRequesting, false);
+    });
+
+    it('is set to false when the request is rejected', async function () {
+      const { client } = createTestClient(() => Promise.reject(new TypeError('Failed to fetch')));
+
+      const err = await rejector(client.fetch('https://example.com/some/cool/path'));
+
+      assert.strictEqual((err as TypeError).message, 'Failed to fetch');
+      assert.strictEqual(client.isRequesting, false);
+    });
+
+    it('stays true during a series of retries and is false after they all fail', async function () {
+      const requestingSamples: boolean[] = [];
+      const { client, requests } = createTestClient(async (req, record) => {
+        await record(req);
+        return serverError();
+      });
+      client.configure(config => config
+        .withBaseUrl(baseUrl)
+        .rejectErrorResponses()
+        .withRetry({
+          maxRetries: 3,
+          interval: 1,
+          doRetry: () => {
+            requestingSamples.push(client.isRequesting);
+            return true;
+          },
+        }));
+
+      const promise = client.fetch('users/1');
+      assert.strictEqual(client.isRequesting, true);
+
+      const err = await rejector(promise);
+      assert.instanceOf(err, Response);
+      // 1 original call plus 3 retries
+      assert.strictEqual(requests.length, 4);
+      assert.deepStrictEqual(requestingSamples, [true, true, true]);
+      assert.strictEqual(client.activeRequestCount, 0);
+      assert.strictEqual(client.isRequesting, false);
+    });
+
+    it('is set to false after a retry succeeds', async function () {
+      const { client, requests } = createTestClient(async (req, record) => {
+        await record(req);
+        return requests.length === 1 ? serverError() : Promise.resolve(new Response('ok', { status: 200 }));
+      });
+      client.configure(config => config
+        .withBaseUrl(baseUrl)
+        .rejectErrorResponses()
+        .withRetry({ maxRetries: 3, interval: 1, strategy: RetryStrategy.fixed }));
+
+      const promise = client.fetch('users/1');
+      assert.strictEqual(client.isRequesting, true);
+
+      const response = await promise;
+      // 1 original call plus 1 retry
+      assert.strictEqual(requests.length, 2);
+      assert.strictEqual(response.status, 200);
+      assert.strictEqual(client.activeRequestCount, 0);
+      assert.strictEqual(client.isRequesting, false);
+    });
+
+    it('tracks forward requests from interceptors', async function () {
+      const { client, requests } = createTestClient(async (req, record) => {
+        await record(req);
+        throw new Response(null, { status: 500 });
+      });
+      client.configure(config => config.withBaseUrl(baseUrl));
+      let retry = 3;
+      const responseErrors: [unknown, Request][] = [];
+      const interceptor: IFetchInterceptor = {
+        responseError(error, request, httpClient) {
+          responseErrors.push([error, request!]);
+          if (retry--) {
+            return httpClient!.fetch(httpClient!.buildRequest('retry', {}));
+          }
+          throw error;
+        }
+      };
+      client.configure(config => config.withInterceptor(interceptor));
+
+      const err = await rejector(client.fetch('users/1'));
+
+      assert.instanceOf(err, Response);
+      for (const [error, request] of responseErrors) {
+        assert.instanceOf(error, Response);
+        assert.instanceOf(request, Request);
+      }
+      // 1 original call plus 3 forwarded requests
+      assert.strictEqual(requests.length, 4);
+      assert.strictEqual(client.activeRequestCount, 0);
+      assert.strictEqual(client.isRequesting, false);
+    });
+  });
+
+  describe('default request parameters', function () {
+    it('doesn\'t apply baseUrl to absolute URLs', async function () {
+      const { client, requests } = createTestClient(async (req, record) => {
+        await record(req);
+        return new Response('ok');
+      });
+      client.configure(config => config.withBaseUrl('http://aurelia.io/'));
+
+      await client.fetch('https://example.com/test');
+
+      assert.strictEqual(requests.length, 1);
+      assert.strictEqual(requests[0].url, 'https://example.com/test');
+    });
+
+    it('applies default headers to requests using a Headers instance', async function () {
+      const { client, requests } = createTestClient(async (req, record) => {
+        await record(req);
+        return new Response('ok');
+      });
+      client.configure(config => config.withDefaults({ headers: { 'x-foo': 'bar' } }));
+
+      await client.fetch(`${baseUrl}path`, { headers: new Headers({ 'x-baz': 'bat' }) });
+
+      assert.strictEqual(requests.length, 1);
+      assert.strictEqual(requests[0].headers['x-foo'], 'bar');
+      assert.strictEqual(requests[0].headers['x-baz'], 'bat');
+    });
+
+    it('evaluates default header function values on each request', async function () {
+      const { client, requests } = createTestClient(async (req, record) => {
+        await record(req);
+        return new Response('ok');
+      });
+      let value = 0;
+      client.configure(config => config.withDefaults({
+        headers: { 'x-foo': () => String(++value) } as unknown as HeadersInit,
+      }));
+
+      await Promise.all([
+        client.fetch(`${baseUrl}path1`),
+        client.fetch(`${baseUrl}path2`),
+      ]);
+
+      assert.strictEqual(requests.length, 2);
+      assert.strictEqual(requests[0].headers['x-foo'], '1');
+      assert.strictEqual(requests[1].headers['x-foo'], '2');
+    });
+
+    it('uses the default content-type header', async function () {
+      const { client, requests } = createTestClient(async (req, record) => {
+        await record(req);
+        return new Response('ok');
+      });
+      const contentType = 'application/octet-stream';
+      // a lowercase default content-type is applied with a dev-mode console warning
+      client.configure(config => config.withDefaults({ method: 'post', body: '{}', headers: { 'content-type': contentType } }));
+
+      await client.fetch(`${baseUrl}path`);
+
+      assert.strictEqual(requests.length, 1);
+      assert.strictEqual(requests[0].headers['content-type'], contentType);
+    });
+  });
+});

@@ -158,109 +158,41 @@ export class AbortAwareInterceptorService {
 }
 ```
 
-## Critical Issue: AbortController + Retry Bug
+## AbortController and Retries
 
-> **⚠️ Important Limitation**: There is a critical bug in the current retry mechanism when used with AbortController. When a request with an AbortSignal is retried, the retry attempts inherit the same (potentially aborted) signal, causing all retry attempts to immediately fail.
+The retry interceptor does not retry aborted requests. When a request fails because its signal was aborted or fetch threw an `AbortError`, the call rejects with that error and no retry is attempted, even when `doRetry` is configured. The rejection is the signal's abort reason, so it is an `AbortError` only when `abort()` was called without a reason: `controller.abort(myReason)` rejects with `myReason`, and an `AbortSignal.timeout()` signal rejects with a `TimeoutError`.
 
-### The Problem
+Retries reuse the original request's signal. Aborting while a retry is waiting for its delay, while `beforeRetry` is running, or while a retry attempt is in flight settles the call straight away and ends the retry sequence; `beforeRetry` is not called once the call has been aborted. If `beforeRetry` returns a new `Request`, it is rebuilt on the original signal, so aborting still cancels it. Create a new AbortController for each logical call rather than reusing one; a controller that has already fired would prevent the retries from running.
 
-```typescript
-// ❌ This is broken in the current implementation:
-const controller = new AbortController();
-
-http.configure(config => config.withRetry({ maxRetries: 3 }));
-
-const promise = http.get('/api/data', { signal: controller.signal });
-
-// If you abort here, all 3 retry attempts will immediately fail
-// because they inherit the aborted signal
-controller.abort();
-```
-
-### Workaround Solutions
-
-#### Solution 1: Conditional Retry (Recommended)
+If you need each attempt to have its own timeout budget, wrap the calls yourself instead of relying on `withRetry` — a fresh controller per attempt is the key detail:
 
 ```typescript
-export class AbortSafeRetryService {
+export class TimeoutRetryService {
   private http = resolve(IHttpClient);
 
-  constructor() {
-    this.setupAbortSafeRetry();
-  }
-
-  private setupAbortSafeRetry() {
-    this.http.configure(config => config.withRetry({
-      maxRetries: 3,
-      strategy: RetryStrategy.exponential,
-      
-      // Don't retry aborted requests
-      doRetry: (response, request) => {
-        // Check if the request was aborted
-        if (request.signal?.aborted) {
-          console.log('Skipping retry for aborted request');
-          return false;
-        }
-        
-        // Only retry server errors
-        return response.status >= 500;
-      }
-    }));
-  }
-}
-```
-
-#### Solution 2: Manual Retry with Fresh AbortController
-
-```typescript
-export class ManualRetryService {
-  private http = resolve(IHttpClient);
-
-  async fetchWithRetry<T>(
-    url: string, 
-    options: RequestInit = {}, 
-    maxRetries = 3
-  ): Promise<T> {
+  async fetchWithTimeoutPerAttempt<T>(url: string, timeoutMs: number, maxRetries = 3): Promise<T> {
     let lastError: Error;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      // Create fresh AbortController for each attempt
       const controller = new AbortController();
-      
-      try {
-        const response = await this.http.get(url, {
-          ...options,
-          signal: controller.signal
-        });
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
+      try {
+        const response = await this.http.get(url, { signal: controller.signal });
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
-
         return await response.json();
-
       } catch (error) {
         lastError = error as Error;
-        
-        // Don't retry aborted requests
-        if (error.name === 'AbortError') {
-          throw error;
-        }
-        
-        // Don't retry client errors
-        if (error.message.includes('HTTP 4')) {
-          throw error;
-        }
-
-        if (attempt < maxRetries) {
-          // Wait before retry (exponential backoff)
-          const delay = Math.pow(2, attempt) * 1000;
-          await new Promise(resolve => setTimeout(resolve, delay));
-        }
+        // An AbortError here means this attempt's timeout fired, so the loop tries again
+        // with a fresh controller. Rethrow errors you don't want to retry, such as 4xx responses.
+      } finally {
+        clearTimeout(timeoutId);
       }
     }
 
-    throw new Error(`Request failed after ${maxRetries} attempts: ${lastError!.message}`);
+    throw lastError!;
   }
 }
 ```
@@ -536,7 +468,7 @@ export class ComponentWithRequests {
 1. **Don't reuse AbortControllers**: Create a new one for each request
 2. **Handle AbortError gracefully**: It's usually not an actual error condition  
 3. **Clean up timeouts**: Always clear timeout IDs when requests complete
-4. **Be aware of the retry bug**: Use workarounds when combining AbortController with retries
+4. **Aborts cancel the whole retry sequence**: An aborted request is not retried, and retry attempts share the original signal, so aborting once cancels every pending retry
 
 ## Integration with Aurelia Lifecycle
 
@@ -581,5 +513,3 @@ export class AutoCleanupService implements IDisposable {
   }
 }
 ```
-
-Understanding these patterns and limitations will help you build robust, cancellable HTTP operations in your Aurelia applications while avoiding the current retry mechanism bug.

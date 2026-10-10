@@ -25,6 +25,11 @@ export {
   RetryStrategy,
   type IRetryConfiguration,
   type IRetryableRequest,
+
+  // transfer cache interceptor
+  TransferCacheInterceptor,
+  type ITransferCacheStore,
+  type ITransferCacheOptions,
 } from './interceptors';
 export { HttpClientConfiguration } from './http-client-configuration';
 export { IFetchFn, HttpClient, IHttpClient, HttpClientEvent } from './http-client';

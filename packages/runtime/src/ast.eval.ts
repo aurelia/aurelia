@@ -12,6 +12,7 @@ import { Scope, type IOverrideContext } from './scope';
 import { ErrorNames, createMappedError } from './errors';
 import { rtSafeString as safeString } from './utilities';
 import { wrap } from './proxy-observation';
+import { growArray } from './array-observer';
 import { enterConnectable, exitConnectable } from './connectable-switcher';
 
 // -----------------------------------
@@ -115,14 +116,13 @@ export const {
     [astTrackableMethodMarker]?: TrackableFunctionOptions;
   };
 
-  // writes go through splice so array observers are notified; growing fills the gap with undefined
-  // in the same splice (plain JS would leave holes) so a repeat reconciles once per write
+  // writes go through splice/growArray so array observers are notified; growing fills the gap with undefined
+  // (plain JS would leave holes) and notifies once so a repeat reconciles once per write
   function setArrayLength(arr: unknown[], length: number): void {
-    const len = arr.length;
-    if (length < len) {
+    if (length < arr.length) {
       arr.splice(length);
-    } else if (length > len) {
-      arr.splice(len, 0, ...Array(length - len));
+    } else {
+      growArray(arr, length, void 0);
     }
   }
 
@@ -615,12 +615,11 @@ export const {
           }
           if (isArrayIndex(key)) {
             const index = +key;
-            const len = instance.length;
-            if (index < len) {
+            if (index < instance.length) {
               instance.splice(index, 1, val);
             } else {
               // splice clamps start to length, so an out of bounds index would otherwise append
-              instance.splice(len, 0, ...Array(index - len), val);
+              growArray(instance, index + 1, val);
             }
             return val;
           }

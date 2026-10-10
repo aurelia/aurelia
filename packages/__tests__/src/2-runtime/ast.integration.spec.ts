@@ -475,6 +475,29 @@ describe('2-runtime/ast.integration.spec.ts', function () {
         assert.deepStrictEqual(getAllBy('p').map(p => p.textContent), ['a', '', '', 'x']);
       });
 
+      it('fills a gap larger than the engine argument limit', function () {
+        const { component, trigger, assertText } = createFixture
+          .component({ items: ['a'], n: 300_000 })
+          .html`
+            <button click.trigger="items[n] = 'x'">\${items.length}</button>
+            <span click.trigger="items.length = n * 2"></span>
+          `
+          .build();
+
+        trigger.click('button');
+        runTasks();
+        assert.strictEqual(component.items.length, 300_001);
+        assert.strictEqual(component.items[300_000], 'x');
+        assert.strictEqual(299_999 in component.items, true);
+        assertText('button', '300001');
+
+        trigger.click('span');
+        runTasks();
+        assert.strictEqual(component.items.length, 600_000);
+        assert.strictEqual(599_999 in component.items, true);
+        assertText('button', '600000');
+      });
+
       for (const [kind, expr] of [['keyed', `items['length']`], ['member', 'items.length']] as const) {
         it(`grows and shrinks the array when assigning length (${kind})`, function () {
           const { component, trigger, assertText, getAllBy } = createFixture

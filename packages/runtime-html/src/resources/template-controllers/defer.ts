@@ -359,28 +359,26 @@ export class Defer implements ICustomAttributeViewModel {
         showLoading();
       }
     }
+    // A shown loading branch stays up for its minimum whether the load succeeds or fails, so neither flickers
+    const settle = (next: () => void) => {
+      // A block detached in the meantime loads again once it's attached again
+      if (epoch !== this._epoch) {
+        return;
+      }
+      this._disarm();
+      const remaining = loading == null || this._loadingShownAt < 0
+        ? 0
+        : loading.minimum - (platform.performanceNow() - this._loadingShownAt);
+      if (remaining > 0) {
+        const handle = platform.setTimeout(next, remaining);
+        disposers.push(() => platform.clearTimeout(handle));
+      } else {
+        next();
+      }
+    };
     loaded.then(
-      () => {
-        if (epoch !== this._epoch) {
-          return;
-        }
-        this._disarm();
-        const remaining = loading == null || this._loadingShownAt < 0
-          ? 0
-          : loading.minimum - (platform.performanceNow() - this._loadingShownAt);
-        if (remaining > 0) {
-          const handle = platform.setTimeout(() => this._complete(), remaining);
-          disposers.push(() => platform.clearTimeout(handle));
-        } else {
-          this._complete();
-        }
-      },
-      (error: unknown) => {
-        // A block detached in the meantime loads again once it's attached again
-        if (epoch === this._epoch) {
-          this._fail(error, false);
-        }
-      },
+      () => settle(() => this._complete()),
+      (error: unknown) => settle(() => this._fail(error, false)),
     );
   }
 
@@ -446,19 +444,14 @@ export class Defer implements ICustomAttributeViewModel {
       this._loaded = true;
       return;
     }
-    let modules: Promise<unknown[]>;
-    try {
-      modules = Promise.all(loaders.map(loader => {
-        // A common mistake is load.bind="import('./chart')", which loads eagerly and passes a promise
-        if (!isFunction(loader)) {
-          throw createMappedError(ErrorNames.defer_invalid_load, getOwnerName(this), describeValue(loader));
-        }
-        return (loader as DeferredDependencyLoader)();
-      }));
-    } catch (error) {
-      modules = Promise.reject(error);
-    }
-    return this._loadPromise = modules
+    // An async mapper turns a loader that throws into a rejection, so Promise.all still observes the loaders before it
+    return this._loadPromise = Promise.all(loaders.map(async loader => {
+      // A common mistake is load.bind="import('./chart')", which loads eagerly and passes a promise
+      if (!isFunction(loader)) {
+        throw createMappedError(ErrorNames.defer_invalid_load, getOwnerName(this), describeValue(loader));
+      }
+      return (loader as DeferredDependencyLoader)();
+    }))
       .then(results => {
         // Only a block that loads code gets a container of its own, others compile against the surrounding one
         const factory = this._factory;

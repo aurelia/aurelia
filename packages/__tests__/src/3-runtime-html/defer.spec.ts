@@ -264,6 +264,22 @@ describe('3-runtime-html/defer.spec.ts', function () {
       assert.strictEqual(getDefer(def).deferredLoaders!.length, 1);
     });
 
+    it('does not take an attribute binding named like a deferred template controller for a nested block', function () {
+      let calls = 0;
+      const Processed = CustomElement.define({ name: 'processed-el', processContent() { ++calls; } }, class Processed { });
+      const ctx = TestContext.create();
+      ctx.container.register(DeferConfiguration, Processed);
+      const def = ctx.templateCompiler.compile({
+        name: 'app',
+        type: 'custom-element',
+        template: '<div defer><div defer.attr="flag"><heavy-chart></heavy-chart></div></div><processed-el defer.attr="flag"></processed-el>',
+        deferredDependencies: { 'heavy-chart': () => Promise.resolve() },
+      }, ctx.container);
+
+      assert.strictEqual(getDefer(def).deferredLoaders!.length, 1);
+      assert.strictEqual(calls, 1);
+    });
+
     it('keeps the inner template controllers raw and compiles the outer ones', function () {
       const def = compile('<div if.bind="a" defer repeat.for="i of items">${i}</div>');
       const $if = getDefer(def);
@@ -286,6 +302,12 @@ describe('3-runtime-html/defer.spec.ts', function () {
       const defer = getDefer(def);
 
       assert.strictEqual(rawHtml(defer), '<template if.bind="x">a</template>');
+    });
+
+    it('drops plain attributes of a <template> host instead of wrapping it', function () {
+      const def = compile('<br><template defer data-test="block">a</template>');
+
+      assert.strictEqual(rawHtml(getDefer(def)), 'a');
     });
 
     it('keeps attributes in debug mode out of the raw template only for template controllers', function () {
@@ -343,6 +365,23 @@ describe('3-runtime-html/defer.spec.ts', function () {
       });
 
       assert.strictEqual(getDefer(def).deferredLoaders!.length, 1);
+    });
+
+    it('leaves spreads before defer on a deferred element for the block to compile', async function () {
+      const { appHost } = createDeferFixture(
+        '<heavy-chart ...$bindables="props" defer="immediate"></heavy-chart>',
+        { props: { series: 's' } },
+        [],
+        { deferredDependencies: { 'heavy-chart': () => Promise.resolve({ HeavyChart }) } },
+      );
+      await wait(0);
+
+      assert.strictEqual(text(appHost), 'chart:s');
+    });
+
+    it('still rejects spreads on an element that is not a custom element', function () {
+      assert.throws(() => compile('<div ...$bindables="props"></div>'), /AUR072[01]/);
+      assert.throws(() => compile('<div ...props></div>'), /AUR0720/);
     });
 
     it('throws when a deferred dependency is used outside of a deferred block', function () {
@@ -456,6 +495,12 @@ describe('3-runtime-html/defer.spec.ts', function () {
       const { appHost } = createDeferFixture('<br><template defer="immediate">a<b>${x}</b></template>', { x: 1 });
 
       assert.strictEqual(text(appHost), 'a1');
+    });
+
+    it('renders a <template> host that has plain attributes', function () {
+      const { appHost } = createDeferFixture('<br><template defer="immediate" data-test="block">hello</template>');
+
+      assert.strictEqual(text(appHost), 'hello');
     });
 
     it('keeps an inner template controller working after it renders', async function () {
@@ -977,6 +1022,22 @@ describe('3-runtime-html/defer.spec.ts', function () {
       assert.strictEqual(loader.calls, 1);
     });
 
+    it('loads the deferred dependencies of the owning element in a block inside a local element', async function () {
+      const chart = createLoader({ HeavyChart });
+      const { appHost } = createDeferFixture(
+        `<template as-custom-element="local-panel"><div defer="immediate"><heavy-chart series.bind="1"></heavy-chart></div></template>
+        <local-panel></local-panel>`,
+        {},
+        [],
+        { deferredDependencies: { 'heavy-chart': chart.load } },
+      );
+      assert.strictEqual(chart.calls, 1);
+
+      chart.resolve();
+      await wait(0);
+      assert.strictEqual(text(appHost), 'chart:1');
+    });
+
     it('supports local elements and au-slot projections inside the block', async function () {
       const Card = CustomElement.define({ name: 'my-card', template: '[<au-slot name="title"></au-slot>]' }, class Card { });
       const { appHost } = createDeferFixture(
@@ -1054,6 +1115,25 @@ describe('3-runtime-html/defer.spec.ts', function () {
       assert.strictEqual(text(appHost), 'chart:');
     });
 
+    it('keeps the loading branch up for at least "minimum" when loading fails', async function () {
+      const loader = createLoader({ HeavyChart });
+      const { appHost } = createDeferFixture(
+        `<div defer="on: immediate; load.bind: load"><heavy-chart></heavy-chart></div>
+        <p defer-loading="after: 0; minimum: 80">loading</p>
+        <p defer-error>failed</p>`,
+        { load: loader.load },
+      );
+      assert.strictEqual(text(appHost), 'loading');
+
+      await wait(10);
+      loader.reject(new Error('offline'));
+      await wait(10);
+      assert.strictEqual(text(appHost), 'loading');
+
+      await wait(80);
+      assert.strictEqual(text(appHost), 'failed');
+    });
+
     it('does not show the loading branch when there is nothing to load', function () {
       const { appHost } = createDeferFixture('<div defer="immediate">content</div><p defer-loading>loading</p>');
 
@@ -1108,6 +1188,24 @@ describe('3-runtime-html/defer.spec.ts', function () {
       await wait(0);
 
       assert.strictEqual(text(appHost), 'sync');
+    });
+
+    it('observes the loaders before one that throws synchronously', async function () {
+      let observed = false;
+      const thenable = {
+        then(_resolve: (v: unknown) => void, reject: (e: unknown) => void) {
+          observed = true;
+          reject(new Error('first'));
+        },
+      };
+      const { appHost } = createDeferFixture(
+        '<div defer="on: immediate; load.bind: loaders">content</div><p defer-error>${$defer.error.message}</p>',
+        { loaders: [() => thenable, () => { throw new Error('second'); }] },
+      );
+      await wait(0);
+
+      assert.strictEqual(observed, true);
+      assert.strictEqual(text(appHost), 'second');
     });
 
     it('exposes the state of the block to its branches', async function () {

@@ -518,7 +518,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     let processContentResult: boolean | undefined | void = true;
     const elementMetadata: Record<PropertyKey, unknown> = {};
     // Deferred content is processed when it's compiled, processing it now as well would do it twice
-    if (isCustomElement && elDef.processContent != null && !this._hostsDeferredContent(el, elDef, context)) {
+    if (isCustomElement && elDef.processContent != null && !this._hostsTemplateController(el, elDef, context, true)) {
       processContentResult = elDef.processContent.call(elDef.Type, el as HTMLElement, context.p, elementMetadata);
     }
 
@@ -591,8 +591,14 @@ export class TemplateCompiler implements ITemplateCompiler {
       // Replace element with marker in parent DOM, wrap element in template
       this._replaceByMarker(el, context);
       let tcTemplate: HTMLTemplateElement;
-      // Attributes left on a root <template> would be compiled as surrogates,
-      // so deferred content keeps such a <template> inside a wrapper
+      // Attributes left on a root <template> would be compiled as surrogates. A <template> that still hosts
+      // a template controller is kept inside a wrapper, so that controller compiles with the content.
+      // Other attributes are dropped, as a <template> under a template controller ignores them without defer too.
+      if (el.nodeName === TEMPLATE_NODE_NAME && deferred && el.attributes.length > 0 && !this._hostsTemplateController(el, null, context, false)) {
+        while (el.attributes.length > 0) {
+          el.removeAttributeNode(el.attributes[0]);
+        }
+      }
       if (el.nodeName === TEMPLATE_NODE_NAME && !(deferred && el.attributes.length > 0)) {
         tcTemplate = el as HTMLTemplateElement;
       } else {
@@ -757,7 +763,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     let loader: DeferredDependencyLoader | undefined;
     for (; el !== null; el = el.nextElementSibling) {
       name = (el.getAttribute('as-element') ?? el.nodeName).toLowerCase();
-      if (this._hostsDeferredContent(el, context._findElement(name), context)) {
+      if (this._hostsTemplateController(el, context._findElement(name), context, true)) {
         continue;
       }
       loader = deferredDependencies[name];
@@ -770,21 +776,23 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   /**
-   * Whether classifying the attributes of an element would find a template controller that defers its content.
+   * Whether classifying the attributes of an element would find a template controller,
+   * or with `deferredOnly`, one that defers its content.
    * @internal
    */
-  private _hostsDeferredContent(el: Element, elDef: IElementComponentDefinition | null, context: CompilationContext): boolean {
+  private _hostsTemplateController(el: Element, elDef: IElementComponentDefinition | null, context: CompilationContext, deferredOnly: boolean): boolean {
     const attrs = el.attributes;
-    let target: string;
+    let syntax: AttrSyntax;
     let attrDef: IAttributeComponentDefinition | null;
     for (let i = 0, ii = attrs.length; ii > i; ++i) {
-      target = context._attrParser.parse(attrs[i].name, attrs[i].value).target;
-      // A bindable of the element takes the attribute before a custom attribute can, as in _classifyAttributes
-      if (elDef !== null && context._getBindables(elDef).attrs[target] != null) {
+      syntax = context._attrParser.parse(attrs[i].name, attrs[i].value);
+      // Commands such as .attr and a bindable of the element take the attribute before a custom attribute can,
+      // as in _classifyAttributes
+      if (context._getCommand(syntax)?.ignoreAttr || elDef !== null && context._getBindables(elDef).attrs[syntax.target] != null) {
         continue;
       }
-      attrDef = findHostableAttr(el, target, context);
-      if (attrDef?.isTemplateController && attrDef.compileContent === 'deferred') {
+      attrDef = findHostableAttr(el, syntax.target, context);
+      if (attrDef?.isTemplateController && (!deferredOnly || attrDef.compileContent === 'deferred')) {
         return true;
       }
     }
@@ -852,6 +860,8 @@ export class TemplateCompiler implements ITemplateCompiler {
     let hasContainerless = false;
     let canCapture = false;
     let spreadIndex = 0;
+    // A deferred element is unknown until its block loads, so its spreads are only invalid when no defer follows
+    let reservedSyntaxError: Error | undefined;
 
     const debug = this.debug;
     const consumedAttrs = this._consumedAttrs;
@@ -946,7 +956,8 @@ export class TemplateCompiler implements ITemplateCompiler {
           }
         }
 
-        throw createMappedError(ErrorNames.compiler_no_reserved_spread_syntax, realAttrTarget);
+        reservedSyntaxError ??= createMappedError(ErrorNames.compiler_no_reserved_spread_syntax, realAttrTarget);
+        continue;
       }
 
       // 6. Custom element bindable properties
@@ -1014,7 +1025,8 @@ export class TemplateCompiler implements ITemplateCompiler {
 
       // Disallow $bindables on non-custom elements
       if (realAttrTarget === '$bindables') {
-        throw createMappedError(ErrorNames.compiler_no_reserved_$bindable, el.nodeName, realAttrTarget, realAttrValue);
+        reservedSyntaxError ??= createMappedError(ErrorNames.compiler_no_reserved_$bindable, el.nodeName, realAttrTarget, realAttrValue);
+        continue;
       }
 
       // 7. Custom attributes and template controllers
@@ -1112,6 +1124,9 @@ export class TemplateCompiler implements ITemplateCompiler {
     }
 
     consumedAttrs.length = tcAttrs.length = 0;
+    if (reservedSyntaxError !== void 0) {
+      throw reservedSyntaxError;
+    }
     return {
       tcInstructions,
       attrInstructions,
@@ -1322,6 +1337,8 @@ export class TemplateCompiler implements ITemplateCompiler {
           name,
           template: localTemplate,
           bindables,
+          // Blocks in a local template load the deferred imports of the file, like its ordinary dependencies
+          deferredDependencies: context.root.def.deferredDependencies,
         };
       }
       Reflect.defineProperty(LocalDepType, 'name', { value: pascalCase(name) });

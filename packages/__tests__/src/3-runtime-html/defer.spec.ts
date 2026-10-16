@@ -280,6 +280,16 @@ describe('3-runtime-html/defer.spec.ts', function () {
       assert.strictEqual(calls, 1);
     });
 
+    it('leaves the binding commands of other attributes inside a block until the block compiles', function () {
+      // The command may come from the module the block loads, so resolving it now would throw
+      const def = compile(
+        '<div defer><heavy-chart value.chart="series"></heavy-chart></div>',
+        { deferredDependencies: { 'heavy-chart': () => Promise.resolve() } },
+      );
+
+      assert.strictEqual(getDefer(def).deferredLoaders!.length, 1);
+    });
+
     it('keeps the inner template controllers raw and compiles the outer ones', function () {
       const def = compile('<div if.bind="a" defer repeat.for="i of items">${i}</div>');
       const $if = getDefer(def);
@@ -667,6 +677,18 @@ describe('3-runtime-html/defer.spec.ts', function () {
       assert.strictEqual(observer.disconnected, true);
     });
 
+    it('viewport watches an element rendered by a template controller in the placeholder', function () {
+      const { appHost } = createDeferFixture(
+        '<div defer="viewport">content</div><template defer-placeholder><p if.bind="true">skeleton</p></template>',
+      );
+      const [observer] = io.instances;
+      const p = appHost.querySelector('p')!;
+
+      assert.deepStrictEqual(Array.from(observer.targets), [p]);
+      observer.intersect(p);
+      assert.strictEqual(text(appHost), 'content');
+    });
+
     it('viewport shares one observer per root margin', function () {
       const { appHost } = createDeferFixture(
         `<template repeat.for="i of 3">
@@ -794,6 +816,17 @@ describe('3-runtime-html/defer.spec.ts', function () {
       let error: Error | null = null;
       try {
         createDeferFixture('<div defer="scroll">content</div>');
+      } catch (e) {
+        error = e as Error;
+      }
+      assert.match(error?.message, /AUR0827: Unknown \[defer\] trigger "scroll" in <app>/);
+    });
+
+    it('names the owning element in errors of a block projected into an au-slot', function () {
+      const Card = CustomElement.define({ name: 'my-card', template: '<au-slot></au-slot>' }, class Card { });
+      let error: Error | null = null;
+      try {
+        createDeferFixture('<my-card><div defer="scroll">content</div></my-card>', {}, [Card]);
       } catch (e) {
         error = e as Error;
       }
@@ -1132,6 +1165,31 @@ describe('3-runtime-html/defer.spec.ts', function () {
 
       await wait(80);
       assert.strictEqual(text(appHost), 'failed');
+    });
+
+    it('counts "minimum" from when the loading branch is visible, after the placeholder is gone', async function () {
+      const SlowExit = CustomElement.define(
+        { name: 'slow-exit', template: 'placeholder' },
+        class SlowExit { public detaching() { return wait(60); } },
+      );
+      const loader = createLoader({ HeavyChart });
+      const { appHost } = createDeferFixture(
+        `<div defer="on: immediate; load.bind: load"><heavy-chart></heavy-chart></div>
+        <slow-exit defer-placeholder></slow-exit>
+        <p defer-loading="after: 0; minimum: 100">loading</p>`,
+        { load: loader.load },
+        [SlowExit],
+      );
+
+      await wait(70);
+      assert.strictEqual(text(appHost), 'loading');
+      loader.resolve();
+      // shown at about 60ms, so it stays up until about 160ms, not 100ms
+      await wait(50);
+      assert.strictEqual(text(appHost), 'loading');
+
+      await wait(80);
+      assert.strictEqual(text(appHost), 'chart:');
     });
 
     it('does not show the loading branch when there is nothing to load', function () {

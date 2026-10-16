@@ -6,7 +6,6 @@ import { IPlatform } from '../../platform';
 import { IRendering } from '../../templating/rendering';
 import { ISSRContext, adoptSSRView, isSSRTemplateController } from '../../templating/ssr';
 import { IViewFactory } from '../../templating/view';
-import { vmkCe } from '../../templating/controller';
 import { createInterface } from '../../utilities-di';
 import { ErrorNames, createMappedError } from '../../errors';
 import { safeString } from '../../utilities';
@@ -148,7 +147,7 @@ export class Defer implements ICustomAttributeViewModel {
   /** @internal */ private readonly _rendering = resolve(IRendering);
   /** @internal */ private readonly _moduleLoader = resolve(IModuleLoader);
   /** @internal */ private readonly _triggers = resolve(IDeferTriggers);
-  /** @internal */ private readonly _instruction = resolve(IInstruction) as HydrateTemplateController;
+  /** @internal */ public readonly _instruction = resolve(IInstruction) as HydrateTemplateController;
   /** @internal */ private readonly _isServer = resolve(optional(ISSRContext)) != null;
   /**
    * Whether `when` is bound, in which case there is no default trigger.
@@ -313,9 +312,19 @@ export class Defer implements ICustomAttributeViewModel {
    * @internal
    */
   private _getTarget(trigger: string): Element {
-    const nodes = this._views[State.placeholder]?.nodes.childNodes;
-    const target = this.target
-      ?? (nodes == null ? void 0 : Array.prototype.find.call(nodes, (node: Node) => node.nodeType === 1 /* Element */) as Element | undefined);
+    let target = this.target;
+    const nodes = this._views[State.placeholder]?.nodes;
+    if (target == null && nodes != null) {
+      // The live nodes, as template controllers and containerless elements in the placeholder render their own
+      // nodes between the first and last node of the view
+      const last = nodes.lastChild;
+      for (let node = nodes.firstChild; node !== null; node = node === last ? null : node.nextSibling) {
+        if (node.nodeType === 1 /* Element */) {
+          target = node as Element;
+          break;
+        }
+      }
+    }
     if (target == null) {
       throw createMappedError(ErrorNames.defer_trigger_target_missing, trigger, getOwnerName(this));
     }
@@ -347,10 +356,15 @@ export class Defer implements ICustomAttributeViewModel {
     const platform = this._platform;
     const disposers = this._disposers;
     const loading = this._branches[State.loading] as DeferLoading | undefined;
+    let shown: void | Promise<void>;
     if (loading != null && this._loadingShownAt < 0) {
       const showLoading = () => {
-        this._loadingShownAt = platform.performanceNow();
-        void this._show(State.loading, false);
+        // The minimum counts from when the loading branch is visible, which waits for the previous branch to go
+        shown = onResolve(this._show(State.loading, false), () => {
+          if (epoch === this._epoch) {
+            this._loadingShownAt = platform.performanceNow();
+          }
+        });
       };
       if (loading.after > 0) {
         const handle = platform.setTimeout(showLoading, loading.after);
@@ -366,15 +380,20 @@ export class Defer implements ICustomAttributeViewModel {
         return;
       }
       this._disarm();
-      const remaining = loading == null || this._loadingShownAt < 0
-        ? 0
-        : loading.minimum - (platform.performanceNow() - this._loadingShownAt);
-      if (remaining > 0) {
-        const handle = platform.setTimeout(next, remaining);
-        disposers.push(() => platform.clearTimeout(handle));
-      } else {
-        next();
-      }
+      void onResolve(shown, () => {
+        if (epoch !== this._epoch) {
+          return;
+        }
+        const remaining = loading == null || this._loadingShownAt < 0
+          ? 0
+          : loading.minimum - (platform.performanceNow() - this._loadingShownAt);
+        if (remaining > 0) {
+          const handle = platform.setTimeout(next, remaining);
+          disposers.push(() => platform.clearTimeout(handle));
+        } else {
+          next();
+        }
+      });
     };
     loaded.then(
       () => settle(() => this._complete()),
@@ -807,13 +826,9 @@ const registerModule = (container: IContainer, moduleLoader: IModuleLoader, valu
 /**
  * The name of the element whose template contains the block, so errors say where to look.
  */
-const getOwnerName = (defer: Defer): string => {
-  let controller: IHydratedController | null = defer.$controller.parent;
-  while (controller != null && controller.vmKind !== vmkCe) {
-    controller = controller.parent;
-  }
-  return controller?.definition.name ?? 'unknown';
-};
+// The compiler names the content after its owner, which the controller ancestry misses
+// for a block projected into an <au-slot>
+const getOwnerName = (defer: Defer): string => defer._instruction.def.name;
 
 const describeValue = (value: unknown): string => value === null
   ? 'null'

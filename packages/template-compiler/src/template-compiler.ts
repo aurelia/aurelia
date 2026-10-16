@@ -786,13 +786,14 @@ export class TemplateCompiler implements ITemplateCompiler {
     let attrDef: IAttributeComponentDefinition | null;
     for (let i = 0, ii = attrs.length; ii > i; ++i) {
       syntax = context._attrParser.parse(attrs[i].name, attrs[i].value);
-      // Commands such as .attr and a bindable of the element take the attribute before a custom attribute can,
-      // as in _classifyAttributes
-      if (context._getCommand(syntax)?.ignoreAttr || elDef !== null && context._getBindables(elDef).attrs[syntax.target] != null) {
+      // A bindable of the element takes the attribute before a custom attribute can, as in _classifyAttributes
+      if (elDef !== null && context._getBindables(elDef).attrs[syntax.target] != null) {
         continue;
       }
       attrDef = findHostableAttr(el, syntax.target, context);
-      if (attrDef?.isTemplateController && (!deferredOnly || attrDef.compileContent === 'deferred')) {
+      // So do commands such as .attr. The command is only resolved for a matching template controller,
+      // as the commands of other attributes may come from a module the block loads later.
+      if (attrDef?.isTemplateController && (!deferredOnly || attrDef.compileContent === 'deferred') && !context._getCommand(syntax)?.ignoreAttr) {
         return true;
       }
     }

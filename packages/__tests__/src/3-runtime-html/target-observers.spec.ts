@@ -335,6 +335,22 @@ describe('3-runtime-html/target-observers.spec.ts', function () {
       },
     ];
 
+    // https://github.com/aurelia/aurelia/issues/2512
+    it('forgets styles once they have been removed', function () {
+      const ctx = TestContext.create();
+      const el = ctx.createElementFromMarkup('<div></div>');
+      const sut = new StyleAttributeAccessor(el);
+
+      for (let i = 0; i < 50; ++i) {
+        sut.setValue({ [`--var-${i}`]: `${i}px`, color: 'red' });
+      }
+
+      assert.deepStrictEqual(Object.keys(sut.styles).sort(), ['--var-49', 'color']);
+      assert.strictEqual(el.style.getPropertyValue('--var-49'), '49px');
+      assert.strictEqual(el.style.getPropertyValue('--var-48'), '');
+      assert.strictEqual(el.style.color, 'red');
+    });
+
     for (const { title, staticStyle, input, expected } of specs) {
       // skip url checks since node incorrectly fails as background url images are not supported
       if (title.includes('url') && typeof process !== 'undefined') { continue; }
@@ -387,6 +403,41 @@ describe('3-runtime-html/target-observers.spec.ts', function () {
         }
       }
     };
+
+    // https://github.com/aurelia/aurelia/issues/2512
+    it('only removes classes applied by the previous update', function () {
+      const ctx = TestContext.create();
+      const el = ctx.createElementFromMarkup('<div class="static"></div>');
+      const sut = new ClassAttributeAccessor(el);
+      const removed: string[] = [];
+      const remove = el.classList.remove;
+      el.classList.remove = function (...names: string[]) {
+        removed.push(...names);
+        return remove.apply(this, names);
+      };
+
+      for (let i = 0; i < 50; ++i) {
+        sut.setValue(`row row-${i}`);
+      }
+      assert.deepStrictEqual(removed, Array.from({ length: 49 }, (_, i) => `row-${i}`));
+      assert.strictEqual(el.className, 'static row row-49');
+
+      removed.length = 0;
+      sut.setValue('other');
+      assert.deepStrictEqual(removed, ['row', 'row-49']);
+      assert.strictEqual(el.className, 'static other');
+    });
+
+    it('removes mapped class names', function () {
+      const ctx = TestContext.create();
+      const el = ctx.createElementFromMarkup('<div></div>');
+      const sut = new ClassAttributeAccessor(el, { a: 'b', b: 'c' });
+
+      sut.setValue('a');
+      assert.strictEqual(el.className, 'b');
+      sut.setValue('d');
+      assert.strictEqual(el.className, 'd');
+    });
 
     const markupArr = [
       '<div></div>',

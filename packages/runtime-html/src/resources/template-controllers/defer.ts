@@ -415,16 +415,9 @@ export class Defer implements ICustomAttributeViewModel {
     this._state = State.complete;
     this.error = void 0;
     this._loadingShownAt = -1;
-    void onResolve(this._show(State.complete, false), () => {
-      // The content stays, so the branches are never shown again
-      for (const state of [State.placeholder, State.loading, State.error]) {
-        const view = this._views[state];
-        if (view !== void 0 && !view.isActive) {
-          view.dispose();
-          this._views[state] = void 0;
-        }
-      }
-    });
+    // The branches are never shown again, but their views are only disposed with the block, as disposing a view
+    // disposes the scoped registrations of the container it shares with the surrounding element
+    void this._show(State.complete, false);
   }
 
   /**

@@ -1,4 +1,4 @@
-import { Registration } from '@aurelia/kernel';
+import { Registration, newInstanceForScope, resolve } from '@aurelia/kernel';
 import { tasksSettled } from '@aurelia/runtime';
 import {
   Aurelia,
@@ -1190,6 +1190,33 @@ describe('3-runtime-html/defer.spec.ts', function () {
 
       await wait(80);
       assert.strictEqual(text(appHost), 'chart:');
+    });
+
+    it('keeps the scoped registrations of the surrounding element once the content renders', async function () {
+      class ScopedService { }
+      const ChildEl = CustomElement.define(
+        { name: 'child-el', template: 'child' },
+        class ChildEl { public readonly service = resolve(ScopedService); },
+      );
+      const OwnerEl = CustomElement.define(
+        {
+          name: 'owner-el',
+          template: '<div defer="immediate"><child-el if.bind="show"></child-el></div><p defer-placeholder>placeholder</p>',
+          dependencies: [ChildEl],
+        },
+        class OwnerEl {
+          public show = false;
+          public readonly service = resolve(newInstanceForScope(ScopedService));
+        },
+      );
+      const { appHost } = createDeferFixture('<owner-el></owner-el>', {}, [OwnerEl]);
+      const owner = CustomElement.for<{ show: boolean; service: ScopedService }>(appHost.querySelector('owner-el')!).viewModel;
+
+      // the child is created after the placeholder is gone
+      owner.show = true;
+      await tasksSettled();
+      const child = CustomElement.for<{ service: ScopedService }>(appHost.querySelector('child-el')!).viewModel;
+      assert.strictEqual(child.service, owner.service);
     });
 
     it('does not show the loading branch when there is nothing to load', function () {

@@ -27,7 +27,10 @@ export interface ArrayIndexObserver extends IObserver, ISubscriberCollection {
   readonly owner: ICollectionObserver<'array'>;
 }
 
-export const getArrayObserver = /*@__PURE__*/ (() => {
+export const {
+  getArrayObserver,
+  growArray,
+} = /*@__PURE__*/ (() => {
 
   const observerLookup = new WeakMap<unknown[], ArrayObserverImpl>();
 
@@ -522,12 +525,42 @@ export const getArrayObserver = /*@__PURE__*/ (() => {
     }
   }
 
-  return function getArrayObserver(array: unknown[]): ArrayObserver {
+  function getArrayObserver(array: unknown[]): ArrayObserver {
     let observer = observerLookup.get(array);
     if (observer === void 0) {
       observerLookup.set(array, observer = new ArrayObserverImpl(array));
       enableArrayObservation();
     }
     return observer;
-  };
+  }
+
+  /**
+   * Grow `arr` to `length`, filling the new slots with `undefined` and putting `last` in the final slot,
+   * then notify once. Fills in place instead of spreading the gap into `splice`, which allocates per slot
+   * and throws once the gap exceeds the engine's argument limit.
+   *
+   * @internal
+   */
+  function growArray(arr: unknown[], length: number, last: unknown): void {
+    let i = arr.length;
+    if (length <= i) {
+      return;
+    }
+    const o = observerLookup.get(arr);
+    const indexMap = o?.indexMap;
+    arr.length = length;
+    if (indexMap !== void 0) {
+      indexMap.length = length;
+    }
+    for (; i < length; ++i) {
+      arr[i] = void 0;
+      if (indexMap !== void 0) {
+        indexMap[i] = -2;
+      }
+    }
+    arr[length - 1] = last;
+    o?.notify();
+  }
+
+  return { getArrayObserver, growArray };
 })();

@@ -107,6 +107,11 @@ export class RetryInterceptor implements IFetchInterceptor {
 
       return Promise.resolve(result).then(doRetry => {
         if (doRetry) {
+          // The caller can abort while an asynchronous retry decision is pending.
+          if (signal?.aborted === true) {
+            delete request.retryConfig;
+            throw abortReason(signal);
+          }
           retryConfig.counter++;
           const delay = calculateDelay(retryConfig);
           let newRequest: IRetryableRequest;

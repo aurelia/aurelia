@@ -160,9 +160,11 @@ export class AbortAwareInterceptorService {
 
 ## AbortController and Retries
 
-The retry interceptor does not retry aborted requests. When a request fails because its signal was aborted or fetch threw an `AbortError`, the call rejects with that error and no retry is attempted, even when `doRetry` is configured. The rejection is the signal's abort reason, so it is an `AbortError` only when `abort()` was called without a reason: `controller.abort(myReason)` rejects with `myReason`, and an `AbortSignal.timeout()` signal rejects with a `TimeoutError`.
+The retry interceptor stops retrying when the caller's signal is aborted or it receives an `AbortError`, even when `doRetry` is configured. Cancellation reasons can also be custom values or a `TimeoutError`, so do not rely solely on the error's name. An error already received from fetch or an earlier interceptor can be propagated unchanged.
 
-Retries reuse the original request's signal. Aborting while a retry is waiting for its delay, while `beforeRetry` is running, or while a retry attempt is in flight settles the call straight away and ends the retry sequence; `beforeRetry` is not called once the call has been aborted. If `beforeRetry` returns a new `Request`, it is rebuilt on the original signal, so aborting still cancels it. Create a new AbortController for each logical call rather than reusing one; a controller that has already fired would prevent the retries from running.
+During a retry delay, aborting cancels the timer and rejects the call promptly, without starting `beforeRetry`. An asynchronous `doRetry` or `beforeRetry` is still awaited. If `doRetry` allows another attempt after cancellation, the interceptor stops before scheduling the delay. If `beforeRetry` is already running, the interceptor waits for it to finish, then checks the signal before sending the retry. Aborting does not interrupt these application promises.
+
+Retries use the original caller's signal, including after dispatch. A replacement `Request` returned by `beforeRetry` keeps its method, body, and headers, but the caller's signal replaces any signal on that replacement; the signals are not combined. Use a fresh AbortController for each logical call, since an aborted controller cannot be reset.
 
 If you need each attempt to have its own timeout budget, wrap the calls yourself instead of relying on `withRetry` — a fresh controller per attempt is the key detail:
 

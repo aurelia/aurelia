@@ -4,6 +4,7 @@ import {
   IFetchInterceptor,
   IFetchFn,
   IHttpClient,
+  IRetryableRequest,
   RetryStrategy,
 } from '@aurelia/fetch-client';
 import { assert } from '@aurelia/testing';
@@ -466,6 +467,85 @@ describe('fetch-client/http-client.spec.ts', function () {
   });
 
   describe('cancellation review (#2554)', function () {
+    it('does not start a backoff after cancellation during an async retry decision', async function () {
+      let enterDecision!: () => void;
+      let finishDecision!: (retry: boolean) => void;
+      let releaseDelay: (() => void) | undefined;
+      const entered = new Promise<void>(resolve => { enterDecision = resolve; });
+      const decision = new Promise<boolean>(resolve => { finishDecision = resolve; });
+      const controller = new AbortController();
+      const reason = new Error('navigation cancelled the request');
+      let originalRequest!: IRetryableRequest;
+      const { client, requests, platform } = createTestClient(async (request, record) => {
+        originalRequest = request;
+        await record(request);
+        return new Response(null, { status: 503 });
+      });
+      let delayCalls = 0;
+      let hookCalls = 0;
+      (platform as Writable<BrowserPlatform>).setTimeout = ((callback: () => void) => {
+        ++delayCalls;
+        releaseDelay = callback;
+        return 0;
+      }) as BrowserPlatform['setTimeout'];
+      client.configure(config => config.rejectErrorResponses().withRetry({
+        maxRetries: 1,
+        interval: 30_000,
+        // An application may consult asynchronous retry policy before trying a
+        // failed service call again. Navigation away can cancel it meanwhile.
+        doRetry: () => { enterDecision(); return decision; },
+        beforeRetry: request => { ++hookCalls; return request; },
+      }));
+      let settled = false;
+      const outcome = client.fetch('https://api.example.com/status', { signal: controller.signal })
+        .then(response => ({ response, error: null }), error => ({ response: null, error }));
+      void outcome.then(() => { settled = true; });
+
+      await entered;
+      controller.abort(reason);
+      finishDecision(true);
+      await new Promise<void>(resolve => globalThis.setTimeout(resolve, 0));
+      const afterDecision = { settled, requesting: client.isRequesting, delayCalls };
+      // Drain a wrongly scheduled delay before asserting so a failing test does
+      // not leave the client open. No real 30-second wait is needed.
+      releaseDelay?.();
+      const result = await outcome;
+
+      assert.strictEqual(result.error, reason, 'preserve the caller\'s abort reason');
+      assert.strictEqual(originalRequest.retryConfig, void 0, 'release retry metadata');
+      assert.strictEqual(requests.length, 1);
+      assert.deepStrictEqual(
+        { ...afterDecision, hookCalls },
+        { settled: true, requesting: false, delayCalls: 0, hookCalls: 0 },
+        'after the retry decision settles, cancellation must prevent the delay and hook',
+      );
+    });
+
+    it('preserves method, body and headers when a replacement is rebuilt with the caller signal', async function () {
+      const controller = new AbortController();
+      const { client, requests } = createTestClient(async (request, record) => {
+        await record(request);
+        return requests.length === 1 ? new Response(null, { status: 503 }) : new Response('saved');
+      });
+      client.configure(config => config.rejectErrorResponses().withRetry({
+        maxRetries: 1,
+        interval: 0,
+        beforeRetry: request => new Request(request, { headers: { 'x-token': 'refreshed' } }),
+      }));
+
+      const response = await client.fetch('https://api.example.com/settings', {
+        method: 'PUT',
+        body: 'updated settings',
+        signal: controller.signal,
+      });
+      assert.strictEqual(await response.text(), 'saved');
+      assert.strictEqual(requests.length, 2);
+      assert.strictEqual(requests[1].method, 'PUT');
+      assert.strictEqual(requests[1].body, 'updated settings');
+      assert.strictEqual(requests[1].headers['x-token'], 'refreshed');
+      assert.strictEqual(client.activeRequestCount, 0);
+    });
+
     for (const preserveSignal of [true, false]) {
       it(`keeps cancellation effective during an async retry hook (replacement inherits signal=${preserveSignal})`, async function () {
         let enterHook: () => void;

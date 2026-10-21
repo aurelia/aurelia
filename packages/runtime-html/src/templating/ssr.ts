@@ -288,7 +288,7 @@ type InstructionType = typeof itPropertyBinding | typeof itTextBinding | typeof 
 type SerializedInstruction =
   | { type: typeof itPropertyBinding; exprId: ExprId; to: string; mode: BindingModeValue }
   | { type: typeof itTextBinding; exprIds: ExprId[]; parts: string[] }
-  | { type: typeof itInterpolation; exprIds: ExprId[]; parts: string[]; to: string }
+  | { type: typeof itInterpolation; exprIds: ExprId[]; parts: string[]; to: string; isTextContent?: true }
   | { type: typeof itListenerBinding; exprId: ExprId; to: string; capture: boolean; modifier?: string | null }
   | { type: typeof itRefBinding; exprId: ExprId; to: string }
   | { type: typeof itSetProperty; value: unknown; to: string }
@@ -423,6 +423,7 @@ function translateInstruction(ins: SerializedInstruction, ctx: TranslationContex
         type: itInterpolation,
         from: interpolation,
         to: ins.to,
+        ...(ins.isTextContent === true ? { isTextContent: true as const } : {}),
       };
       return instruction;
     }

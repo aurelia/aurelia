@@ -167,6 +167,28 @@ describe('3-runtime-html/ssr-round-trip.spec.ts', function () {
     }
   });
 
+  it('hydrates repeated textarea defaults and keeps them associated through collection updates', async function () {
+    const { host, vm, dispose } = await roundTrip(
+      'rt-repeated-textareas',
+      `<section><textarea repeat.for="entry of entries">\${entry}</textarea></section>`,
+      () => ({ entries: ['', 'initial', null] as (string | null)[] }),
+      repeatScope('rt-repeated-textareas', [2, 2, 2]),
+    );
+    try {
+      const values = () => Array.from(host.querySelectorAll('textarea'), element => element.value);
+      assert.deepStrictEqual(values(), ['', 'initial', '']);
+      vm.entries.splice(0, 1, 'replacement');
+      vm.entries.push('added');
+      await tasksSettled();
+      assert.deepStrictEqual(values(), ['replacement', 'initial', '', 'added']);
+      vm.entries.reverse();
+      await tasksSettled();
+      assert.deepStrictEqual(values(), ['added', '', 'initial', 'replacement']);
+    } finally {
+      await dispose();
+    }
+  });
+
   it('hydrates an interpolated <title> without leaking markers into its text', async function () {
     const { host, markup, vm, dispose } = await roundTrip(
       'rt-title',
@@ -182,6 +204,68 @@ describe('3-runtime-html/ssr-round-trip.spec.ts', function () {
       vm.a = 'About';
       await tasksSettled();
       assert.strictEqual(title.textContent, 'About - site');
+    } finally {
+      await dispose();
+    }
+  });
+
+  it('keeps textarea edits separate from its interpolated reset value after hydration', async function () {
+    const { host, vm, dispose } = await roundTrip(
+      'rt-textarea-reset',
+      `<form><textarea>\${text}</textarea></form>`,
+      () => ({ text: 'initial' }),
+      { name: 'rt-textarea-reset', children: [] },
+    );
+    try {
+      const textarea = host.querySelector('textarea');
+      const form = host.querySelector('form');
+      assert.strictEqual(textarea.value, 'initial');
+      assert.strictEqual(textarea.defaultValue, 'initial');
+
+      // Text interpolation supplies the default, unlike a two-way value binding. Updating it must leave a
+      // user's current edit intact; a native form reset then restores the updated default.
+      textarea.value = 'edited';
+      vm.text = 'replacement';
+      await tasksSettled();
+      assert.strictEqual(textarea.value, 'edited');
+      assert.strictEqual(textarea.defaultValue, 'replacement');
+
+      form.reset();
+      assert.strictEqual(textarea.value, 'replacement');
+      vm.text = 'next';
+      await tasksSettled();
+      assert.strictEqual(textarea.value, 'next', 'reset clears the dirty-value flag');
+    } finally {
+      await dispose();
+    }
+  });
+
+  it('hydrates empty and adjacent SVG text interpolations without treating its title as HTML raw text', async function () {
+    const { host, vm, dispose } = await roundTrip(
+      'rt-svg-text',
+      `<svg><title>\${label}</title><text>\${prefix}\${suffix}</text></svg>`,
+      () => ({ label: '', prefix: '', suffix: 'value' }),
+      { name: 'rt-svg-text', children: [] },
+    );
+    try {
+      const title = host.querySelector('title');
+      const text = host.querySelector('text');
+      assert.strictEqual(title.namespaceURI, 'http://www.w3.org/2000/svg');
+      assert.strictEqual(title.textContent, '');
+      assert.strictEqual(text.textContent, 'value');
+
+      vm.label = 'chart';
+      vm.prefix = 'next ';
+      vm.suffix = 'point';
+      await tasksSettled();
+      assert.strictEqual(title.textContent, 'chart');
+      assert.strictEqual(text.textContent, 'next point');
+
+      vm.label = '';
+      vm.suffix = '';
+      await tasksSettled();
+      assert.strictEqual(title.textContent, '');
+      assert.strictEqual(text.textContent, 'next ');
     } finally {
       await dispose();
     }
@@ -232,6 +316,46 @@ describe('3-runtime-html/ssr-round-trip.spec.ts', function () {
       prepareSSRForSerialization(document);
       assert.strictEqual(restoreSSRTextNodes(document), true);
       assert.deepStrictEqual(Array.from(document.body.childNodes, n => (n as Text).data), ['a', 'b', '']);
+    });
+
+    it('restores empty and adjacent text after serializing and parsing a complete document', function () {
+      const ctx = TestContext.create();
+      const document = ctx.doc.implementation.createHTMLDocument('page');
+      document.body.append('', '', 'first', 'second', '', 'last', '');
+      prepareSSRForSerialization(document);
+
+      const markup = new ctx.wnd.XMLSerializer().serializeToString(document);
+      const parsed = new ctx.DOMParser().parseFromString(markup, 'text/html');
+      assert.strictEqual(restoreSSRTextNodes(parsed), true);
+      assert.strictEqual(parsed.doctype.name, 'html');
+      assert.strictEqual(parsed.title, 'page');
+      assert.deepStrictEqual(
+        Array.from(parsed.body.childNodes, node => [node.nodeType, (node as Text).data]),
+        ['', '', 'first', 'second', '', 'last', ''].map(data => [3, data]),
+      );
+    });
+
+    it('restores a serialized fragment without merging text or removing ordinary comments', function () {
+      const { doc } = TestContext.create();
+      const fragment = doc.createDocumentFragment();
+      fragment.append('', 'first', '', '', 'second', 'third', '');
+      fragment.append(doc.createComment('retained note'));
+      const expected = Array.from(fragment.childNodes, node => [node.nodeType, (node as CharacterData).data]);
+      prepareSSRForSerialization(fragment);
+
+      const holder = doc.createElement('div');
+      holder.append(fragment);
+      const parsed = doc.createElement('template');
+      parsed.innerHTML = holder.innerHTML;
+      assert.strictEqual(restoreSSRTextNodes(parsed.content), true);
+      assert.deepStrictEqual(
+        Array.from(parsed.content.childNodes, node => [node.nodeType, (node as CharacterData).data]),
+        expected,
+      );
+
+      const nodes = Array.from(parsed.content.childNodes);
+      assert.strictEqual(restoreSSRTextNodes(parsed.content), false, 'the preparation marker was already consumed');
+      assert.deepStrictEqual(Array.from(parsed.content.childNodes), nodes, 'restoring again leaves the restored nodes intact');
     });
 
     it('only counts the integrity marker on the root itself', function () {

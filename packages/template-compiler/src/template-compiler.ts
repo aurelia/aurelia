@@ -549,11 +549,11 @@ export class TemplateCompiler implements ITemplateCompiler {
     }
 
     // <textarea> and <title> content is parsed as text, so a marker comment inside it would come back from a
-    // server render as literal text. Bind interpolated content through the element's textContent instead.
+    // server render as literal text. Target the element so the renderer can recreate its text bindings without markers.
     if (!isCustomElement && (el.nodeName === 'TEXTAREA' || el.nodeName === 'TITLE')) {
       const expr = context._exprParser.parse(el.textContent!, etInterpolation);
       if (expr !== null) {
-        (instructions ??= []).push({ type: itInterpolation, from: expr, to: 'textContent' } as InterpolationInstruction);
+        (instructions ??= []).push({ type: itInterpolation, from: expr, to: 'textContent', isTextContent: true } as InterpolationInstruction);
         needsMarker = true;
         el.textContent = '';
       }

@@ -170,15 +170,18 @@ export function adoptSSRViews(
 }
 
 /**
- * Make a server-rendered tree survive the HTML round trip with the node counts the manifest recorded.
+ * Preserve empty and adjacent text-node boundaries during HTML serialization and parsing.
  *
  * The HTML parser drops empty text nodes and merges adjacent ones, so each empty text node is replaced with an
  * `<!--au-e-->` comment (same node count) and an `<!--au-t-->` separator goes between adjacent text nodes.
- * An `<!--au-hm-->` comment is added as the first child of `root` so the client can tell prepared markup apart
- * from markup that skipped this step or had its comments stripped.
- * `restoreSSRTextNodes` reverses all of this on the client; `Aurelia.hydrate()` calls it before adoption.
+ * Elements whose contents cannot carry comment markers are skipped. Native `textarea` and `title` interpolation
+ * requires the compiler's element-targeted text-content instructions.
+ * A leading `<!--au-hm-->` comment records preparation of this root. It does not verify that other comments
+ * or whitespace survive delivery. Preserve the hydration markers and whitespace when delivering the HTML.
  *
- * Call after the manifest is recorded, immediately before serializing.
+ * Record the manifest first, then call this helper immediately before serializing. Restore the corresponding
+ * root in the parsed DOM before adoption. For `Aurelia.hydrate()`, prepare the corresponding server host;
+ * `hydrate()` already restores its client host, so no separate restoration call is needed.
  */
 export function prepareSSRForSerialization(root: Node): void {
   const doc = root.ownerDocument ?? root as Document;
@@ -210,10 +213,12 @@ export function prepareSSRForSerialization(root: Node): void {
 const rawTextParentRE = /^(?:SCRIPT|STYLE|TEXTAREA|TITLE|XMP|IFRAME|NOEMBED|NOFRAMES|NOSCRIPT|PLAINTEXT)$/;
 
 /**
- * Reverse `prepareSSRForSerialization` on the client before adoption.
+ * Restore text-node boundaries prepared by `prepareSSRForSerialization`, before DOM adoption.
+ * Use the corresponding parsed root. `Aurelia.hydrate()` already calls this helper on its host.
+ * This replaces `au-e` comments with empty text nodes and removes `au-t` and `au-hm` comments.
  *
- * @returns whether `host` starts with the `<!--au-hm-->` integrity marker, i.e. whether the markup was prepared
- * and its comments survived delivery.
+ * @returns Whether `host` started with `<!--au-hm-->` before restoration. This records preparation of that
+ * root, not verification of the remaining markup. A missing marker alone does not establish hydration failure.
  */
 export function restoreSSRTextNodes(host: Node): boolean {
   const doc = host.ownerDocument ?? host as Document;

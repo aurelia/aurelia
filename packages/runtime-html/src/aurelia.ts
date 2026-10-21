@@ -112,8 +112,9 @@ export class Aurelia implements IDisposable {
   public hydrate<T extends object>(config: IHydrateConfig<T>): IAppRoot<T> | Promise<IAppRoot<T>> {
     const container = config.container ?? this.container.createChild();
     if (!restoreSSRTextNodes(config.host) && __DEV__) {
+      // A missing preparation marker is a diagnostic hint, not proof that the DOM and manifest differ.
       // eslint-disable-next-line no-console
-      console.warn('[DEV:aurelia] Hydrating markup without the <!--au-hm--> marker: either prepareSSRForSerialization() was not called on the server before serializing, or the HTML comments were stripped after server rendering (e.g. by a minifier or CDN). Empty and adjacent text nodes will not line up with the SSR manifest.');
+      console.warn('[DEV:aurelia] Hydration host has no leading <!--au-hm--> preparation marker. Prepare the corresponding server host after recording the manifest and before serializing. Preserve hydration comments and whitespace during delivery; otherwise text-node boundaries may not match the manifest.');
     }
     const appRoot: IAppRoot<T> = new AppRoot(
       { host: config.host, component: config.component, ssrScope: config.ssrScope },

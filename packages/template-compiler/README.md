@@ -11,3 +11,7 @@ For the latest stable version:
 ```bash
 npm i @aurelia/template-compiler
 ```
+
+## SSR integration
+
+Compiler and AOT producers should follow the [SSR producer protocol](../runtime-html/README.md#ssr-producer-protocol) for native textarea/title content instructions and serialized output.

@@ -3,6 +3,7 @@ import { InstanceProvider, onResolve, onResolveAll, isFunction, isPromise, noop 
 import { IAppTask } from './app-task';
 import { CustomElementDefinition, generateElementName } from './resources/custom-element';
 import { Controller, IControllerElementHydrationInstruction } from './templating/controller';
+import { notifyErrorHandler } from './templating/error-handling';
 import { createInterface, instanceRegistration, registerResolver } from './utilities-di';
 
 import type { Constructable, IContainer, IDisposable } from '@aurelia/kernel';
@@ -98,52 +99,72 @@ export class AppRoot<
     registerResolver(container, IEventTarget, new InstanceProvider<IEventTarget>('IEventTarget', host));
     registerHostNode(container, host, this.platform = this._createPlatform(container, host));
 
+    // Component construction and hydration failures reject start() (or throw
+    // out of app() when nothing defers them); report them first. App task
+    // failures are reported by _runAppTasks, so the tasks stay outside.
+    const onHydrationFailed = (err: unknown): never => {
+      notifyErrorHandler(container, err, this._controller ?? null, 'attaching', false);
+      throw err;
+    };
     this._hydratePromise = onResolve(this._runAppTasks('creating'), () => {
-      if (!config.allowActionlessForm !== false) {
-        host.addEventListener('submit', (e: Event) => {
-          const target = e.target as HTMLFormElement;
-          const noAction = !target.getAttribute('action');
+      let controller: Controller<K>;
+      try {
+        if (!config.allowActionlessForm !== false) {
+          host.addEventListener('submit', (e: Event) => {
+            const target = e.target as HTMLFormElement;
+            const noAction = !target.getAttribute('action');
 
-          if (target.tagName === 'FORM' && noAction) {
-            e.preventDefault();
-          }
-        }, false);
+            if (target.tagName === 'FORM' && noAction) {
+              e.preventDefault();
+            }
+          }, false);
+        }
+
+        const childCtn = enhance ? container : container.createChild();
+        const component = config.component as Constructable | ICustomElementViewModel;
+        let instance: object;
+        if (isFunction(component)) {
+          instance = childCtn.invoke(component);
+          instanceRegistration(component, instance);
+        } else {
+          instance = config.component as ICustomElementViewModel;
+        }
+
+        const hydrationInst: IControllerElementHydrationInstruction = {
+          hydrate: false,
+          projections: null,
+        };
+        const definition = enhance
+          ? CustomElementDefinition.create({ name: generateElementName(), template: this.host, enhance: true, strict: config.strictBinding })
+          // leave the work of figuring out the definition to the controller
+          // there's proper error messages in case of failure inside the $el() call
+          : void 0;
+        controller = (this._controller = Controller.$el<K>(
+          childCtn,
+          instance as K,
+          host,
+          hydrationInst,
+          definition,
+          /* location  */null,
+          /* ssrScope  */config.ssrScope,
+        )) as Controller<K>;
+
+        controller._hydrateCustomElement(hydrationInst);
+      } catch (err) {
+        return onHydrationFailed(err);
       }
-
-      const childCtn = enhance ? container : container.createChild();
-      const component = config.component as Constructable | ICustomElementViewModel;
-      let instance: object;
-      if (isFunction(component)) {
-        instance = childCtn.invoke(component);
-        instanceRegistration(component, instance);
-      } else {
-        instance = config.component as ICustomElementViewModel;
-      }
-
-      const hydrationInst: IControllerElementHydrationInstruction = {
-        hydrate: false,
-        projections: null,
-      };
-      const definition = enhance
-        ? CustomElementDefinition.create({ name: generateElementName(), template: this.host, enhance: true, strict: config.strictBinding })
-        // leave the work of figuring out the definition to the controller
-        // there's proper error messages in case of failure inside the $el() call
-        : void 0;
-      const controller = (this._controller = Controller.$el<K>(
-        childCtn,
-        instance as K,
-        host,
-        hydrationInst,
-        definition,
-        /* location  */null,
-        /* ssrScope  */config.ssrScope,
-      )) as Controller<K>;
-
-      controller._hydrateCustomElement(hydrationInst);
       return onResolve(this._runAppTasks('hydrating'), () => {
-        controller._hydrate();
+        try {
+          controller._hydrate();
+        } catch (err) {
+          return onHydrationFailed(err);
+        }
         return onResolve(this._runAppTasks('hydrated'), () => {
-          controller._hydrateChildren();
+          try {
+            controller._hydrateChildren();
+          } catch (err) {
+            return onHydrationFailed(err);
+          }
           this._hydratePromise = void 0;
         });
       });
@@ -153,18 +174,42 @@ export class AppRoot<
   public activate(): void | Promise<void> {
     return onResolve(this._hydratePromise, () => {
       return onResolve(this._runAppTasks('activating'), () => {
-        return onResolve(this._controller.activate(this._controller, null, void 0), () => {
-          return this._runAppTasks('activated');
-        });
+        const controller = this._controller;
+        const onActivationFailed = (err: unknown): never => {
+          notifyErrorHandler(this.container, err, controller, 'attaching', false);
+          throw err;
+        };
+        let activation: void | Promise<void>;
+        try {
+          activation = controller.activate(controller, null, void 0);
+        } catch (err) {
+          return onActivationFailed(err);
+        }
+        if (isPromise(activation)) {
+          return activation.then(() => this._runAppTasks('activated'), onActivationFailed);
+        }
+        return this._runAppTasks('activated');
       });
     });
   }
 
   public deactivate(): void | Promise<void> {
     return onResolve(this._runAppTasks('deactivating'), () => {
-      return onResolve(this._controller.deactivate(this._controller, null), () => {
-        return this._runAppTasks('deactivated');
-      });
+      const controller = this._controller;
+      const onDeactivationFailed = (err: unknown): never => {
+        notifyErrorHandler(this.container, err, controller, 'detaching', false);
+        throw err;
+      };
+      let deactivation: void | Promise<void>;
+      try {
+        deactivation = controller.deactivate(controller, null);
+      } catch (err) {
+        return onDeactivationFailed(err);
+      }
+      if (isPromise(deactivation)) {
+        return deactivation.then(() => this._runAppTasks('deactivated'), onDeactivationFailed);
+      }
+      return this._runAppTasks('deactivated');
     });
   }
 
@@ -175,21 +220,36 @@ export class AppRoot<
       ? []
       : container.getAll(IAppTask);
     const results: (void | Promise<void>)[] = [];
+    // App tasks belong to no controller; their failures still reject start()
+    // or stop(), and are reported first like every other caught error.
+    const report = (error: unknown): void => {
+      notifyErrorHandler(container, error, null, 'task', false);
+    };
     try {
       for (let i = 0; i < appTasks.length; ++i) {
         const task = appTasks[i];
         if (task.slot === slot) {
-          results.push(task.run());
+          const result = task.run();
+          // Reported per task: the aggregate below only surfaces the first
+          // rejection, and every failed task deserves its own report.
+          results.push(isPromise(result)
+            ? result.catch((error: unknown) => {
+              report(error);
+              throw error;
+            })
+            : result);
         }
       }
     } catch (error) {
       // A synchronous throw ends the phase immediately. Earlier task Promises
-      // remain application-owned, but observing their rejection keeps a later
-      // failure from escaping after the original error has been reported.
+      // remain application-owned and still report their own failures, but
+      // observing their rejection keeps a later failure from escaping after
+      // the original error has been reported.
       const pending = onResolveAll(...results);
       if (isPromise(pending)) {
         void pending.catch(noop);
       }
+      report(error);
       throw error;
     }
     return onResolveAll(...results);

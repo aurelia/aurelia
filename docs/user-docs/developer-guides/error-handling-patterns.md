@@ -55,101 +55,63 @@ Template:
 
 ### Lifecycle Hook Error Management
 
-Handle errors in different lifecycle hooks with appropriate recovery strategies:
+The simplest way to contain a lifecycle failure is the built-in `<error-boundary>` element. Wrap the content you don't fully control, and Aurelia tears the failed subtree down and renders your fallback instead of rejecting `Aurelia.start()`:
+
+```html
+<error-boundary>
+  <third-party-widget></third-party-widget>
+
+  <template au-slot="fallback">
+    <p>This widget couldn't load.</p>
+    <button click.trigger="$host.reset()">Try again</button>
+  </template>
+</error-boundary>
+```
+
+`$host` inside the fallback is the boundary, so `$host.error` reads the captured error and `$host.reset()` rebuilds the content with fresh component instances. `reset-key.bind` resets the boundary automatically when a key like a route parameter or selected record changes. See [error boundaries](../components/error-boundaries.md) for the full API, including nesting and `error.from-view`.
+
+For a single place to send caught errors, register `IErrorHandler` on the app container. It receives the errors the framework catches at lifecycle hooks, template controller swaps, queued binding updates, app tasks and event listeners, including ones a boundary handled. Computed getter errors don't reach it yet; see [what a boundary does not catch](../components/error-boundaries.md#what-a-boundary-does-not-catch).
 
 ```typescript
-export class RobustComponent {
-  private initializationError: Error | null = null;
-  private bindingError: Error | null = null;
+import { Registration } from '@aurelia/kernel';
+import { Aurelia, IErrorHandler } from 'aurelia';
 
-  created(): void {
-    try {
-      this.initializeComponent();
-    } catch (error) {
-      this.initializationError = error instanceof Error ? error : new Error('Initialization failed');
-      console.error('Component initialization failed:', error);
-    }
-  }
-
-  async binding(): Promise<void> {
-    if (this.initializationError) {
-      // Skip binding if initialization failed
-      return;
-    }
-
-    try {
-      await this.bindData();
-    } catch (error) {
-      this.bindingError = error instanceof Error ? error : new Error('Binding failed');
-      console.error('Data binding failed:', error);
-    }
-  }
-
-  attached(): void {
-    if (this.initializationError || this.bindingError) {
-      // Show error state instead of normal functionality
-      this.showErrorState();
-    }
-  }
-
-  private initializeComponent(): void {
-    // Component initialization logic
-  }
-
-  private async bindData(): Promise<void> {
-    // Data binding logic
-  }
-
-  private showErrorState(): void {
-    // Show error UI
-  }
-}
+Aurelia.register(
+  Registration.instance(IErrorHandler, {
+    handleError(error, info) {
+      errorReporter.send(error, info.phase, info.handled);
+    },
+  }),
+);
 ```
+
+Per-hook try/catch still has a place when a hook can recover on its own: catch the error inside the hook, store it in a property, and let the template react to it. That's the pattern in the promise-based example above. The difference is scope: try/catch inside a hook only sees errors in that component's code, while a boundary sees errors anywhere in its subtree, including components you didn't write.
 
 ## Event Handler Error Handling
 
 ### Safe Event Handlers
 
-Aurelia provides built-in error handling for event handlers. You can configure custom error handling:
+When an event handler throws, the default listener behavior reports the error to `IErrorHandler`, dispatches a cancelable `au-event-error` event on `window`, and rethrows unless that event was cancelled. To change what happens after the report, register your own `IListenerBindingOptions`:
 
 ```typescript
-import { ListenerBindingOptions } from 'aurelia';
+import { Registration } from '@aurelia/kernel';
+import { IListenerBindingOptions } from '@aurelia/runtime-html';
+import { Aurelia } from 'aurelia';
 
-export class EventErrorComponent {
-  private errorCount = 0;
-  private lastError: Error | null = null;
-
-  // Configure error handling for event listeners
-  private eventOptions = new ListenerBindingOptions(
-    false, // prevent
-    false, // capture
-    (event: Event, error: unknown) => {
-      this.handleEventError(event, error);
-    }
-  );
-
-  handleClick(): void {
-    // This might throw an error
-    throw new Error('Button click failed');
-  }
-
-  private handleEventError(event: Event, error: unknown): void {
-    this.errorCount++;
-    this.lastError = error instanceof Error ? error : new Error('Unknown event error');
-    
-    console.error('Event handler error:', error);
-    
-    // Show user-friendly message
-    if (this.errorCount > 3) {
-      this.showCriticalError();
-    }
-  }
-
-  private showCriticalError(): void {
-    // Show critical error UI
-  }
-}
+Aurelia.register(
+  Registration.instance(IListenerBindingOptions, {
+    // true calls preventDefault() on every handled event
+    prevent: false,
+    onError(event: Event, error: unknown) {
+      // Swallow the error instead of rethrowing it. IErrorHandler has
+      // already received it by the time this runs.
+      console.error(`${event.type} handler failed:`, error);
+    },
+  }),
+);
 ```
+
+The options apply to every listener binding in the app. For a single handler that needs its own recovery, catch inside the handler instead.
 
 ### Error-Safe Event Handlers
 

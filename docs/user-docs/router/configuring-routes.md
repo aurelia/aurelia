@@ -374,6 +374,31 @@ There are a few supported title entry points, and they apply at different levels
 
 Directly assigning `document.title` is outside the router pipeline. The router may overwrite it on the next navigation, and `ICurrentRoute.title` will not be updated from that direct assignment.
 
+## Setting meta and link tags
+
+With [`HeadConfiguration`](../getting-to-know-aurelia/head-management.md) registered, routes also accept a `head` option for meta, link and JSON-LD tags. Like `title`, it can be a function of the `RouteNode`:
+
+```typescript
+import { route } from '@aurelia/router';
+
+@route({
+  routes: [
+    {
+      path: 'products/:id',
+      component: import('./product-page'),
+      title: 'Product',
+      head: node => ({
+        meta: [{ property: 'og:type', content: 'product' }],
+        link: [{ rel: 'canonical', href: `https://shop.example/products/${node.params.id}` }],
+      }),
+    },
+  ],
+})
+export class MyApp {}
+```
+
+Tags from child routes replace tags with the same key from parent routes, and an `<au-head>` in the routed component wins over both. Once `HeadConfiguration` is registered, titles and route tags are also applied for navigations that use `historyStrategy: 'none'`. Without it, the `head` option is ignored and titles behave as described above.
+
 ## Redirect to another path
 
 By specifying the `redirectTo` property on our route, we can create route aliases.

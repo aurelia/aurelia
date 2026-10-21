@@ -101,6 +101,11 @@ export function validateRouteConfig(config: Partial<IChildRouteConfig> | null | 
             expectType('string or function', path, value);
         }
         break;
+      case 'head':
+        if (typeof value !== 'function' && (typeof value !== 'object' || value === null)) {
+          expectType('object or function', path, value);
+        }
+        break;
       case 'path':
         if (value instanceof Array) {
           for (let i = 0; i < value.length; ++i) {

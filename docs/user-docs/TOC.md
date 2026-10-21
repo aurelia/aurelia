@@ -143,6 +143,7 @@
   * [Template controllers](getting-to-know-aurelia/template-controllers.md)
   * [Dynamic composition](getting-to-know-aurelia/dynamic-composition.md)
   * [Portalling elements](getting-to-know-aurelia/portalling-elements.md)
+  * [Managing the document head](getting-to-know-aurelia/head-management.md)
 * State & observation
   * [Understanding the binding system](getting-to-know-aurelia/synchronous-binding-system.md)
   * [Observation](getting-to-know-aurelia/observation/README.md)
@@ -456,6 +457,8 @@
     * [AUR0819](developer-guides/error-messages/runtime-html/aur0819.md)
     * [AUR0820](developer-guides/error-messages/runtime-html/aur0820.md)
     * [AUR0821](developer-guides/error-messages/runtime-html/aur0821.md)
+    * [AUR0825](developer-guides/error-messages/runtime-html/aur0825.md)
+    * [AUR0826](developer-guides/error-messages/runtime-html/aur0826.md)
     * [AUR9989](developer-guides/error-messages/runtime-html/aur9989.md)
     * [AUR9990](developer-guides/error-messages/runtime-html/aur9990.md)
     * [AUR9991](developer-guides/error-messages/runtime-html/aur9991.md)

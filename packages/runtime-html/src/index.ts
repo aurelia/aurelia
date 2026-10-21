@@ -254,6 +254,24 @@ export {
 } from './resources/custom-elements/au-slot';
 
 export {
+  AuHeadTag,
+  AuHeadTemplateCompilerHooks,
+} from './resources/custom-elements/au-head';
+
+export {
+  IHead,
+  IHeadOptions,
+  HeadPriority,
+  type IHeadSource,
+  type IHeadSourceOptions,
+  type IHeadCanonicalOptions,
+  type HeadInput,
+  type HeadTagInput,
+  type HeadScriptInput,
+  type HeadAttributeValue,
+} from './head';
+
+export {
   capture,
   containerless,
   customElement,
@@ -307,6 +325,7 @@ export {
   DefaultRenderers,
 
   StandardConfiguration,
+  HeadConfiguration,
 } from './configuration';
 
 export {

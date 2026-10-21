@@ -43,6 +43,7 @@ import {
 } from './router';
 import {
   type NavigationOptions,
+  type RouteHead,
 } from './options';
 import { mergeURLSearchParams } from './util';
 import {
@@ -64,6 +65,7 @@ export interface IRouteNodeInitializationOptions {
   data?: Record<string, unknown>;
   _viewport?: string | null;
   title?: string | ((node: RouteNode) => string | null) | null;
+  head?: RouteHead | ((node: RouteNode) => RouteHead | null) | null;
   component: CustomElementDefinition;
   children?: RouteNode[];
   residue?: ViewportInstruction[];
@@ -134,6 +136,8 @@ export class RouteNode {
      * "fully resolved" when it has `residue.length === 0` and `children.length >= 0`
      */
     public readonly residue: ViewportInstruction[],
+    /** This route node's head tags. */
+    public head: RouteHead | ((node: RouteNode) => RouteHead | null) | null,
   ) {
     this._originalInstruction ??= instruction;
     if (context.options.useEagerLoading) {
@@ -169,6 +173,7 @@ export class RouteNode {
       /*       title */input.title ?? null,
       /*   component */input.component,
       /*     residue */input.residue ?? [],
+      /*        head */input.head ?? null,
     );
   }
 
@@ -275,6 +280,7 @@ export class RouteNode {
       this.title,
       this.component,
       [...this.residue],
+      this.head,
     );
     const children = this.children;
     const len = children.length;
@@ -700,6 +706,7 @@ function createConfiguredNode(
                 _viewport: vpName,
                 component: ced,
                 title: $handler.title,
+                head: $handler.head,
                 // Note: at this point, the residue from the recognized route should be converted to VI children. Hence the residues are not added back to the RouteNode.
                 residue: vi.children.slice(),
               });

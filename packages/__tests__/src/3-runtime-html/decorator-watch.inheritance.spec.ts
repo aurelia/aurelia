@@ -115,6 +115,123 @@ describe('3-runtime-html/decorator-watch.inheritance.spec.ts', function () {
   });
 
   describe('rendering', function () {
+    it('keeps multi-level watches isolated across siblings and a cached view restart', async function () {
+      const calls: string[] = [];
+      class EditorBase {
+        public value = 0;
+        public label = '';
+        @watch('value')
+        public recordBase(value: number) { calls.push(`${this.label}:base:${value}`); }
+      }
+      // A decoration-free intermediate class reads inherited Symbol.metadata;
+      // traversing it must not register the base watch a second time.
+      class EditorMiddle extends EditorBase {}
+      @customElement({ name: 'editor-special', template: '' })
+      class SpecialEditor extends EditorMiddle {
+        public label = 'special';
+        @watch('value')
+        public recordSpecial(value: number) { calls.push(`${this.label}:own:${value}`); }
+      }
+      @customElement({ name: 'editor-plain', template: '' })
+      class PlainEditor extends EditorMiddle { public label = 'plain'; }
+      const { component, stop } = await createFixture(
+        '<div if.bind="show"><editor-special component.ref="special"></editor-special><editor-plain component.ref="plain"></editor-plain></div>',
+        class { show = true; special!: SpecialEditor; plain!: PlainEditor; },
+        [SpecialEditor, PlainEditor],
+      ).started;
+      try {
+        const special = component.special;
+        const plain = component.plain;
+        special.value = 1;
+        plain.value = 2;
+        await tasksSettled();
+        assert.deepStrictEqual(calls, ['special:base:1', 'special:own:1', 'plain:base:2']);
+        calls.length = 0;
+
+        component.show = false;
+        await tasksSettled();
+        special.value = 3;
+        plain.value = 4;
+        await tasksSettled();
+        assert.deepStrictEqual(calls, [], 'detached components stop observing');
+        component.show = true;
+        await tasksSettled();
+        assert.strictEqual(component.special, special);
+        assert.strictEqual(component.plain, plain);
+        assert.deepStrictEqual(calls, [], 'rebinding establishes the current value');
+
+        special.value = 5;
+        plain.value = 6;
+        await tasksSettled();
+        assert.deepStrictEqual(calls, ['special:base:5', 'special:own:5', 'plain:base:6']);
+      } finally {
+        await stop(true);
+      }
+    });
+
+    it('fires inherited and own custom-attribute watches without contaminating the base', async function () {
+      const calls: string[] = [];
+      @customAttribute({ name: 'watch-base', bindables: ['value'] })
+      class BaseAttribute {
+        public value = 0;
+        @watch('value')
+        public recordBase(value: number) { calls.push(`base:${value}`); }
+      }
+      @customAttribute({ name: 'watch-child', bindables: ['value'] })
+      class ChildAttribute extends BaseAttribute {
+        @watch('value')
+        public recordChild(value: number) { calls.push(`child:${value}`); }
+      }
+      const { component, stop } = await createFixture(
+        '<div watch-base.bind="baseValue"></div><div watch-child.bind="childValue"></div>',
+        { baseValue: 0, childValue: 0 },
+        [BaseAttribute, ChildAttribute],
+      ).started;
+      try {
+        component.childValue = 1;
+        await tasksSettled();
+        assert.deepStrictEqual(calls, ['base:1', 'child:1']);
+        calls.length = 0;
+        component.baseValue = 2;
+        await tasksSettled();
+        assert.deepStrictEqual(calls, ['base:2']);
+        assert.strictEqual(CustomAttribute.getDefinition(BaseAttribute).watches.length, 1);
+      } finally {
+        await stop(true);
+      }
+    });
+
+    it('combines inherited decorators and programmatic watches for a static resource definition', async function () {
+      const calls: string[] = [];
+      class Base {
+        public value = 0;
+        @watch('value')
+        public recordBase(value: number) { calls.push(`base:${value}`); }
+      }
+      class StaticEditor extends Base {
+        public static $au = { type: 'custom-element' as const, name: 'static-editor', template: '' };
+        @watch((vm: StaticEditor) => vm.value * 2)
+        public recordDouble(value: number) { calls.push(`double:${value}`); }
+      }
+      Watch.add(StaticEditor, {
+        expression: 'value',
+        callback(value: number) { calls.push(`programmatic:${value}`); },
+        flush: 'async',
+      });
+      const { component, stop } = await createFixture(
+        '<static-editor component.ref="editor"></static-editor>',
+        class { editor!: StaticEditor; },
+        [StaticEditor],
+      ).started;
+      try {
+        component.editor.value = 2;
+        await tasksSettled();
+        assert.deepStrictEqual(calls, ['base:2', 'programmatic:2', 'double:4']);
+      } finally {
+        await stop(true);
+      }
+    });
+
     for (const order of [['base', 'derived'], ['derived', 'base']]) {
       it(`fires a base class watch in both base and derived elements (rendered ${order.join(', ')})`, async function () {
         const calls: string[] = [];

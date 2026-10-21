@@ -48,6 +48,10 @@ PR reporting currently supports same-repository PRs targeting `master`. The trus
 marker comment. It discards results when the PR base, head, or test merge changes while CircleCI is running. PR code
 never receives the GitHub write token.
 
+The reporter retries failed CircleCI metadata reads up to five times with bounded backoff. If publication still
+fails, the PR comment links directly to the reporting log, which records the failed API path and HTTP status when
+available. Completed measurements remain available in the CircleCI `benchmark_report` job's artifacts.
+
 ### Choose framework revisions
 
 Maintainers can use these commands on a same-repository PR targeting `master`:
@@ -224,6 +228,7 @@ Run an individual scenario after preparing `results/variants`:
 npm run bench:realistic-refresh
 npm run bench:realistic-heap500
 npm run bench:realistic-refresh-loop
+npm run bench:realistic-reshow
 npm run bench:dependency-rotation
 npm run bench:i18n-formatting
 npm run bench:template-compilation
@@ -241,10 +246,15 @@ The two focused formatting/compilation configs run in `full` and `master`, not `
   compilation is cold, with no parser/compiler warm-up. A separate warmed-parser row performs 100000 rounds over
   three static strings and one interpolation to expose hot-cache regressions. Both cases validate their output.
 
+`app-repeat-realistic/reshow.json` also runs in `full` and `master` only. It measures one settled show of the
+1000-row realistic list inside a cached `if`, after two warm-up hide/show cycles and a hide outside the timer. Every
+row's content and a click binding are checked before publishing. Row identity across the toggle is deliberately not
+asserted, so revisions that rebuild rows on show and revisions that reuse them can be compared.
+
 These focused rows complement the existing repeat startup/refresh regression guards. They are not general-purpose
 formatter or template-cache guarantees. Use the same prepared base/candidate bundle pair for the focused results and
 the guard results. `smoke` retains its original six fixture bundles; `full` and `master` now require eight bundles and
-all 16 result files. Trusted report support must land on master before expanded reports can be published.
+all 17 result files. Trusted report support must land on master before expanded reports can be published.
 
 `npm run bench` is a convenience batch of common local scenarios. It is not the formal `full` profile. Once every
 result required by the selected provenance profile exists, build the machine-readable and Markdown report with:

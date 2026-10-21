@@ -129,6 +129,205 @@ describe('3-runtime-html/portal.spec.tsx', function () {
       }
     }
 
+    it('uses the latest target for queued moves without replaying intermediate targets', async function () {
+      const fixture = createFixture(
+        `${targets}<div id="d"></div><span class="p" portal="target.bind: target; ${callbacks}">x</span>`,
+        CallbackLog,
+      );
+      const { component, appHost } = fixture;
+      try {
+        component.async.add('deactivating');
+        component.target = '#b';
+        // The first move has captured b. Later work reads the latest binding
+        // value when it runs, so c never becomes a placement of its own.
+        component.target = '#c';
+        component.target = '#d';
+        await component.settle();
+        assert.deepStrictEqual(component.log, [
+          'activating:a', 'activated:a',
+          'deactivating:a', 'deactivated:a', 'activating:b', 'activated:b',
+          'deactivating:b', 'deactivated:b', 'activating:d', 'activated:d',
+        ]);
+        assert.strictEqual(appHost.querySelector('.p')!.parentElement!.id, 'd');
+        assert.strictEqual(appHost.querySelector('#c')!.innerHTML, '');
+      } finally {
+        component.async.clear();
+        await component.settle();
+        await fixture.stop(true);
+      }
+    });
+
+    it('serializes render context and position changes and returns to synchronous moves', async function () {
+      const fixture = createFixture(
+        '<section id="left"><div class="slot" id="a">left</div></section>' +
+        '<section id="right"><div class="slot" id="b">right</div></section>' +
+        `<span class="p" portal="target: .slot; render-context.bind: context; position.bind: position; ${callbacks}">x</span>`,
+        class extends CallbackLog { public context: string | Element = '#left'; },
+      );
+      const { component, appHost } = fixture;
+      const content = appHost.querySelector('.p');
+      const right = appHost.querySelector('#right')!;
+      try {
+        component.async.add('deactivating');
+        component.context = '#right';
+        component.position = 'afterbegin';
+        await component.settle();
+        component.async.clear();
+        assert.strictEqual(appHost.querySelector('#b')!.textContent, 'xright');
+        assert.strictEqual(appHost.querySelector('#b')!.firstElementChild, content);
+        assert.deepStrictEqual(component.log, [
+          'activating:a', 'activated:a',
+          'deactivating:a', 'deactivated:a', 'activating:b', 'activated:b',
+          'deactivating:b', 'deactivated:b', 'activating:b', 'activated:b',
+        ]);
+
+        component.log.length = 0;
+        component.context = right;
+        assert.deepStrictEqual(component.log, [], 'an equivalent context does not move the content');
+        component.position = 'beforebegin';
+        // The completed async queue must not make later synchronous changes
+        // wait for a microtask. The content itself is moved, not recreated.
+        assert.strictEqual(content!.parentNode, right);
+        assert.strictEqual(right.firstElementChild, content);
+        assert.deepStrictEqual(component.log, ['deactivating:b', 'deactivated:b', 'activating:b', 'activated:b']);
+      } finally {
+        component.async.clear();
+        await component.settle();
+        await fixture.stop(true);
+      }
+    });
+
+    it('waits for an async callback to finish before applying its requested target', async function () {
+      const fixture = createFixture(
+        `${targets}<span class="p" portal="target.bind: target; ${callbacks}">x</span>`,
+        class extends CallbackLog {
+          public deactivating = (target: Element) => {
+            const result = this.record('deactivating', target);
+            if (target.id === 'a') {
+              this.target = '#c';
+            }
+            return result;
+          };
+        },
+      );
+      const { component, appHost } = fixture;
+      try {
+        component.async.add('deactivating');
+        component.target = '#b';
+        // The callback requests c synchronously, then returns its animation
+        // promise. That move must wait for the running move to b to finish.
+        assert.deepStrictEqual(component.log, ['activating:a', 'activated:a', 'deactivating:a']);
+        await component.settle();
+        assert.strictEqual(appHost.querySelector('.p')!.parentElement!.id, 'c');
+        assert.deepStrictEqual(component.log, [
+          'activating:a', 'activated:a',
+          'deactivating:a', 'deactivated:a', 'activating:b', 'activated:b',
+          'deactivating:b', 'deactivated:b', 'activating:c', 'activated:c',
+        ]);
+      } finally {
+        component.async.clear();
+        await component.settle();
+        await fixture.stop(true);
+      }
+    });
+
+    it('waits for a child component to attach before applying a queued target change', async function () {
+      const childCalls: string[] = [];
+      let release!: () => void;
+      const attaching = new Promise<void>(resolve => { release = resolve; });
+      const Child = CustomElement.define({ name: 'portal-async-child', template: 'child' }, class {
+        public binding(): void { childCalls.push('binding'); }
+        public attaching(): Promise<void> {
+          childCalls.push('attaching');
+          return attaching;
+        }
+        public attached(): void { childCalls.push('attached'); }
+      });
+      const fixture = createFixture(
+        `${targets}<portal-async-child class="p" portal="target.bind: target; ${callbacks}"></portal-async-child>`,
+        CallbackLog,
+        [Child],
+      );
+      const { component, appHost } = fixture;
+      try {
+        assert.deepStrictEqual(childCalls, ['binding', 'attaching']);
+        component.target = '#b';
+        assert.deepStrictEqual(component.log, ['activating:a']);
+        release();
+        await fixture.started;
+        await component.settle();
+        // Drain the queued move after the initial owner activation has settled.
+        await new Promise(resolve => setTimeout(resolve));
+        assert.deepStrictEqual(childCalls, ['binding', 'attaching', 'attached']);
+        assert.deepStrictEqual(component.log, [
+          'activating:a', 'activated:a',
+          'deactivating:a', 'deactivated:a', 'activating:b', 'activated:b',
+        ]);
+        assert.strictEqual(appHost.querySelector('.p')!.parentElement!.id, 'b');
+      } finally {
+        release();
+        await fixture.started;
+        await fixture.stop(true);
+      }
+    });
+
+    it('skips queued moves during owner teardown and awaits an async child before restart', async function () {
+      let release!: () => void;
+      const detaching = new Promise<void>(resolve => { release = resolve; });
+      let childDetaching = false;
+      let blockDetach = true;
+      const Child = CustomElement.define({ name: 'portal-detaching-child', template: '${value}', bindables: ['value'] }, class {
+        public value!: string;
+        public detaching(): void | Promise<void> {
+          childDetaching = true;
+          if (blockDetach) {
+            blockDetach = false;
+            return detaching;
+          }
+        }
+      });
+      const fixture = createFixture(
+        `${targets}<portal-detaching-child class="p" value.bind="value" portal="target.bind: target; ${callbacks}"></portal-detaching-child>`,
+        class extends CallbackLog { public value = 'initial'; },
+        [Child],
+      );
+      const { component, appHost } = fixture;
+      const destinations = ['#a', '#b', '#c'].map(selector => appHost.querySelector(selector)!);
+      const content = appHost.querySelector('.p');
+      let stopped: void | Promise<void> = void 0;
+      let stopSettled = false;
+      try {
+        component.async.add('deactivating');
+        component.target = '#b';
+        component.target = '#c';
+        stopped = fixture.stop(false);
+        void Promise.resolve(stopped).then(() => { stopSettled = true; });
+        component.async.clear();
+        await component.settle();
+        assert.strictEqual(childDetaching, true);
+        assert.strictEqual(stopSettled, false, 'the owner still awaits the child detaching hook');
+        release();
+        await stopped;
+        destinations.forEach(target => assert.strictEqual(target.innerHTML, '', 'content and portal markers are removed'));
+        assert.deepStrictEqual(component.log, [
+          'activating:a', 'activated:a',
+          'deactivating:a', 'deactivated:a', 'activating:b', 'activated:b',
+          'deactivating:b', 'deactivated:b',
+        ]);
+
+        component.value = 'restarted';
+        await fixture.au.start();
+        assert.strictEqual(appHost.querySelector('#c > .p'), content, 'restart uses the latest target and retains the child');
+        assert.strictEqual(content!.textContent, 'restarted', 'bindings are re-established on restart');
+      } finally {
+        component.async.clear();
+        release();
+        await component.settle();
+        await stopped;
+        await fixture.stop(true);
+      }
+    });
+
     it('passes the previous target to deactivating and deactivated', function () {
       const { component, appHost } = createFixture(
         `${targets}<span class="p" portal="target.bind: target; ${callbacks}">x</span>`,

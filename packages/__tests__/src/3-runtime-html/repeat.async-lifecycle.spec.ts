@@ -856,6 +856,79 @@ describe('3-runtime-html/repeat.async-lifecycle.spec.ts', function () {
   });
 
   describe('ownership and restart', function () {
+    for (const { key, cachedIf } of [
+      { key: '', cachedIf: false },
+      { key: '; key: id', cachedIf: false },
+      { key: '', cachedIf: true },
+      { key: '; key: id', cachedIf: true },
+    ]) {
+      it(`keeps row-local state after ${cachedIf ? 'hide/show' : 'stop/start'} interrupts removal and reordering (${key || 'unkeyed'})`, async function () {
+        const gate = new Deferred();
+        let blockRemoval = true;
+        @customElement({
+          name: 'restart-draft-row',
+          template: '${item.id}:${draft}|',
+          bindables: ['item'],
+        })
+        class DraftRow {
+          public item!: { id: string };
+          public draft?: string;
+
+          public binding(): void {
+            this.draft ??= `draft-${this.item.id}`;
+          }
+
+          public detaching(): void | Promise<void> {
+            if (blockRemoval && this.item.id === 'a') {
+              blockRemoval = false;
+              return gate.promise;
+            }
+          }
+        }
+        const a = { id: 'a' };
+        const b = { id: 'b' };
+        const c = { id: 'c' };
+        const template = `<restart-draft-row repeat.for="item of items${key}" item.bind="item"></restart-draft-row>`;
+        const fixture = createFixture(
+          cachedIf ? `<div if.bind="show">${template}</div>` : template,
+          { items: [a, b, c], show: true },
+          [DraftRow],
+        );
+        let stopping: void | Promise<void> = void 0;
+        try {
+          await fixture.started;
+          fixture.assertText('a:draft-a|b:draft-b|c:draft-c|');
+          // An external refresh removes one row and reorders the survivors.
+          // Its exit animation is still pending when the list owner deactivates.
+          fixture.component.items = [c, b];
+          await waitFor(() => !blockRemoval);
+          if (cachedIf) {
+            const repeat = findRepeat(fixture.au.root.controller);
+            fixture.component.show = false;
+            await waitFor(() => !repeat.$controller.isActive);
+            gate.resolve();
+            await waitFor(() => fixture.getAllBy('restart-draft-row').length === 0);
+            fixture.component.show = true;
+            await tasksSettled();
+          } else {
+            stopping = fixture.stop(false);
+            gate.resolve();
+            await stopping;
+            await fixture.au.start();
+          }
+
+          const rows = fixture.getAllBy('restart-draft-row').map(host => CustomElement.for<DraftRow>(host).viewModel);
+          assert.deepStrictEqual(rows.map(row => [row.item.id, row.draft]), [
+            ['c', 'draft-c'], ['b', 'draft-b'],
+          ], 'rebuilding or reusing rows must never transfer component state to another item');
+        } finally {
+          gate.resolve();
+          await stopping;
+          await fixture.stop(true);
+        }
+      });
+    }
+
     it('queues collection changes behind async activation of an SSR-adopted row', async function () {
       const gate = new Deferred();
       let isClient = false;

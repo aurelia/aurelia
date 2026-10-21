@@ -773,8 +773,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     this._adoptedViews = void 0;
     const newLen = $items.length;
     const views: ISyntheticView[] = Array(newLen);
-    // Retained rows line up with the last reconciled items unless an
-    // interrupted reconciliation left a partial row set behind.
+    // Owner teardown invalidates the snapshot when views no longer match their
+    // scopes. An interrupted insertion can also leave fewer rows than items.
     const aligned = retainedItems !== void 0 && retainedItems.length === retained.length;
     const cleanup = createRowTransitionState();
     for (let i = 0, ii = retained.length; i < ii; ++i) {
@@ -798,12 +798,18 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
   /** @internal */
   private _deactivateAllViews(initiator: IHydratedController): void {
-    const { views, $controller } = this;
+    const { views, $controller, _scopes } = this;
     // A synchronous lifecycle hook may mutate the observed collection. Teardown
     // owns the row set accepted at entry, not whatever length is visible later.
     const length = views.length;
     for (let i = 0; i < length; ++i) {
       const view = views[i];
+      // An interrupted removal can leave surviving views in their old order
+      // after scopes have already been reordered. Invalidate the reuse snapshot
+      // before deactivation clears the views' scopes.
+      if (view.scope !== _scopes[i]) {
+        this._normalizedItems = void 0;
+      }
       // Row teardown joins the ancestor transition through `initiator`, whose
       // Controller Promise owns async settlement. Repeat's local drain covers
       // reconciliation work initiated by Repeat itself.

@@ -492,6 +492,35 @@ class ThemeManager {
 
 > **Important**: When using method name strings, the method is resolved only once when the class is defined. Dynamically changing the method later won't affect the watcher.
 
+## Watches and Class Inheritance
+
+A subclass inherits every `@watch` declared on its base classes. Watches declared on the subclass apply only to the subclass and its own subclasses, never to the base class:
+
+```typescript
+class BaseEditor {
+  value = '';
+
+  @watch('value')
+  valueChanged(newValue: string) {
+    this.markDirty();
+  }
+
+  markDirty() { /* ... */ }
+}
+
+@customElement({ name: 'text-editor', template: '<textarea value.bind="value"></textarea>' })
+class TextEditor extends BaseEditor {} // runs valueChanged
+
+@customElement({ name: 'code-editor', template: '<textarea value.bind="value"></textarea>' })
+@watch('language', 'reformat')
+class CodeEditor extends BaseEditor { // runs valueChanged and reformat
+  language = 'ts';
+  reformat() { /* ... */ }
+}
+```
+
+Base class watches are created before the subclass's own watches. The base class does not need to be a custom element itself.
+
 ## Best Practices
 
 ### ✅ Do's

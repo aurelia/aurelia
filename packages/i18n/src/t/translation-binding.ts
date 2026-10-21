@@ -279,9 +279,30 @@ export class TranslationBinding implements IBinding {
 
   /** @internal */
   private _updateContent(content: ContentValue) {
-    const children = toArray(this.target.childNodes);
-    const fallBackContents = [];
+    const target = this.target;
     const marker = 'au-i18n';
+    const textContent = content.textContent;
+
+    // Plain text is the common case: reuse the text node written by the previous update instead of rebuilding
+    // the content through a template on every bind and locale change. The result matches the template path,
+    // which also discards any fallback content once text is present.
+    if (textContent != null && content.innerHTML == null && content.prepend == null && content.append == null) {
+      const first = target.firstChild;
+      if (textContent.length > 0 && first !== null && first === target.lastChild && first.nodeType === 3 && Reflect.get(first, marker) === true) {
+        (first as Text).data = textContent;
+        return;
+      }
+      target.textContent = '';
+      if (textContent.length > 0) {
+        const textNode = this._platform.document.createTextNode(textContent);
+        Reflect.set(textNode, marker, true);
+        target.appendChild(textNode);
+      }
+      return;
+    }
+
+    const children = toArray(target.childNodes);
+    const fallBackContents = [];
 
     // extract the original content, not manipulated by au-i18n
     for (const child of children) {
@@ -297,9 +318,9 @@ export class TranslationBinding implements IBinding {
     // const observer = this.oL.getAccessor(this.target, '??');
     // observer.setValue(??);
 
-    this.target.innerHTML = '';
+    target.innerHTML = '';
     for (const child of toArray(template.content.childNodes)) {
-      this.target.appendChild(child);
+      target.appendChild(child);
     }
   }
 

@@ -21,7 +21,7 @@ export function preprocessHtmlTemplate(
 ): ModifyCodeResult {
   const name = resourceName(unit.path);
   const stripped = stripMetaData(unit.contents);
-  const { html, deps, depsAliases, containerless, hasSlot, bindables, aliases, capture } = stripped;
+  const { html, deps, depsAliases, deferredDeps, containerless, hasSlot, bindables, aliases, capture } = stripped;
   let { shadowMode } = stripped;
 
   if (unit.filePair) {
@@ -43,7 +43,11 @@ export function preprocessHtmlTemplate(
   const cssModuleDeps: string[] = [];
   const statements: string[] = [];
   let registrationImported = false;
-  let aliasedModule = 0;
+  const useAliasRegistry = (isTemplateModule: boolean) => {
+    for (const helper of isTemplateModule ? [aliasRegistryImport, getElementHelper] : [aliasRegistryImport]) {
+      if (!statements.includes(helper)) statements.push(helper);
+    }
+  };
 
   if (shadowMode === null && hasSlot) {
     // todo: what here? need to combine information with custom element before warning/throwing
@@ -69,8 +73,8 @@ export function preprocessHtmlTemplate(
     if (!ext || ext === '.js' || ext === '.ts') {
       const { __MAIN__: main, ...others } = aliases;
       const hasAliases = main != null || Object.keys(others).length > 0;
-      if (hasAliases && aliasedModule++ === 0) {
-        statements.push(`import { aliasedResourcesRegistry as $$arr } from '@aurelia/kernel';\n`);
+      if (hasAliases) {
+        useAliasRegistry(false);
       }
       statements.push(`import * as d${i} from ${s(d)};\n`);
       if (hasAliases) {
@@ -85,9 +89,8 @@ export function preprocessHtmlTemplate(
     if (options.templateExtensions.includes(ext)) {
       const { __MAIN__: main } = aliases;
       const hasAliases = main != null;
-      if (hasAliases && aliasedModule++ === 0) {
-        statements.push(`import { aliasedResourcesRegistry as $$arr } from '@aurelia/kernel';\n`);
-        statements.push(`function __get_el__(m) { let e; m.register({ register(el) { e = el; } }); return { default: e }; }\n`);
+      if (hasAliases) {
+        useAliasRegistry(true);
       }
       statements.push(`import * as d${i} from ${s((options.transformHtmlImportSpecifier ?? (s => s))(d))};\n`);
 
@@ -124,6 +127,8 @@ export function preprocessHtmlTemplate(
     viewDeps.push(`Registration.defer('${ext}', d${i})`);
   });
 
+  const deferredLoaders = deferredDeps.map(dep => createDeferredLoader(dep, unit, options, fileExists, useAliasRegistry));
+
   const m = modifyCode('', unit.path);
   const hmrEnabled = !hasViewModel && options.hmr && options.isDev;
   m.append(`import { CustomElement } from '@aurelia/runtime-html';\n`);
@@ -147,7 +152,7 @@ export function preprocessHtmlTemplate(
 export const template = ${template};
 export default template;
 export const dependencies = [ ${viewDeps.join(', ')} ];
-`);
+${deferredLoaders.length > 0 ? `export const deferredDependencies = { ${deferredLoaders.join(', ')} };\n` : ''}`);
 
   if (shadowMode !== null) {
     m.append(`export const shadowOptions = { mode: '${shadowMode}' };\n`);
@@ -173,6 +178,7 @@ export const dependencies = [ ${viewDeps.join(', ')} ];
     'name',
     'template',
     'dependencies',
+    deferredLoaders.length > 0 ? 'deferredDependencies' : '',
     shadowMode !== null ? 'shadowOptions' : '',
     containerless ? 'containerless' : '',
     capture ? 'capture' : '',
@@ -204,6 +210,42 @@ export function register(container) {
   const { code, map } = m.transform();
   map.sourcesContent = [unit.contents];
   return { code, map };
+}
+
+const aliasRegistryImport = `import { aliasedResourcesRegistry as $$arr } from '@aurelia/kernel';\n`;
+const getElementHelper = `function __get_el__(m) { let e; m.register({ register(el) { e = el; } }); return { default: e }; }\n`;
+
+// <import from="./heavy-chart" defer> -> "heavy-chart": () => import("./heavy-chart.ts")
+// <import from="./heavy-chart" defer as="sales-chart"> -> "sales-chart": () => import("./heavy-chart.ts").then(m => $$arr(m, "sales-chart"))
+function createDeferredLoader(
+  { from, as }: { from: string; as: string | null },
+  unit: IFileUnit,
+  options: IPreprocessOptions,
+  fileExists: (unit: IFileUnit, path: string) => boolean,
+  useAliasRegistry: (isTemplateModule: boolean) => void,
+): string {
+  let d = from;
+  let ext = extname(d);
+  if (!ext) {
+    if (fileExists(unit, `${d}.ts`)) {
+      ext = '.ts';
+    } else if (fileExists(unit, `${d}.js`)) {
+      ext = '.js';
+    }
+    d = d + ext;
+  }
+  const isTemplateModule = options.templateExtensions.includes(ext);
+  if (isTemplateModule) {
+    d = (options.transformHtmlImportSpecifier ?? (specifier => specifier))(d);
+  } else if (ext && ext !== '.js' && ext !== '.ts') {
+    throw new Error(`<import from="${from}" defer> is not supported: only elements can be deferred.`);
+  }
+  if (as == null) {
+    return `${s(resourceName(from))}: () => import(${s(d)})`;
+  }
+  // Same as a regular <import as>: the element registers under the alias
+  useAliasRegistry(isTemplateModule);
+  return `${s(as)}: () => import(${s(d)}).then(m => $$arr(${isTemplateModule ? '__get_el__(m)' : 'm'}, ${s(as)}))`;
 }
 
 function s(input: unknown) {

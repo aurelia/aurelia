@@ -3,7 +3,7 @@ import {
   type Interpolation,
   type IsBindingBehavior,
 } from '@aurelia/expression-parser';
-import { IAttributeComponentDefinition, IElementComponentDefinition } from './interfaces-template-compiler';
+import { IAttributeComponentDefinition, IElementComponentDefinition, type DeferredDependencyLoader } from './interfaces-template-compiler';
 import { tcCreateInterface } from './utilities';
 import { AttrSyntax } from './attribute-pattern';
 import { BindingMode } from './binding-mode';
@@ -159,6 +159,11 @@ export interface HydrateTemplateController<T extends IAttributeComponentDefiniti
    * Applications should not use this property directly, as it is subject to change without notice.
    */
   readonly linked?: true;
+  /**
+   * Loaders of the deferred dependencies used inside a deferred template controller's content.
+   * Applications should not use this property directly, as it is subject to change without notice.
+   */
+  readonly deferredLoaders?: readonly DeferredDependencyLoader[];
   /**
    * Bindable instructions for the template controller instance
    */

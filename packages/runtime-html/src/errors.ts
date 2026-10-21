@@ -144,6 +144,12 @@ export const enum ErrorNames {
   hydration_target_count_mismatch = 822,
   hydration_node_count_mismatch = 823,
   hydration_view_count_mismatch = 824,
+
+  defer_branch_without_defer = 825,
+  defer_trigger_target_missing = 826,
+  defer_invalid_trigger = 827,
+  defer_invalid_load = 828,
+  defer_load_failed = 829,
 }
 _END_CONST_ENUM();
 
@@ -278,6 +284,12 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.hydration_target_count_mismatch]: `SSR hydration error: manifest declares {{0}} targets but collected {{1}} from DOM.`,
   [ErrorNames.hydration_node_count_mismatch]: `SSR hydration error: manifest declares {{0}} total nodes for views but found {{1}} nodes in DOM.`,
   [ErrorNames.hydration_view_count_mismatch]: `SSR hydration error: manifest declares {{0}} views but items array has {{1}} elements.`,
+
+  [ErrorNames.defer_branch_without_defer]: `Invalid [{{0}}] usage, it should follow a [defer] or another branch of a [defer]. A template controller written before [defer] on the same element, such as [if], wraps it and hides it from the branches, so move that template controller to a parent element.`,
+  [ErrorNames.defer_trigger_target_missing]: `The "{{0}}" trigger of [defer] in <{{1}}> needs an element to watch. Add a [defer-placeholder] with an element, or bind the "target" of [defer].`,
+  [ErrorNames.defer_invalid_trigger]: `Unknown [defer] trigger "{{0}}" in <{{1}}>. Expected one of: idle, viewport, interaction, hover, timer, immediate.`,
+  [ErrorNames.defer_invalid_load]: `The "load" of [defer] in <{{0}}> must be a function, or an array of functions, that loads the dependencies when called, such as () => import('./chart'). Received: {{1}}.`,
+  [ErrorNames.defer_load_failed]: `[defer] in <{{0}}> failed to load its dependencies: {{1}}`,
 };
 
 const getMessageByCode = (name: ErrorNames, ...details: unknown[]) => {

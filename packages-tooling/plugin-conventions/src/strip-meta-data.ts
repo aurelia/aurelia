@@ -10,6 +10,10 @@ interface IStrippedHtml {
   html: string;
   deps: string[];
   depsAliases: AliasedModule;
+  /**
+   * Dependencies imported with `<import from="..." defer>`, loaded when a deferred block that uses them renders.
+   */
+  deferredDeps: IDeferredDependency[];
   shadowMode: 'open' | 'closed' | null;
   containerless: boolean;
   hasSlot: boolean;
@@ -24,8 +28,15 @@ type AliasedImports = Record<string, string | null> & {
 
 type AliasedModule = Record<string, AliasedImports>;
 
+interface IDeferredDependency {
+  from: string;
+  /** The element name set with `as`, which otherwise comes from the file name. */
+  as: string | null;
+}
+
 export function stripMetaData(rawHtml: string): IStrippedHtml {
   const deps: string[] = [];
+  const deferredDeps: IDeferredDependency[] = [];
   // a map of string module name to its corresponding map of exports aliases
   const depsAliases: AliasedModule = { };
   let shadowMode: 'open' | 'closed' | null = null;
@@ -38,8 +49,10 @@ export function stripMetaData(rawHtml: string): IStrippedHtml {
   const tree = parseFragment(rawHtml, { sourceCodeLocationInfo: true });
 
   traverse(tree, node => {
-    stripImport(node, (dep, aliases, ranges) => {
-      if (dep) {
+    stripImport(node, (dep, aliases, ranges, deferred) => {
+      if (dep && deferred) {
+        deferredDeps.push({ from: dep, as: aliases?.__MAIN__ ?? null });
+      } else if (dep) {
         deps.push(dep);
         if (aliases != null) {
           // when a module is imported twicce
@@ -90,7 +103,7 @@ export function stripMetaData(rawHtml: string): IStrippedHtml {
   });
   html += rawHtml.slice(lastIdx);
 
-  return { html, deps, depsAliases, shadowMode, containerless, hasSlot, bindables, aliases, capture };
+  return { html, deps, depsAliases, deferredDeps, shadowMode, containerless, hasSlot, bindables, aliases, capture };
 }
 
 function traverse(tree: DefaultTreeAdapterMap['documentFragment'] | DefaultTreeElement, cb: (node: DefaultTreeElement) => void) {
@@ -143,13 +156,20 @@ function stripAttribute(node: DefaultTreeElement, tagName: string, attributeName
 // <require from="./foo"></require>
 // <require from="./foo" as="bar"></require>
 // <require from="./foo" baz.as="bar"></require>
-function stripImport(node: DefaultTreeElement, cb: (dep: string | undefined, aliases: AliasedImports | null, ranges: [number, number][]) => void) {
+// <import from="./foo" defer>
+// <import from="./foo" defer as="bar">
+function stripImport(node: DefaultTreeElement, cb: (dep: string | undefined, aliases: AliasedImports | null, ranges: [number, number][], deferred: boolean) => void) {
   return stripTag(node, ['import', 'require'], (attrs, ranges) => {
     const aliases: AliasedImports = { __MAIN__: null };
+    const deferred = 'defer' in attrs;
     let aliasCount = 0;
     Object.keys(attrs).forEach(attr => {
-      if (attr === 'from') {
+      if (attr === 'from' || attr === 'defer') {
         return;
+      }
+      if (deferred && attr !== 'as') {
+        // A deferred import is keyed by a single element name, so it can't alias other exports
+        throw new Error(`<${node.tagName} from="${attrs.from}" defer> only supports the "as" attribute, found "${attr}".`);
       }
       if (attr === 'as') {
         aliases.__MAIN__ = attrs[attr];
@@ -159,7 +179,7 @@ function stripImport(node: DefaultTreeElement, cb: (dep: string | undefined, ali
         aliasCount++;
       }
     });
-    cb(attrs.from, aliasCount > 0 ? aliases : null, ranges);
+    cb(attrs.from, aliasCount > 0 ? aliases : null, ranges, deferred);
   });
 }
 

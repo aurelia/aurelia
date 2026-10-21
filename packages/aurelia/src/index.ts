@@ -617,6 +617,9 @@ export {
 
   ShortHandBindingSyntax,
 
+  DeferConfiguration,
+  type DeferState,
+
   // DefaultResources as RuntimeHtmlDefaultResources,
 
   // DefaultRenderers,

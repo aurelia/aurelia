@@ -21,8 +21,18 @@ export interface IElementComponentDefinition<TBindables extends string = string>
   enhance?: boolean;
   processContent?: ProcessContentHook | null;
   bindables?: (TBindables | IComponentBindablePropDefinition)[] | Record<TBindables, Omit<IComponentBindablePropDefinition, 'name'> | true>;
+  /**
+   * Loaders for custom elements that are only used inside deferred template blocks, keyed by element name.
+   * The compiler hands each deferred block the loaders for the elements it uses.
+   */
+  deferredDependencies?: Record<string, DeferredDependencyLoader> | null;
   Type?: Constructable;
 }
+
+/**
+ * A function that loads a module, a resource class or a registry, usually `() => import('./some-element')`.
+ */
+export type DeferredDependencyLoader = () => unknown;
 
 export type ProcessContentHook = (this: Constructable | undefined, node: HTMLElement, platform: IDomPlatform, data: Record<PropertyKey, unknown>) => boolean | void;
 
@@ -43,6 +53,11 @@ export interface IAttributeComponentDefinition<TBindables extends string = strin
    * Applications should not use this property directly, as it is subject to change without notice.
    */
   linkTarget?: string;
+  /**
+   * `'deferred'` keeps the content of this template controller uncompiled until it is rendered for the first time.
+   * Only template controllers can defer their content.
+   */
+  compileContent?: 'default' | 'deferred';
   aliases?: readonly string[];
   /**
    * The name of the property that receives the value when the attribute is used without multi-binding syntax.

@@ -1282,4 +1282,80 @@ export function register(container) {
       assert.equal(result.code, expected);
     });
   });
+  it('processes deferred dependencies into loaders keyed by element name', function () {
+    const html = '<import from="./heavy-chart" defer><import from="./maps/index" defer><import from="./card.html" defer as="info-card"><import from="./foo"><template></template>';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
+import * as d0 from "./foo";
+import { aliasedResourcesRegistry as $$arr } from '@aurelia/kernel';
+function __get_el__(m) { let e; m.register({ register(el) { e = el; } }); return { default: e }; }
+export const name = "foo-bar";
+export const template = "<template></template>";
+export default template;
+export const dependencies = [ d0 ];
+export const deferredDependencies = { "heavy-chart": () => import("./heavy-chart.ts"), "maps": () => import("./maps/index"), "info-card": () => import("./card.html").then(m => $$arr(__get_el__(m), "info-card")) };
+export const bindables = {};
+let _e;
+export function register(container) {
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies, deferredDependencies, bindables });
+  }
+  container.register(_e);
+}
+`;
+    const result = preprocessHtmlTemplate(
+      { path: path.join('lo', 'foo-bar.html'), contents: html },
+      preprocessOptions({ hmr: false }),
+      false,
+      (u, p) => p === './heavy-chart.ts'
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('registers a deferred dependency under its "as" name', function () {
+    const html = '<import from="./heavy-chart" defer as="sales-chart"><template></template>';
+    const result = preprocessHtmlTemplate(
+      { path: path.join('lo', 'foo-bar.html'), contents: html },
+      preprocessOptions({ hmr: false }),
+      false,
+      () => false
+    );
+    assert.includes(result.code, `import { aliasedResourcesRegistry as $$arr } from '@aurelia/kernel';`);
+    assert.includes(result.code, 'export const deferredDependencies = { "sales-chart": () => import("./heavy-chart").then(m => $$arr(m, "sales-chart")) };');
+    assert.notIncludes(result.code, '__get_el__');
+  });
+
+  it('defines the element helper once for aliased script and template imports', function () {
+    const html = '<import from="./a" as="x-a"><import from="./b.html" as="x-b"><template></template>';
+    const result = preprocessHtmlTemplate(
+      { path: path.join('lo', 'foo-bar.html'), contents: html },
+      preprocessOptions({ hmr: false }),
+      false,
+      () => false
+    );
+    assert.strictEqual(result.code.split('import { aliasedResourcesRegistry as $$arr }').length, 2);
+    assert.strictEqual(result.code.split('function __get_el__').length, 2);
+  });
+
+  it('applies transformHtmlImportSpecifier to deferred HTML dependencies', function () {
+    const html = '<import from="./card.html" defer><template></template>';
+    const result = preprocessHtmlTemplate(
+      { path: path.join('lo', 'foo-bar.html'), contents: html },
+      preprocessOptions({ hmr: false, transformHtmlImportSpecifier: s => `${s}?raw` }),
+      false,
+      () => false
+    );
+    assert.includes(result.code, 'export const deferredDependencies = { "card": () => import("./card.html?raw") };');
+  });
+
+  it('rejects a deferred import that is not an element', function () {
+    assert.throws(
+      () => preprocessHtmlTemplate(
+        { path: path.join('lo', 'foo-bar.html'), contents: '<import from="./foo.css" defer><template></template>' },
+        preprocessOptions({ hmr: false }),
+        false,
+        () => false
+      ),
+      /only elements can be deferred/,
+    );
+  });
 });

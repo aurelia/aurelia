@@ -236,7 +236,9 @@ class TypeCheckingContext {
     const { accessType, isJs, accessTypeIdentifier, classes } = this;
     let html = '';
     let lastIndex = 0;
-    this.toReplace.forEach(({ loc, modifiedContent }) => {
+    // Attributes are not always processed in source order (e.g. a defer branch attribute is handled before its siblings),
+    // so order the replacements by offset before splicing them into the raw markup.
+    this.toReplace.sort((a, b) => a.loc.startOffset - b.loc.startOffset).forEach(({ loc, modifiedContent }) => {
       html += rawHtml.slice(lastIndex, loc.startOffset) + modifiedContent();
       lastIndex = loc.endOffset;
     });
@@ -542,10 +544,122 @@ function computeIndexBase(env: OverlayEnv, ctx: TypeCheckingContext): string {
   return env.mode === 'vm' ? env.expr.replace(ctx.accessTypeIdentifier, `(${ctx.classUnion})`) : env.expr;
 }
 
+function processBinding(syntax: AttrSyntax, attr: Token.Attribute, node: DefaultTreeElement, ctx: TypeCheckingContext): void {
+  if (syntax.command == null) {
+    if (multiBindingAttributes.includes(syntax.target)) processMultiBindings(attr, node, ctx);
+    return;
+  }
+  const value = attr.value.length === 0 ? syntax.target : attr.value;
+
+  const expr = ctx.exprParser.parse(value, 'None');
+  if (expr == null) return;
+
+  const [_expr] = mutateAccessScope(expr, ctx, makeEnvResolver(ctx));
+  if (_expr.$kind === 'PrimitiveLiteral') return;
+
+  ctx.toReplace.push({
+    loc: node.sourceCodeLocation!.attrs![attr.name],
+    modifiedContent: () => `${attr.name}="\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(_expr)}, '${value}')}"`
+  });
+}
+
+/**
+ * Type-checks `name.command: expr; name: literal` custom attribute values.
+ * The splitting mirrors `hasInlineBindings` and `_compileMultiBindings` in the template compiler,
+ * so that what gets checked is exactly what the runtime would bind.
+ */
+function processMultiBindings(attr: Token.Attribute, node: DefaultTreeElement, ctx: TypeCheckingContext): void {
+  const raw = attr.value;
+  const len = raw.length;
+  let ch = 0;
+  let i = 0;
+  // An unescaped `${` before any `:` makes the whole value an interpolation rather than a multi-binding.
+  for (; i < len; ++i) {
+    ch = raw.charCodeAt(i);
+    if (ch === Char.Backslash) ++i;
+    else if (ch === Char.Colon) break;
+    else if (ch === Char.Dollar && raw.charCodeAt(i + 1) === Char.OpenBrace) return;
+  }
+  if (i >= len) return;
+
+  const factories: (() => string)[] = [];
+  let literalStart = 0;
+  let start = 0;
+  for (i = 0; i < len; ++i) {
+    ch = raw.charCodeAt(i);
+    if (ch === Char.Backslash) {
+      ++i;
+    } else if (ch === Char.Colon) {
+      const name = raw.slice(start, i);
+      while (raw.charCodeAt(++i) <= Char.Space);
+      const valueStart = i;
+      for (; i < len; ++i) {
+        ch = raw.charCodeAt(i);
+        if (ch === Char.Backslash) ++i;
+        else if (ch === Char.Semicolon) break;
+      }
+      const valueEnd = Math.min(i, len);
+      const replacement = rewritePart(name, raw.slice(valueStart, valueEnd));
+      if (replacement != null) {
+        // keep everything between the previous replacement and this value verbatim
+        const literal = raw.slice(literalStart, valueStart);
+        factories.push(() => literal, replacement);
+        literalStart = valueEnd;
+      }
+      while (i < len && raw.charCodeAt(++i) <= Char.Space);
+      start = i;
+    }
+  }
+  if (factories.length === 0) return;
+
+  const tail = raw.slice(literalStart);
+  ctx.toReplace.push({
+    loc: node.sourceCodeLocation!.attrs![attr.name],
+    modifiedContent: () => `${attr.name}="${factories.map(factory => factory()).join('')}${tail}"`
+  });
+
+  function rewritePart(name: string, value: string): (() => string) | null {
+    const syntax = ctx.attrParser.parse(name, value);
+    if (syntax.command == null) {
+      const interpolation = ctx.exprParser.parse(value, 'Interpolation');
+      if (interpolation == null) return null;
+      const partFactories: (() => string)[] = [() => interpolation.parts[0]];
+      interpolation.expressions.forEach((part, idx) => {
+        const [rewritten] = mutateAccessScope(part, ctx, makeEnvResolver(ctx));
+        partFactories.push(
+          () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(rewritten)}, '${escape(unparse(part))}')}`,
+          () => interpolation.parts[idx + 1]
+        );
+      });
+      return () => partFactories.map(factory => factory()).join('');
+    }
+
+    const exprValue = value.length === 0 ? syntax.target : value;
+    const expr = ctx.exprParser.parse(exprValue, 'None');
+    if (expr == null) return null;
+    const [rewritten] = mutateAccessScope(expr, ctx, makeEnvResolver(ctx));
+    if (rewritten.$kind === 'PrimitiveLiteral') return null;
+    return () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(rewritten)}, '${escape(exprValue)}')}`;
+  }
+}
+
+const enum Char {
+  Space      = 0x20,
+  Dollar     = 0x24,
+  Colon      = 0x3A,
+  Semicolon  = 0x3B,
+  Backslash  = 0x5C,
+  OpenBrace  = 0x7B,
+}
+
+// Kept structural (not imported from @aurelia/runtime-html) because the generated code must compile in user apps.
+const deferViewModelType = `{ readonly state: 'placeholder' | 'loading' | 'complete' | 'error'; readonly error: any; retry(): void }`;
+const deferBranchAttributes = ['defer-placeholder', 'defer-loading', 'defer-error'] as readonly string[];
+// Custom attributes whose multi-binding values (`a.bind: x; b: literal`) are type-checked.
+const multiBindingAttributes = ['defer', 'defer-loading'] as readonly string[];
 const rangeIterableIdentifier = '__TypeCheck_RangeIterable__';
 const allowedLetBindingCommands = ['bind', 'one-time', 'to-view', 'two-way'] as readonly string[];
 function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCheckingContext): void | false {
-  let retVal: void | false = void 0;
   if ('tagName' in node) {
     if (node.tagName === 'let') {
       const hasToBindingContext = node.attrs.some(a => a.name === 'to-binding-context');
@@ -584,32 +698,37 @@ function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCh
       }
       return false;
     }
-    node.attrs?.forEach(attr => {
-      const syntax = ctx.attrParser.parse(attr.name, attr.value);
-      if (tryProcessRepeat(syntax, attr, node, ctx)) retVal = false;
-      else {
-        let withProcessed: boolean;
-        [withProcessed, retVal] = tryProcessWith(syntax, attr, node, ctx);
-        if (withProcessed) return;
+    const attrs = node.attrs;
+    if (attrs == null) return;
+    const syntaxes = attrs.map(attr => ctx.attrParser.parse(attr.name, attr.value));
+    // Returns true when a template controller on the attribute already traversed the children.
+    const processAttr = (attr: Token.Attribute, syntax: AttrSyntax): boolean => {
+      if (tryProcessRepeat(syntax, attr, node, ctx)) return true;
+      const [withProcessed] = tryProcessWith(syntax, attr, node, ctx);
+      if (withProcessed) return true;
+      const [promiseProcessed] = tryProcessPromise(syntax, attr, node, ctx);
+      if (promiseProcessed) return true;
+      processBinding(syntax, attr, node, ctx);
+      return false;
+    };
 
-        let promisedProcessed: boolean;
-        [promisedProcessed, retVal] = tryProcessPromise(syntax, attr, node, ctx);
-        if (!promisedProcessed && syntax.command) {
-          const value = attr.value.length === 0 ? syntax.target : attr.value;
+    let childrenTraversed = false;
+    const branchIdx = syntaxes.findIndex(s => deferBranchAttributes.includes(s.target));
+    if (branchIdx === -1) {
+      attrs.forEach((attr, i) => { childrenTraversed = processAttr(attr, syntaxes[i]) || childrenTraversed; });
+      return childrenTraversed ? false : void 0;
+    }
 
-          const expr = ctx.exprParser.parse(value, 'None');
-          if (expr == null) return;
-
-          const [_expr] = mutateAccessScope(expr, ctx, makeEnvResolver(ctx));
-          if (_expr.$kind === 'PrimitiveLiteral') return;
-
-          ctx.toReplace.push({
-            loc: node.sourceCodeLocation!.attrs![attr.name],
-            modifiedContent: () => `${attr.name}="\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(_expr)}, '${value}')}"`
-          });
-        }
-      }
-    });
+    // The branch attribute's own bindings are evaluated in the surrounding scope;
+    // only the branch view (the element's other attributes and its descendants) sees `$defer`.
+    processAttr(attrs[branchIdx], syntaxes[branchIdx]);
+    ctx.pushScope('none');
+    const deferIdent = ctx.getIdentifier('$defer', IdentifierInstruction.AddToOverrides)!;
+    ctx.accessTypeParts.push(acc => `${acc} & { ${deferIdent}: ${deferViewModelType} }`);
+    attrs.forEach((attr, i) => { if (i !== branchIdx) childrenTraversed = processAttr(attr, syntaxes[i]) || childrenTraversed; });
+    if (childrenTraversed) ctx.popScope();
+    else traverseDepth(node, ctx);
+    return false;
   } else if (node.nodeName === '#text') {
     const expr = ctx.exprParser.parse(node.value, 'Interpolation');
 
@@ -631,7 +750,6 @@ function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCh
       });
     }
   }
-  return retVal;
 }
 
 function escape(s: string): string {

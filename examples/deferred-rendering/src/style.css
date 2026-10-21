@@ -1,0 +1,30 @@
+body {
+  max-width: 40rem;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  line-height: 1.5;
+}
+
+.spacer {
+  min-height: 110vh;
+}
+
+.chart-placeholder,
+.chart {
+  display: block;
+  width: 100%;
+  height: 12rem;
+}
+
+.chart-placeholder {
+  background: #e4e1dc;
+}
+
+.chart rect {
+  fill: #2f5d50;
+}
+
+.editor {
+  width: 100%;
+  font: inherit;
+}

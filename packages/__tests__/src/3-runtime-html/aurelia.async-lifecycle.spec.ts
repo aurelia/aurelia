@@ -1,4 +1,5 @@
-import { Registration, type IContainer } from '@aurelia/kernel';
+import { Registration, type Constructable, type IContainer } from '@aurelia/kernel';
+import { tasksSettled } from '@aurelia/runtime';
 import {
   Aurelia,
   AppTask,
@@ -487,6 +488,159 @@ describe('3-runtime-html/aurelia.async-lifecycle.spec.ts', function () {
 
   // https://github.com/aurelia/aurelia/issues/2532
   describe('hydrate', function () {
+    async function serverMarkup(Type: Constructable, name: string): Promise<string> {
+      const ctx = TestContext.create();
+      ctx.container.register(Registration.instance(ISSRContext, { preserveMarkers: true }));
+      const host = ctx.doc.body.appendChild(ctx.createElement(name));
+      const au = new Aurelia(ctx.container).app({ host, component: Type });
+      try {
+        await au.start();
+        return host.innerHTML;
+      } finally {
+        await au.stop(true);
+        au.dispose();
+        host.remove();
+      }
+    }
+
+    it('returns synchronously and rebinds the adopted DOM after stop(false) and start()', async function () {
+      const name = 'hydrated-restart';
+      const App = CustomElement.define({ name, template: '<span>${message}</span>' }, class { public message = 'initial'; });
+      const markup = await serverMarkup(App, name);
+      const ctx = TestContext.create();
+      const host = ctx.doc.body.appendChild(ctx.createElement(name));
+      host.innerHTML = markup;
+      const span = host.querySelector('span');
+      const au = new Aurelia(ctx.container);
+      try {
+        const result = au.hydrate({ host, component: App, ssrScope: { name, children: [] } });
+        assert.strictEqual(result instanceof Promise, false, 'synchronous hooks keep hydration synchronous');
+        const root = result as IAppRoot<InstanceType<typeof App>>;
+        assert.strictEqual(host.querySelector('span'), span);
+        await au.stop(false);
+        assert.strictEqual(root.controller.isActive, false);
+        assert.strictEqual('$aurelia' in host, false);
+        root.controller.viewModel.message = 'restarted';
+        await au.start();
+        assert.strictEqual(au.root, root);
+        assert.strictEqual(host.querySelector('span'), span, 'restart retains the adopted node');
+        assert.strictEqual(host.textContent, 'restarted');
+        root.controller.viewModel.message = 'updated';
+        await tasksSettled();
+        assert.strictEqual(host.textContent, 'updated', 'the restarted binding observes later changes');
+      } finally {
+        await au.stop(true);
+        au.dispose();
+        host.remove();
+      }
+    });
+
+    it('owns asynchronous hydration tasks and a stop requested before startup completes', async function () {
+      const name = 'hydrated-async-tasks';
+      const App = CustomElement.define({ name, template: '<span>ready</span>' }, class {});
+      const markup = await serverMarkup(App, name);
+      const ctx = TestContext.create();
+      const host = ctx.doc.body.appendChild(ctx.createElement(name));
+      host.innerHTML = markup;
+      const creation = createDeferred();
+      const activation = createDeferred();
+      const activatedEntered = createDeferred();
+      const deactivation = createDeferred();
+      const events: string[] = [];
+      const au = new Aurelia(ctx.container).register(
+        AppTask.creating(() => creation.promise),
+        AppTask.activated(() => { activatedEntered.resolve(); return activation.promise; }),
+        AppTask.deactivating(() => { events.push('deactivating'); return deactivation.promise; }),
+      );
+      host.addEventListener('au-started', () => {
+        assert.strictEqual(au.isRunning, true);
+        assert.strictEqual(ctx.container.get(IAppRootKey), au.root);
+        events.push('started');
+      });
+      host.addEventListener('au-stopped', () => { events.push('stopped'); });
+      let hydration: IAppRoot | Promise<IAppRoot> | undefined;
+      let stopped: void | Promise<void> = void 0;
+      let stopSettled = false;
+      try {
+        hydration = au.hydrate({ host, component: App, ssrScope: { name, children: [] } });
+        assert.instanceOf(hydration, Promise);
+        assert.strictEqual(au.isStarting, true);
+        stopped = au.stop(true);
+        assert.instanceOf(stopped, Promise);
+        void Promise.resolve(stopped).then(() => { stopSettled = true; });
+        creation.resolve();
+        await activatedEntered.promise;
+        assert.deepStrictEqual(events, [], 'activation tasks finish before the started event or queued stop');
+        activation.resolve();
+        const root = await hydration;
+        assert.strictEqual(au.root, root);
+        assert.strictEqual(stopSettled, false, 'the stop boundary still owns pending deactivation work');
+        deactivation.resolve();
+        await stopped;
+        assert.deepStrictEqual(events, ['started', 'deactivating', 'stopped']);
+        assert.strictEqual(au.isRunning, false);
+        assert.strictEqual(root.controller.isActive, false);
+        assert.strictEqual('$aurelia' in host, false);
+      } finally {
+        creation.resolve();
+        activation.resolve();
+        deactivation.resolve();
+        await hydration;
+        await stopped;
+        await au.stop(true);
+        au.dispose();
+        host.remove();
+      }
+    });
+
+    it('preserves supplied-container ownership and waits for hydrated-root teardown before replacement', async function () {
+      const name = 'hydrated-container';
+      const App = CustomElement.define({ name, template: '<span>hydrated</span>' }, class {
+        public teardown: Promise<void> | undefined;
+        public detaching(): void | Promise<void> { return this.teardown; }
+      });
+      const Replacement = CustomElement.define({ name: 'hydrated-replacement', template: '<p>replacement</p>' }, class {});
+      const markup = await serverMarkup(App, name);
+      const ctx = TestContext.create();
+      const host = ctx.doc.body.appendChild(ctx.createElement(name));
+      const nextHost = ctx.doc.body.appendChild(ctx.createElement('hydrated-replacement'));
+      host.innerHTML = markup;
+      const au = new Aurelia(ctx.container);
+      const supplied = ctx.container.createChild();
+      const service = {};
+      supplied.register(Registration.instance('hydration-service', service));
+      const detaching = createDeferred();
+      let replacement: void | Promise<void> = void 0;
+      try {
+        const root = await au.hydrate({ host, component: App, container: supplied, ssrScope: { name, children: [] } });
+        assert.strictEqual(root.container, supplied);
+        assert.strictEqual(root.controller.container.get(Aurelia), au);
+        assert.strictEqual(root.controller.container.get(IAppRootKey), root);
+        assert.strictEqual(root.controller.container.get('hydration-service'), service);
+        root.controller.viewModel.teardown = detaching.promise;
+        replacement = au.app({ host: nextHost, component: Replacement }).start();
+        assert.instanceOf(replacement, Promise);
+        assert.strictEqual(nextHost.textContent, '', 'replacement activation waits for old-root teardown');
+        assert.strictEqual(au.isStopping, true);
+        detaching.resolve();
+        await replacement;
+        assert.strictEqual(root.controller.isActive, false);
+        assert.strictEqual('$aurelia' in host, false);
+        assert.strictEqual(au.root.host, nextHost);
+        assert.strictEqual(nextHost.textContent, 'replacement');
+        assert.strictEqual(au.isRunning, true);
+        root.dispose();
+      } finally {
+        detaching.resolve();
+        await replacement;
+        await au.stop(true);
+        au.dispose();
+        supplied.dispose();
+        host.remove();
+        nextHost.remove();
+      }
+    });
+
     it('runs hydration through start() so stop(), $aurelia and au-started behave as for app()', async function () {
       const AppElement = CustomElement.define({
         name: 'hydrate-app',

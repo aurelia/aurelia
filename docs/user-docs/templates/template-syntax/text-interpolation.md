@@ -126,6 +126,10 @@ You can use these operators to safely handle null or undefined values:
 
 This helps avoid lengthy if-statements or ternary checks in your view model when dealing with potentially undefined data.
 
+An optional chain continues through subsequent property accesses and calls. For example, `${record?.format().label ?? 'Loading'}` displays the fallback when `record` is `null` or `undefined`. Computed keys and call arguments within the skipped part of the chain are left unevaluated.
+
+Each `?.` guards its own receiver. If `record` exists but `format()` returns `undefined`, use `record?.format()?.label` to guard that result too. Parentheses end the chain: `(record?.details).label` accesses the grouped result and throws in a strict template when that result is nullish.
+
 ## HTMLElement Interpolation
 
 Aurelia supports passing HTMLElement objects directly to template interpolations. This allows you to dynamically create and insert DOM elements into your templates at runtime.

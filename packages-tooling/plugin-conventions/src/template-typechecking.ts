@@ -280,13 +280,10 @@ function __typecheck_template_${classes.map(x => x.name).join('_')}__() {
       switch (len) {
         case 0: throw new Error('At least one argument is required');
         case 1: {
-          // Strip a leading "this." so `${o.this.x}` type-checks as VM access `${o.x}`
-          const arg0 = args[0].startsWith('this.') ? args[0].slice(5) : args[0];
-          return `${TypeCheckingContext._o} => ${TypeCheckingContext._o}.${arg0}`;
+          return `${TypeCheckingContext._o} => ${TypeCheckingContext.qualifyRoot(args[0])}`;
         }
         default: {
-          const parts = args.map(arg => arg.startsWith('this.') ? arg.slice(5) : arg);
-          return `${TypeCheckingContext._o} => (${parts.map(arg => `${TypeCheckingContext._o}.${arg}`).join(',')})`;
+          return `${TypeCheckingContext._o} => (${args.map(TypeCheckingContext.qualifyRoot).join(',')})`;
         }
       }
     }
@@ -302,13 +299,19 @@ function __typecheck_template_${classes.map(x => x.name).join('_')}__() {
           for (const arg of args.args) {
             switch(arg.$kind) {
               case 'PrimitiveLiteral': argList.push(unparse(arg)); break;
-              default: argList.push(`${TypeCheckingContext._o}.${unparse(arg)}`);
+              default: argList.push(TypeCheckingContext.qualifyRoot(unparse(arg)));
             }
           }
-          return `${TypeCheckingContext._o} => ${TypeCheckingContext._o}.${args.name}(${argList.join(',')})`;
+          return `${TypeCheckingContext._o} => ${TypeCheckingContext._o}.${args.name}${args.optional ? '?.' : ''}(${argList.join(',')})`;
         }
       default: return this.createLambdaExpression([unparse(args)]);
     }
+  }
+
+  private static qualifyRoot(expression: string): string {
+    // Qualify inside grouping so `(record?.details).label` keeps its chain boundary.
+    // An explicit `this.` already refers to the same view-model root.
+    return expression.replace(/^(\(*)(?:this\.)?/, `$1${TypeCheckingContext._o}.`);
   }
 
   public createMemberAccessExpression(member: string): AccessMemberExpression {

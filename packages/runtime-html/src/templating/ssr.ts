@@ -169,6 +169,84 @@ export function adoptSSRViews(
   return { views, viewScopes };
 }
 
+/**
+ * Preserve empty and adjacent text-node boundaries during HTML serialization and parsing.
+ *
+ * The HTML parser drops empty text nodes and merges adjacent ones, so each empty text node is replaced with an
+ * `<!--au-e-->` comment (same node count) and an `<!--au-t-->` separator goes between adjacent text nodes.
+ * Elements whose contents cannot carry comment markers are skipped. Native `textarea` and `title` interpolation
+ * requires the compiler's element-targeted text-content instructions.
+ * A leading `<!--au-hm-->` comment records preparation of this root. It does not verify that other comments
+ * or whitespace survive delivery. Preserve the hydration markers and whitespace when delivering the HTML.
+ *
+ * Record the manifest first, then call this helper immediately before serializing. Restore the corresponding
+ * root in the parsed DOM before adoption. For `Aurelia.hydrate()`, prepare the corresponding server host;
+ * `hydrate()` already restores its client host, so no separate restoration call is needed.
+ */
+export function prepareSSRForSerialization(root: Node): void {
+  const doc = root.ownerDocument ?? root as Document;
+  // NodeFilter.SHOW_TEXT = 4
+  const walker = doc.createTreeWalker(root, 4);
+  const empty: Text[] = [];
+  const adjacent: Text[] = [];
+  let node: Text | null;
+  while ((node = walker.nextNode() as Text | null) !== null) {
+    // the parser reads the content of these elements as text, so a comment there would come back as literal text
+    if (rawTextParentRE.test(node.parentNode!.nodeName)) {
+      continue;
+    }
+    if (node.data === '') {
+      empty.push(node);
+    } else if (node.nextSibling?.nodeType === 3) {
+      adjacent.push(node);
+    }
+  }
+  for (const text of adjacent) {
+    text.after(doc.createComment('au-t'));
+  }
+  for (const text of empty) {
+    text.replaceWith(doc.createComment('au-e'));
+  }
+  root.insertBefore(doc.createComment('au-hm'), root.firstChild);
+}
+
+const rawTextParentRE = /^(?:SCRIPT|STYLE|TEXTAREA|TITLE|XMP|IFRAME|NOEMBED|NOFRAMES|NOSCRIPT|PLAINTEXT)$/;
+
+/**
+ * Restore text-node boundaries prepared by `prepareSSRForSerialization`, before DOM adoption.
+ * Use the corresponding parsed root. `Aurelia.hydrate()` already calls this helper on its host.
+ * This replaces `au-e` comments with empty text nodes and removes `au-t` and `au-hm` comments.
+ *
+ * @returns Whether `host` started with `<!--au-hm-->` before restoration. This records preparation of that
+ * root, not verification of the remaining markup. A missing marker alone does not establish hydration failure.
+ */
+export function restoreSSRTextNodes(host: Node): boolean {
+  const doc = host.ownerDocument ?? host as Document;
+  // Only the marker prepareSSRForSerialization() put on this root counts: a nested root prepared on its own says
+  // nothing about the markup around it.
+  const first = host.firstChild;
+  const prepared = first !== null && first.nodeType === 8 && (first as Comment).data === 'au-hm';
+  // NodeFilter.SHOW_COMMENT = 128
+  const walker = doc.createTreeWalker(host, 128);
+  const markers: Comment[] = [];
+  let node: Comment | null;
+  let data: string;
+  while ((node = walker.nextNode() as Comment | null) !== null) {
+    data = node.data;
+    if (data === 'au-e' || data === 'au-t' || data === 'au-hm') {
+      markers.push(node);
+    }
+  }
+  for (const marker of markers) {
+    if (marker.data === 'au-e') {
+      marker.replaceWith(doc.createTextNode(''));
+    } else {
+      marker.remove();
+    }
+  }
+  return prepared;
+}
+
 /* =============================================================================
  * SSR Definition Hydration
  *
@@ -215,7 +293,7 @@ type InstructionType = typeof itPropertyBinding | typeof itTextBinding | typeof 
 type SerializedInstruction =
   | { type: typeof itPropertyBinding; exprId: ExprId; to: string; mode: BindingModeValue }
   | { type: typeof itTextBinding; exprIds: ExprId[]; parts: string[] }
-  | { type: typeof itInterpolation; exprIds: ExprId[]; parts: string[]; to: string }
+  | { type: typeof itInterpolation; exprIds: ExprId[]; parts: string[]; to: string; isTextContent?: true }
   | { type: typeof itListenerBinding; exprId: ExprId; to: string; capture: boolean; modifier?: string | null }
   | { type: typeof itRefBinding; exprId: ExprId; to: string }
   | { type: typeof itSetProperty; value: unknown; to: string }
@@ -350,6 +428,7 @@ function translateInstruction(ins: SerializedInstruction, ctx: TranslationContex
         type: itInterpolation,
         from: interpolation,
         to: ins.to,
+        ...(ins.isTextContent === true ? { isTextContent: true as const } : {}),
       };
       return instruction;
     }

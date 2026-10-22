@@ -478,6 +478,11 @@ export class UserLayout {}
   ]
 })
 ```
+
+The factory runs the first time the route is matched, not when the router starts, so chunks for routes the user never visits are never downloaded. If the import fails, only that navigation fails and the router retries the import on the next navigation to the route.
+
+Everything the router needs before the chunk loads — `id`, `title`, `nav`, and `data` for navigation menus, navigating by route id, or `fallback` by id — belongs in the parent route config rather than in the lazy component's own `@route`.
+
 [Using inline import() →](./configuring-routes.md#using-inline-import)
 
 ### How do I set/change the page title?

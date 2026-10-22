@@ -95,12 +95,13 @@ export class ContextRouter {
   }
 
   /**
-   * Generate a path from the provided instructions.
+   * Generate a path relative to the context selected by the instruction prefixes.
+   * A leading `../` selects a parent context and is consumed; replay the result
+   * from that context. Use `IRouteContext.generateRootedPath` for root-router replay.
    *
    * @param instructionOrInstructions - The navigation instruction(s) to generate the path for.
-   * @param context - The context to use for relative navigation. If not provided, the root context is used.
    */
-  public generatePath(instructionOrInstructions: NavigationInstruction | NavigationInstruction[]): string | Promise<string> {
+  public generatePath(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[]): string | Promise<string> {
     return this._router.generatePath(instructionOrInstructions, this._context);
   }
 

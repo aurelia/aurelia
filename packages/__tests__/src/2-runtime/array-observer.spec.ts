@@ -506,7 +506,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
           Object.assign([-2, -2, 2], { deletedIndices: [1, 0], deletedItems: [2, 1], isIndexMap: true })
         );
       });
-      assert.strictEqual(callCount, 2);
+      assert.strictEqual(callCount, 1, 'the outer batch does not replay the inner notification');
       assert.deepStrictEqual(
         map,
         Object.assign([-2, -2, 2], { deletedIndices: [1, 0], deletedItems: [2, 1], isIndexMap: true })

@@ -8,7 +8,8 @@ export { BindingMode } from '@aurelia/template-compiler';
 
 export interface IBindingController {
   readonly state: State;
-  requestTargetRefresh?(target: IRefreshable): void;
+  /** @internal */
+  requestTargetRefreshAfterBindings?(target: IRefreshable): void;
 }
 
 export interface IBinding {

@@ -65,7 +65,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   public parent: IHydratedController | null = null;
   public bindings: IBinding[] | null = null;
   public children: Controller[] | null = null;
-  private refreshTargets?: Set<IRefreshable>;
+  private bindingRefreshTargets?: Set<IRefreshable>;
 
   public scope: Scope | null = null;
   public isBound: boolean = false;
@@ -728,8 +728,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       }
     }
 
-    const refreshTargets = this.refreshTargets;
-    this.refreshTargets = void 0;
+    const refreshTargets = this.bindingRefreshTargets;
+    this.bindingRefreshTargets = void 0;
     refreshTargets?.forEach(callRefreshTarget);
 
     if (this.vmKind !== vmkSynth && this._lifecycleHooks!.bound != null) {
@@ -1067,7 +1067,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   private _leaveActivating(): void {
     if (this.state !== activating) {
       if (--this._activatingStack === 0) {
-        this.refreshTargets = void 0;
+        this.bindingRefreshTargets = void 0;
       }
       // skip doing rest of the work if the controller is deactivated.
       this._resolve();
@@ -1212,8 +1212,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
   }
 
-  public requestTargetRefresh(target: IRefreshable): void {
-    (this.refreshTargets ??= new Set()).add(target);
+  /** @internal */
+  public requestTargetRefreshAfterBindings(target: IRefreshable): void {
+    (this.bindingRefreshTargets ??= new Set()).add(target);
   }
 
   /**
@@ -1629,7 +1630,6 @@ export interface IController<C extends IViewModel = IViewModel> extends IDisposa
   readonly bindings: readonly IBinding[] | null;
 
   addBinding(binding: IBinding): void;
-  requestTargetRefresh(target: IRefreshable): void;
   /** @internal */ prependBinding(binding: IBinding): void;
 
   /** @internal */head: IHydratedController | null;

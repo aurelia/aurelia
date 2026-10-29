@@ -164,7 +164,7 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
     this.isBound = true;
 
     if (($mode & (toView | oneTime)) > 0 && isRefreshable(targetObserver)) {
-      this._controller.requestTargetRefresh?.(targetObserver);
+      this._controller.requestTargetRefreshAfterBindings?.(targetObserver);
     }
   }
 

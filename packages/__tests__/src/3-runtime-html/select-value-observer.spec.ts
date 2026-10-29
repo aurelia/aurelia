@@ -302,7 +302,7 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
   describe('initial selection', function () {
     for (const selected of [void 0, null, 'missing']) {
       it(`preserves the selection contract for an initial ${String(selected)} value`, async function () {
-        const { queryBy, tearDown } = createFixture(
+        const { queryBy } = createFixture(
           `<select value.bind="selected">
             <option ${selected === null ? 'model.bind="null"' : 'value="hardware"'}>Choose...</option>
             <option value="support">Support</option>
@@ -311,26 +311,18 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
         );
         const select = queryBy('select')!;
         const initialIndex = select.selectedIndex;
-        try {
-          await tasksSettled();
-          assert.strictEqual(select.selectedIndex, selected === 'missing' ? initialIndex : 0);
-        } finally {
-          await tearDown();
-        }
+        await tasksSettled();
+        assert.strictEqual(select.selectedIndex, selected === 'missing' ? initialIndex : 0);
       });
     }
 
     it('preserves authored DOM selection with a from-view binding', async function () {
-      const { queryBy, tearDown } = await createFixture(
+      const { queryBy } = createFixture(
         '<select value.from-view="selected"><option value="hardware">Hardware</option><option value="support" selected>Support</option></select>',
         { selected: '' },
-      ).started;
-      try {
-        await tasksSettled();
-        assert.strictEqual(queryBy('select')!.value, 'support');
-      } finally {
-        await tearDown();
-      }
+      );
+      await tasksSettled();
+      assert.strictEqual(queryBy('select')!.value, 'support');
     });
 
     for (const throughLet of [false, true]) {
@@ -348,7 +340,7 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
               return this.requests[index];
             },
           };
-          const { queryBy, component, ctx, tearDown } = await createFixture(
+          const { queryBy, component, ctx } = createFixture(
             `${throughLet ? '<let request.bind="state.readRequest(requestId)"></let><template if.bind="request != null">' : ''}
               <select multiple value.bind="${throughLet ? 'request.topics' : 'state.readRequest(requestId).topics'}">
                 <option ${bindModel ? 'model.bind="state.hardwareTopic"' : 'value="hardware"'}>Hardware</option>
@@ -357,33 +349,29 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
               </select>
             ${throughLet ? '</template>' : ''}`,
             { state, requestId: 0 },
-          ).started;
+          );
 
-          try {
-            await tasksSettled();
-            const select = queryBy('select')!;
-            assert.deepEqual(Array.from(select.options, option => option.selected), [false, false, true]);
-            assert.deepEqual(state.requests[0].topics, ['support'], 'initialization preserves the model');
+          await tasksSettled();
+          const select = queryBy('select')!;
+          assert.deepEqual(Array.from(select.options, option => option.selected), [false, false, true]);
+          assert.deepEqual(state.requests[0].topics, ['support'], 'initialization preserves the model');
 
-            component.requestId = 1;
-            await tasksSettled();
-            assert.deepEqual(Array.from(select.options, option => option.selected), [true, true, false]);
+          component.requestId = 1;
+          await tasksSettled();
+          assert.deepEqual(Array.from(select.options, option => option.selected), [true, true, false]);
 
-            const topics = state.requests[1].topics;
-            topics.push('support');
-            assert.deepEqual(Array.from(select.options, option => option.selected), [true, true, true]);
+          const topics = state.requests[1].topics;
+          topics.push('support');
+          assert.deepEqual(Array.from(select.options, option => option.selected), [true, true, true]);
 
-            select.options[0].selected = select.options[2].selected = false;
-            select.dispatchEvent(new ctx.Event('change'));
-            assert.strictEqual(state.requests[1].topics, topics, 'writeback retains the array');
-            assert.deepEqual(topics, ['billing']);
+          select.options[0].selected = select.options[2].selected = false;
+          select.dispatchEvent(new ctx.Event('change'));
+          assert.strictEqual(state.requests[1].topics, topics, 'writeback retains the array');
+          assert.deepEqual(topics, ['billing']);
 
-            component.requestId = 0;
-            await tasksSettled();
-            assert.deepEqual(Array.from(select.options, option => option.selected), [false, false, true]);
-          } finally {
-            await tearDown();
-          }
+          component.requestId = 0;
+          await tasksSettled();
+          assert.deepEqual(Array.from(select.options, option => option.selected), [false, false, true]);
         });
       }
     }
@@ -393,7 +381,7 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
         it(`initializes ${multiple ? 'multiple' : 'single'} object selection with value.${mode} and a later matcher binding`, async function () {
           const selected = { code: 'support' };
           const selection = multiple ? [selected] : selected;
-          const { queryBy, component, tearDown } = await createFixture(
+          const { queryBy, component } = createFixture(
             `<select ${multiple ? 'multiple' : ''} value.${mode}="selection" matcher.bind="sameCode">
               <optgroup label="Topics">
                 <option model.bind="null">Choose...</option>
@@ -407,57 +395,49 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
               options: [{ code: 'hardware' }, { code: 'support' }, { code: 'support' }],
               sameCode: (left: { code: string } | null, right: { code: string } | null) => left?.code === right?.code,
             },
-          ).started;
+          );
 
-          try {
-            await tasksSettled();
-            const select = queryBy('select')!;
-            // A single select keeps its existing first-match precedence. Initialization
-            // must also leave the caller's object/array intact rather than write options back.
-            assert.deepEqual(Array.from(select.options, option => option.selected), [false, false, true, multiple]);
-            assert.strictEqual(component.selection, selection);
-            assert.strictEqual(multiple ? (component.selection as unknown[])[0] : component.selection, selected);
-          } finally {
-            await tearDown();
-          }
+          await tasksSettled();
+          const select = queryBy('select')!;
+          // A single select keeps its existing first-match precedence. Initialization
+          // must also leave the caller's object/array intact rather than write options back.
+          assert.deepEqual(Array.from(select.options, option => option.selected), [false, false, true, multiple]);
+          assert.strictEqual(component.selection, selection);
+          assert.strictEqual(multiple ? (component.selection as unknown[])[0] : component.selection, selected);
         });
       }
 
       it(`reconciles cached option models again when value.${mode} is rebound`, async function () {
-        const { queryBy, component, tearDown } = await createFixture(
+        const { queryBy, component } = createFixture(
           `<div if.bind="visible">
             <select multiple value.${mode}="selected">
               <option model.bind="topic">Topic</option>
             </select>
           </div>`,
           { visible: true, selected: ['support'], topic: 'support' },
-        ).started;
+        );
 
-        try {
-          await tasksSettled();
-          const select = queryBy('select')!;
-          assert.strictEqual(select.options[0].selected, true);
+        await tasksSettled();
+        const select = queryBy('select')!;
+        assert.strictEqual(select.options[0].selected, true);
 
-          component.visible = false;
-          await tasksSettled();
-          component.selected.splice(0, 1, 'billing');
-          component.topic = 'billing';
-          component.visible = true;
-          await tasksSettled();
+        component.visible = false;
+        await tasksSettled();
+        component.selected.splice(0, 1, 'billing');
+        component.topic = 'billing';
+        component.visible = true;
+        await tasksSettled();
 
-          assert.strictEqual(queryBy('select'), select, 'the cached view reuses the select');
-          assert.strictEqual(select.options[0].selected, true);
-          assert.deepEqual(component.selected, ['billing']);
-        } finally {
-          await tearDown();
-        }
+        assert.strictEqual(queryBy('select'), select, 'the cached view reuses the select');
+        assert.strictEqual(select.options[0].selected, true);
+        assert.deepEqual(component.selected, ['billing']);
       });
     }
 
     for (const rebind of [false, true]) {
       it(`${rebind ? 'uses the latest model after rebind' : 'discards pending initialization after unbind'} before the queue drains`, async function () {
         let matches = 0;
-        const { queryBy, component, tearDown } = createFixture(
+        const { queryBy, component } = createFixture(
           `<div if.bind="visible">
             <select multiple value.bind="selected" matcher.bind="matcher">
               <option model.bind="topic">Topic</option>
@@ -474,28 +454,24 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
           },
         );
 
-        try {
-          component.visible = false;
-          component.selected = ['billing'];
-          component.topic = 'billing';
-          if (rebind) component.visible = true;
-          matches = 0;
-          await tasksSettled();
+        component.visible = false;
+        component.selected = ['billing'];
+        component.topic = 'billing';
+        if (rebind) component.visible = true;
+        matches = 0;
+        await tasksSettled();
 
-          // Reconciliation may finish synchronously or in the queue. Only the
-          // detached case forbids further work; rebind must publish the latest model.
-          if (!rebind) assert.strictEqual(matches, 0);
-          assert.strictEqual(queryBy('option')?.selected, rebind ? true : void 0);
-          assert.deepEqual(component.selected, ['billing']);
-        } finally {
-          await tearDown();
-        }
+        // Reconciliation may finish synchronously or in the queue. Only the
+        // detached case forbids further work; rebind must publish the latest model.
+        if (!rebind) assert.strictEqual(matches, 0);
+        assert.strictEqual(queryBy('option')?.selected, rebind ? true : void 0);
+        assert.deepEqual(component.selected, ['billing']);
       });
     }
 
     it('does not add a second reconciliation to ordinary two-way updates', async function () {
       let matches = 0;
-      const { queryBy, component, tearDown } = await createFixture(
+      const { queryBy, component } = createFixture(
         `<select multiple value.bind="selected" matcher.bind="matcher">
           <option model.bind="hardware">Hardware</option>
           <option model.bind="support">Support</option>
@@ -509,17 +485,13 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
             return left === right;
           },
         },
-      ).started;
-      try {
-        await tasksSettled();
-        matches = 0;
-        component.selected = ['hardware'];
-        await tasksSettled();
-        assert.strictEqual(matches, 2, 'one comparison per option');
-        assert.deepEqual(Array.from(queryBy('select')!.options, option => option.selected), [true, false]);
-      } finally {
-        await tearDown();
-      }
+      );
+      await tasksSettled();
+      matches = 0;
+      component.selected = ['hardware'];
+      await tasksSettled();
+      assert.strictEqual(matches, 2, 'one comparison per option');
+      assert.deepEqual(Array.from(queryBy('select')!.options, option => option.selected), [true, false]);
     });
   });
 

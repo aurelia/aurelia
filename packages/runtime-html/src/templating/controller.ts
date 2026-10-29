@@ -66,6 +66,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   public bindings: IBinding[] | null = null;
   public children: Controller[] | null = null;
   private bindingRefreshTargets?: Set<IRefreshable>;
+  private bindingRefreshQueued: boolean = false;
 
   public scope: Scope | null = null;
   public isBound: boolean = false;
@@ -728,9 +729,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       }
     }
 
-    const refreshTargets = this.bindingRefreshTargets;
-    this.bindingRefreshTargets = void 0;
-    refreshTargets?.forEach(callRefreshTarget);
+    this.refreshBindingTargets();
 
     if (this.vmKind !== vmkSynth && this._lifecycleHooks!.bound != null) {
       /* istanbul ignore next */
@@ -806,6 +805,11 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       case targetLocation:
         this.nodes!.insertBefore(this.location!);
         break;
+    }
+
+    if (this.parent !== null) {
+      // Child bindings can settle before their nodes are visible to a parent target.
+      (this.parent as Controller).queueBindingTargetRefreshes();
     }
 
     let i = 0;
@@ -983,6 +987,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         this.bindings[i].unbind();
       }
     }
+    this.bindingRefreshTargets = void 0;
 
     this.parent = null;
 
@@ -1215,6 +1220,26 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   /** @internal */
   public requestRefresh(target: IRefreshable, _phase: RefreshPhase): void {
     (this.bindingRefreshTargets ??= new Set()).add(target);
+  }
+
+  private refreshBindingTargets(): void {
+    if (this.isActive) {
+      this.bindingRefreshTargets?.forEach(callRefreshTarget);
+    }
+  }
+
+  private queueBindingTargetRefreshes(): void {
+    if (this.bindingRefreshTargets !== void 0 && !this.bindingRefreshQueued) {
+      this.bindingRefreshQueued = true;
+      // A repeated view can mount many children at once; reconcile each owner once.
+      queueTask(() => {
+        this.bindingRefreshQueued = false;
+        this.refreshBindingTargets();
+      });
+    }
+    if (this.parent !== null) {
+      (this.parent as Controller).queueBindingTargetRefreshes();
+    }
   }
 
   /**

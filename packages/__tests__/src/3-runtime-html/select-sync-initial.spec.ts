@@ -5,7 +5,7 @@ describe('3-runtime-html/select-sync-initial.spec.ts', function () {
   for (const mode of ['bind', 'to-view', 'one-time']) {
     it(`synchronizes the initial selection after option models and matcher bind with value.${mode}`, function () {
       const selected = { id: 2 };
-      const { appHost, component, tearDown } = createFixture(
+      const { component, queryBy } = createFixture(
         `<select value.${mode}="selected" matcher.bind="matchById">
           <option model.bind="options[0]">One</option>
           <option model.bind="options[1]">Two</option>
@@ -17,13 +17,9 @@ describe('3-runtime-html/select-sync-initial.spec.ts', function () {
         },
       );
 
-      try {
-        const select = appHost.querySelector('select')!;
-        assert.deepEqual(Array.from(select.options, option => option.selected), [false, true]);
-        assert.strictEqual(component.selected, selected);
-      } finally {
-        void tearDown();
-      }
+      const select = queryBy('select') as HTMLSelectElement;
+      assert.deepEqual(Array.from(select.options, option => option.selected), [false, true]);
+      assert.strictEqual(component.selected, selected);
     });
   }
 
@@ -37,7 +33,7 @@ describe('3-runtime-html/select-sync-initial.spec.ts', function () {
       }
     });
     const selected = { id: 2 };
-    const fixture = createFixture(
+    const { queryBy, started } = createFixture(
       `<select value.bind="selected" matcher.bind="matchById">
         <option model.bind="options[0]">One</option>
         <option model.bind="options[1]">Two</option>
@@ -52,12 +48,11 @@ describe('3-runtime-html/select-sync-initial.spec.ts', function () {
     );
 
     try {
-      const select = fixture.appHost.querySelector('select')!;
+      const select = queryBy('select') as HTMLSelectElement;
       assert.deepEqual(Array.from(select.options, option => option.selected), [false, true]);
     } finally {
       resolveAttaching();
-      await fixture.started;
-      await fixture.tearDown();
     }
+    await started;
   });
 });

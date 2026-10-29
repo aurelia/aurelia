@@ -678,6 +678,7 @@ Avoid selectors that rely on DOM order:
 - `created` and `attached` fire on initial view creation  
 - Views are reused on scroll; `binding` happens more frequently  
 - Use reactive change handlers instead of relying on lifecycle timing  
+- When the list is removed (an `if` hides it, the route changes, or the app stops), every rendered row runs `detaching` and `unbinding`, and its bindings stop observing the items. Release anything a row sets up in those hooks. When the list is shown again, rows run `attached` again  
 
 ### Integration with Other Features
 

@@ -242,6 +242,53 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       assert.equal((host as Element).querySelector('span').childNodes.length, 0);
     }, { component: App });
   }
+  // https://github.com/aurelia/aurelia/issues/2525
+  {
+    @customElement({ name: 'app', template: `<span t.bind="key">fallback <b>content</b></span>` })
+    class App {
+      public key: string = 'simple.text';
+    }
+
+    $it('reuses the translated text node across locale and key changes', async function ({ host, en: translation, de: deTranslation, app, i18n }: I18nIntegrationTestContext<App>) {
+      const span = (host as Element).querySelector('span');
+      assertTextOnlyContent(host, 'span', translation.simple.text);
+      const textNode = span.firstChild;
+
+      await i18n.setLocale('de');
+      assertTextOnlyContent(host, 'span', deTranslation.simple.text);
+      assert.strictEqual(span.firstChild, textNode, 'locale change should update the existing text node');
+
+      app.key = 'simple.attr';
+      await tasksSettled();
+      assertTextOnlyContent(host, 'span', deTranslation.simple.attr);
+      assert.strictEqual(span.firstChild, textNode, 'key change should update the existing text node');
+
+      await i18n.setLocale('en');
+      app.key = 'empty';
+      await tasksSettled();
+      assert.equal(span.childNodes.length, 0);
+
+      app.key = '[html]midHtml';
+      await tasksSettled();
+      assert.equal(span.innerHTML, translation.midHtml);
+
+      app.key = 'simple.text';
+      await tasksSettled();
+      assertTextOnlyContent(host, 'span', translation.simple.text);
+      assert.notStrictEqual(span.firstChild, textNode);
+    }, { component: App });
+
+    $it('does not reuse a text node it did not write', async function ({ host, en: translation, i18n }: I18nIntegrationTestContext<App>) {
+      const span = (host as Element).querySelector('span');
+      const foreign = span.ownerDocument.createTextNode('foreign');
+      span.replaceChildren(foreign);
+
+      await i18n.setLocale('de');
+      await i18n.setLocale('en');
+      assertTextOnlyContent(host, 'span', translation.simple.text);
+      assert.notStrictEqual(span.firstChild, foreign);
+    }, { component: App });
+  }
   {
     @customElement({
       name: 'app',

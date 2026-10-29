@@ -145,6 +145,13 @@ export interface IAccessor<TValue = unknown> {
 }
 
 /**
+ * A target whose state may need to be reapplied after related work finishes.
+ */
+export interface IRefreshable {
+  refresh(): void;
+}
+
+/**
  * An interface describing a standard contract of an observer in Aurelia binding & observation system
  */
 export interface IObserver<TValue = unknown> extends IAccessor<TValue>, ISubscribable {

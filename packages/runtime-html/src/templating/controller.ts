@@ -43,6 +43,7 @@ import type {
 } from '@aurelia/kernel';
 import type {
   IObservable,
+  IRefreshable,
 } from '@aurelia/runtime';
 import type { INodeSequence, IRenderLocation } from '../dom';
 import type { INode } from '../dom.node';
@@ -64,6 +65,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   public parent: IHydratedController | null = null;
   public bindings: IBinding[] | null = null;
   public children: Controller[] | null = null;
+  private refreshTargets?: Set<IRefreshable>;
 
   public scope: Scope | null = null;
   public isBound: boolean = false;
@@ -726,6 +728,10 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       }
     }
 
+    const refreshTargets = this.refreshTargets;
+    this.refreshTargets = void 0;
+    refreshTargets?.forEach(callRefreshTarget);
+
     if (this.vmKind !== vmkSynth && this._lifecycleHooks!.bound != null) {
       /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.bound()`); }
@@ -1060,7 +1066,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   /** @internal */
   private _leaveActivating(): void {
     if (this.state !== activating) {
-      --this._activatingStack;
+      if (--this._activatingStack === 0) {
+        this.refreshTargets = void 0;
+      }
       // skip doing rest of the work if the controller is deactivated.
       this._resolve();
       if (this.$initiator !== this) {
@@ -1202,6 +1210,10 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     } else {
       this.bindings[this.bindings.length] = binding;
     }
+  }
+
+  public requestTargetRefresh(target: IRefreshable): void {
+    (this.refreshTargets ??= new Set()).add(target);
   }
 
   /**
@@ -1617,6 +1629,7 @@ export interface IController<C extends IViewModel = IViewModel> extends IDisposa
   readonly bindings: readonly IBinding[] | null;
 
   addBinding(binding: IBinding): void;
+  requestTargetRefresh(target: IRefreshable): void;
   /** @internal */ prependBinding(binding: IBinding): void;
 
   /** @internal */head: IHydratedController | null;
@@ -2013,6 +2026,10 @@ export interface IControllerElementHydrationInstruction {
 
 function callDispose(disposable: IDisposable): void {
   disposable.dispose();
+}
+
+function callRefreshTarget(target: IRefreshable): void {
+  target.refresh();
 }
 
 function callCreatedHook(this: Controller, l: LifecycleHooksEntry<ICompileHooks, 'created'>) {

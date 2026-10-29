@@ -31,6 +31,7 @@ import { LifecycleHooks, LifecycleHooksEntry } from './lifecycle-hooks';
 import { IRendering } from './rendering';
 import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles';
 import { ComputedWatcher, ExpressionWatcher } from './watchers';
+import { Watch } from '../watch';
 
 import type {
   Constructable,
@@ -417,8 +418,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     this.scope = Scope.create(instance, null, true);
 
-    if (definition.watches.length > 0) {
-      createWatchers(this, container, definition, instance);
+    const watches = getWatches(definition, instance);
+    if (watches.length > 0) {
+      createWatchers(this, container, watches, instance);
     }
     createObservers(this, definition, instance as IIndexable<ICustomElementViewModel>);
 
@@ -541,8 +543,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     const definition = this.definition as CustomAttributeDefinition;
     const instance = this._vm!;
 
-    if (definition.watches.length > 0) {
-      createWatchers(this, this.container, definition, instance);
+    const watches = getWatches(definition, instance);
+    if (watches.length > 0) {
+      createWatchers(this, this.container, watches, instance);
     }
     createObservers(this, definition, instance as unknown as IIndexable<ICustomAttributeViewModel>);
 
@@ -1437,15 +1440,29 @@ const getAccessScopeAst = (key: PropertyKey) => {
   return ast;
 };
 
+function getWatches(
+  definition: CustomElementDefinition | CustomAttributeDefinition,
+  instance: object,
+): readonly IWatchDefinition[] {
+  const watches = definition.watches;
+  const Type = instance.constructor as Constructable;
+  if (Type === definition.Type || !(instance instanceof definition.Type)) {
+    return watches;
+  }
+  // A subclass without its own resource definition hydrates with its base class's definition,
+  // which cannot hold the watches the subclass declares itself.
+  const own = Watch.getDefinitions(Type).filter(w => !watches.includes(w));
+  return own.length === 0 ? watches : [...watches, ...own];
+}
+
 function createWatchers(
   controller: Controller,
   context: IServiceLocator,
-  definition: CustomElementDefinition | CustomAttributeDefinition,
+  watches: readonly IWatchDefinition[],
   instance: object,
 ) {
   const observerLocator = context!.get(IObserverLocator);
   const expressionParser = context.get(IExpressionParser);
-  const watches = definition.watches;
   const scope: Scope = controller.vmKind === vmkCe
     ? controller.scope!
     // custom attribute does not have own scope

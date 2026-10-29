@@ -54,7 +54,7 @@ import type { PartialCustomElementDefinition } from '../resources/custom-element
 import type { IWatchDefinition, IWatcherCallback } from '../watch';
 import type { LifecycleHooksLookup } from './lifecycle-hooks';
 import type { IViewFactory } from './view';
-import { IBinding } from '../binding/interfaces-bindings';
+import { IBinding, type RefreshPhase } from '../binding/interfaces-bindings';
 
 export class Controller<C extends IViewModel = IViewModel> implements IController<C> {
 
@@ -1213,7 +1213,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   /** @internal */
-  public requestTargetRefreshAfterBindings(target: IRefreshable): void {
+  public requestRefresh(target: IRefreshable, _phase: RefreshPhase): void {
     (this.bindingRefreshTargets ??= new Set()).add(target);
   }
 

@@ -1,38 +1,38 @@
 ---
-description: Learn how Router handles the re-entrance of the same component and how to override the default behavior.
+description: Choose whether navigation replaces a component or reuses its current instance.
 ---
 
 # Transition plan
 
-The transition plan in router is meant for deciding how to process a navigation instruction that intends to load the same component that is currently loaded/active, but with different parameters.
-As the router uses a sensible default based on the user-voice, probably you never need to touch this area.
-However, it is still good to know how to change those defaults, whenever you are in need to do that (and we all know that such needs will arise from time to time).
+When navigation targets a component type that is already active, the transition plan decides whether to replace its instance, invoke its routing hooks again, or keep it as it is. This lets a page choose how changes in route parameters affect its local state and data loading.
 
-Transition plan can be configured using the `transitionPlan` property in the [routing configuration](./configuring-routes.md#advanced-route-configuration-options).
-The allowed values are `replace`, `invoke-lifecycles`, `none` or a function that returns one of these values.
+Set `transitionPlan` in [route configuration](./configuring-routes.md#advanced-route-configuration-options) to `replace`, `invoke-lifecycles`, `none`, or a function that returns one of those values.
 
-- `replace`: This instructs the router to completely remove the current component and create a new one, behaving as if the component is changed. This is the default behavior if the parameters are changed.
-- `invoke-lifecycles`: This instructs the router to call the lifecycle hooks (`canUnload`, `canLoad`, `unloading`, `loading`, and `loaded`) of the component.
-- `none`: Does nothing. This is the default behavior, when nothing is changed.
+- `replace`: Remove the current component and create a new instance. This is the default when route parameters change.
+- `invoke-lifecycles`: Reuse the instance and call its routing hooks (`canUnload`, `canLoad`, `unloading`, `loading`, and `loaded`).
+- `none`: Keep the instance without invoking its routing hooks. This is the default when the path and route parameters are unchanged.
 
 ## How does it work
 
-The child routes inherits the `transitionPlan` from the parent.
+Child route configuration inherits the `transitionPlan` from its parent when it does not supply one.
 
-When the `transitionPlan` property in the [routing configuration](./configuring-routes.md#advanced-route-configuration-options) is not configured, router uses `replace` when the parameters are changed and `none` otherwise.
+For the same component, a per-navigation `transitionPlan` option takes precedence. Without that override, an unchanged path and unchanged route parameters select `none` before the route-level configuration is consulted. Otherwise the router uses the configured or inherited plan, falling back to `replace`.
+
+A query-only change therefore does not automatically invoke `loading()`, even if the route declares `transitionPlan: 'invoke-lifecycles'`. To refresh data in that hook, request it on the individual navigation:
+
+```typescript
+await router.navigate('?page=2', { transitionPlan: 'invoke-lifecycles' });
+```
+
+Here `router` is `IRouter`. The override applies to that operation, not subsequent Back/Forward events. A page that follows every completed query change can use the [query-driven results recipe](outcome-recipes.md#query-parameter-state-management).
 
 {% hint style="info" %}
-It might be normal to think that the default selection of the `replace` transition plan when the parameter changes, to be an overkill and the default selection should have been `invoke-lifecycles` instead.
-As a matter of fact that's the default option in Aurelia1 as well as in earlier versions of Aurelia2.
-However, as understood from the user-voices that `replace` would in this case cause less surprises.
-Hence the default behavior is changed to `replace`.
+Aurelia 1 and earlier versions of Aurelia 2 defaulted to `invoke-lifecycles` when parameters changed. The current default, `replace`, gives the destination a fresh component instance. Choose `invoke-lifecycles` when the page should keep its local state across parameter changes.
 {% endhint %}
 
 ## Transition plans are inherited
 
-Transition plans defined on the root are inherited by the children.
-The example below shows that the `transitionPlan` on the root is configured to `replace` and this transition plan is inherited by the child route configuration.
-This means that every time the link is clicked, the component is created new and the view reflects that as well.
+In this example, the child route inherits `transitionPlan: 'replace'` from the root. Changing its route parameters creates a new component instance. Repeating an unchanged destination follows the reuse rule above.
 
 ```typescript
 import { customElement } from '@aurelia/runtime-html';
@@ -44,7 +44,7 @@ class CeOne implements IRouteViewModel {
   private static id2: number = 0;
   // Every instance gets a new id.
   private readonly id1: number = ++CeOne.id1;
-  private id2: number;
+  private id2 = 0;
   public canLoad(): boolean {
     // Every time the lifecycle hook is called, a new id is generated.
     this.id2 = ++CeOne.id2;
@@ -69,18 +69,17 @@ class CeOne implements IRouteViewModel {
 export class MyApp {}
 ```
 
-See this example in action below.
+Alternate between the links and watch the instance counter (`id1`) increase:
 
 {% embed url="https://stackblitz.com/edit/router-lite-tr-plan-replace-inheritance?ctl=1&embed=1&file=src/my-app.ts" %}
 
 ## Use a function to dynamically select transition plan
 
-You can use a function to dynamically select transition plan based on route nodes.
-The following example shows that, where for every components, apart from the root component, `invoke-lifecycles` transition plan is selected.
+A function can choose the plan from the current and incoming route nodes. This example selects `invoke-lifecycles` for every component except the root:
 
 ```typescript
 import { customElement } from '@aurelia/runtime-html';
-import { IRouteViewModel, route } from '@aurelia/router';
+import { IRouteViewModel, route, RouteNode } from '@aurelia/router';
 
 @customElement({ name: 'ce-one', template: 'ce1 ${id1} ${id2}' })
 class CeOne implements IRouteViewModel {
@@ -88,7 +87,7 @@ class CeOne implements IRouteViewModel {
   private static id2: number = 0;
   // Every instance gets a new id.
   private readonly id1: number = ++CeOne.id1;
-  private id2: number;
+  private id2 = 0;
   public canLoad(): boolean {
     // Every time the lifecycle hook is called, a new id is generated.
     this.id2 = ++CeOne.id2;
@@ -115,13 +114,11 @@ class CeOne implements IRouteViewModel {
 export class MyApp {}
 ```
 
-The behavior can be validated by alternatively clicking the links multiple times and observing that the `CeOne#id2` increases, whereas `CeOne#id1` remains constant.
-This shows that every attempt to load the `CeOne` only invokes the lifecycle hooks without re-instantiating the component every time.
-You can try out this example below.
+Alternate between the links to change the path parameter. Each change invokes the routing hooks: `CeOne#id2` increases, and `CeOne#id1` keeps the same value because the instance is reused. Clicking the same destination again selects `none`.
 
 {% embed url="https://stackblitz.com/edit/router-lite-tr-plan-function?ctl=1&embed=1&file=src/my-app.ts" %}
 
-This can be interesting when dealing with [sibling viewports](./viewports.md#sibling-viewports), as you can select different transition plan for different siblings.
+The function can also choose a different plan for each of several [sibling viewports](./viewports.md#sibling-viewports):
 
 ```typescript
 import { customElement } from '@aurelia/runtime-html';
@@ -132,7 +129,7 @@ class CeTwo implements IRouteViewModel {
   private static id1: number = 0;
   private static id2: number = 0;
   private readonly id1: number = ++CeTwo.id1;
-  private id2: number;
+  private id2 = 0;
   public canLoad(): boolean {
     this.id2 = ++CeTwo.id2;
     return true;
@@ -144,7 +141,7 @@ class CeOne implements IRouteViewModel {
   private static id1: number = 0;
   private static id2: number = 0;
   private readonly id1: number = ++CeOne.id1;
-  private id2: number;
+  private id2 = 0;
   public canLoad(): boolean {
     this.id2 = ++CeOne.id2;
     return true;
@@ -182,8 +179,6 @@ class CeOne implements IRouteViewModel {
 export class MyApp {}
 ```
 
-The example above selects `invoke-lifecycles` for the `CeTwo` and `replace` for everything else.
-When you alternatively click the links multiple times, you can see that `CeOne` is re-instantiated every time whereas for `CeTwo` only the lifecycles hooks are invoked and the instance is reused.
-You can see the example in action below.
+Alternate between the links to see both plans at work. Each parameter change creates a new `CeOne` instance and invokes `CeTwo`'s routing hooks on its existing instance.
 
 {% embed url="https://stackblitz.com/edit/router-lite-tr-plan-function-sibling?ctl=1&embed=1&file=src/my-app.ts" %}

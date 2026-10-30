@@ -1,65 +1,43 @@
 ---
-description: >-
-  Working with the hybrid approach to routing, configure routing from within
-  components.
+description: Keep a feature's child routes and navigation beside the layout that owns them.
 ---
 
 # Component configured routing
 
-{% hint style="info" %}
-**Bundler note:** These examples import '.html' files as raw strings (showing '?raw' for Vite/esbuild). Configure your bundler as described in [Importing external HTML templates with bundlers](../../components/components.md#importing-external-html-templates-with-bundlers) so the imports resolve to strings on Webpack, Parcel, etc.
-{% endhint %}
+A feature layout can own its routes just as the application root does. The layout stays mounted while its child page changes, keeping shared navigation visible and holding state for the feature.
 
-{% hint style="info" %}
-`Please note that we currently have an interim router implementation and that some (minor) changes to application code might be required when the original router is added back in.`
-{% endhint %}
-
-If direct routing isn't verbose enough for you and configured routing is too verbose, component configured routing is a mix between the two and falls somewhere in the middle. Using decorators to configure your components and router options, still requires very little code.
-
-This approach works wonders for situations where you want a section inside your application with its own viewport and subset of routes. For example, a profile page with child routes for pages within that section, a section for the user's profile information, and a view for their items.
-
-**Your view model might look like the following:**
+For example, a user profile can host an information page and an items page:
 
 ```typescript
-import { customElement, IRouteViewModel, Params, IPlatform, route } from 'aurelia';
-
-
-import template from './user-profile.html?raw';
+// user-profile.ts
+import { route } from '@aurelia/router';
+import { UserInfo } from './user-info';
+import { UserItems } from './user-items';
 
 @route({
   routes: [
-    { id: 'info', path: '', component: UserInfoCustomElement, title: 'Profile' },
-    { path: 'items', component: UserItemsCustomElement, title: 'Profile' },
+    { id: 'info', path: '', component: UserInfo, title: 'Profile' },
+    { path: 'items', component: UserItems, title: 'Items' },
   ],
 })
-@customElement({ name: 'user-profile', template })
-export class UserProfileCustomElement implements IRouteViewModel {
-
-}
+export class UserProfile {}
 ```
-
-**Your view might be something basic like this:**
 
 ```html
-<div class="user-profile-container">
-    <ul>
-      <li class="nav-item">
-        <a class="nav-link" load="info">
-          My Info
-        </a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" load="route:items">
-          My Items
-        </a>
-      </li>
-    </ul>
-
-    <au-viewport></au-viewport>
-</div>
+<!-- user-profile.html -->
+<nav>
+  <a load="info">My info</a>
+  <a load="items">My items</a>
+</nav>
+<au-viewport></au-viewport>
 ```
 
-Notice how we import the `route` decorator and supply an object containing a `routes` property? You can define your routes and pass in the component for the router to instantiate.
+These examples use Aurelia's file conventions to pair each class with its template. In the parent layout's route table, mount `UserProfile` at the desired path:
 
-One line of code of notable interest is our first route has an empty path, denoted by the empty single quotes, `path: ''` this tells the router that this is our default route for this view. We are loading the user info component if no other route is specified.
+```typescript
+{ path: 'profile', component: UserProfile }
+```
 
+At `/profile`, the empty child path selects `UserInfo`. At `/profile/items`, the nested viewport shows `UserItems` within the existing `UserProfile` layout. Both links resolve in the profile layout's routing context. The `info` link selects the route ID for the empty path, returning to `/profile`.
+
+The parent and child route tables use the same configuration model. See [Child routing](../../router/child-routing.md) to pass parameters, navigate to a parent, or navigate from code with `IContextRouter`.

@@ -2,6 +2,7 @@ import { IDisposable, IIndexable, resolve } from '@aurelia/kernel';
 import {
   ICustomAttributeViewModel,
   INode,
+  IWindow,
   CustomElement,
   CustomAttribute,
 } from '@aurelia/runtime-html';
@@ -10,12 +11,13 @@ import { IRouteContext } from '../route-context';
 import { NavigationInstruction, Params, ViewportInstructionTree } from '../instructions';
 import { IRouterEvents } from '../router-events';
 import { ILocationManager } from '../location-manager';
-import { bmFromView, bmToView } from '../util';
+import { bmFromView, bmToView, isNavigationClick } from '../util';
 import { IContextRouter } from '../context-router';
 
 export class LoadCustomAttribute implements ICustomAttributeViewModel {
 
   /** @internal */ private readonly _el: INode<HTMLElement> = resolve<INode<HTMLElement>>(INode as unknown as INode<HTMLElement>);
+  /** @internal */ private readonly _window: IWindow = resolve(IWindow);
   /** @internal */ private _ctxRouter: IContextRouter = resolve(IContextRouter);
   /** @internal */ private readonly _events: IRouterEvents = resolve(IRouterEvents);
   /** @internal */ private readonly _locationMgr: ILocationManager = resolve(ILocationManager);
@@ -121,10 +123,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
       return;
     }
 
-    // Ensure this is an ordinary left-button click.
-    if (e.altKey || e.ctrlKey || e.shiftKey || e.metaKey || e.button !== 0) {
-      return;
-    }
+    if (!isNavigationClick(e, this._el, this._window.name)) return;
 
     e.preventDefault();
     // Floating promises from `Router#load` are ok because the router keeps track of state and handles the errors, etc.

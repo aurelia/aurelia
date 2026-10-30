@@ -65,9 +65,13 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   public parent: IHydratedController | null = null;
   public bindings: IBinding[] | null = null;
   public children: Controller[] | null = null;
-  private bindingRefreshTargets?: Set<IRefreshable>;
-  private bindingRefreshBatchDepth: number = 0;
-  private bindingRefreshPending: boolean = false;
+
+  /** @internal */
+  private _bindingRefreshTargets?: Set<IRefreshable>;
+  /** @internal */
+  private _bindingRefreshBatchDepth: number = 0;
+  /** @internal */
+  private _bindingRefreshPending: boolean = false;
 
   public scope: Scope | null = null;
   public isBound: boolean = false;
@@ -730,7 +734,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       }
     }
 
-    this.refreshBindingTargets();
+    this._refreshBindingTargets();
 
     if (this.vmKind !== vmkSynth && this._lifecycleHooks!.bound != null) {
       /* istanbul ignore next */
@@ -814,7 +818,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
       if (this.parent !== null) {
         // Child bindings can settle before their nodes are visible to a parent target.
-        (this.parent as Controller).requestBindingTargetRefreshes();
+        (this.parent as Controller)._requestBindingTargetRefreshes();
       }
 
       if (this.vmKind !== vmkSynth && this._lifecycleHooks!.attaching != null) {
@@ -992,7 +996,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         this.bindings[i].unbind();
       }
     }
-    this.bindingRefreshTargets = void 0;
+    this._bindingRefreshTargets = void 0;
 
     this.parent = null;
 
@@ -1077,7 +1081,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   private _leaveActivating(): void {
     if (this.state !== activating) {
       if (--this._activatingStack === 0) {
-        this.bindingRefreshTargets = void 0;
+        this._bindingRefreshTargets = void 0;
       }
       // skip doing rest of the work if the controller is deactivated.
       this._resolve();
@@ -1224,18 +1228,19 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   /** @internal */
   public requestRefresh(target: IRefreshable, _phase: RefreshPhase): void {
-    (this.bindingRefreshTargets ??= new Set()).add(target);
+    (this._bindingRefreshTargets ??= new Set()).add(target);
   }
 
-  private refreshBindingTargets(): void {
+  /** @internal */
+  private _refreshBindingTargets(): void {
     if (this.isActive) {
-      this.bindingRefreshTargets?.forEach(callRefreshTarget);
+      this._bindingRefreshTargets?.forEach(callRefreshTarget);
     }
   }
 
   /** @internal */
   public beginBindingRefreshBatch(): void {
-    ++this.bindingRefreshBatchDepth;
+    ++this._bindingRefreshBatchDepth;
     if (this.parent !== null) {
       (this.parent as Controller).beginBindingRefreshBatch();
     }
@@ -1243,25 +1248,26 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   /** @internal */
   public endBindingRefreshBatch(): void {
-    if (--this.bindingRefreshBatchDepth === 0 && this.bindingRefreshPending) {
-      this.bindingRefreshPending = false;
-      this.refreshBindingTargets();
+    if (--this._bindingRefreshBatchDepth === 0 && this._bindingRefreshPending) {
+      this._bindingRefreshPending = false;
+      this._refreshBindingTargets();
     }
     if (this.parent !== null) {
       (this.parent as Controller).endBindingRefreshBatch();
     }
   }
 
-  private requestBindingTargetRefreshes(): void {
-    if (this.bindingRefreshTargets !== void 0) {
-      if (this.bindingRefreshBatchDepth > 0) {
-        this.bindingRefreshPending = true;
+  /** @internal */
+  private _requestBindingTargetRefreshes(): void {
+    if (this._bindingRefreshTargets != null) {
+      if (this._bindingRefreshBatchDepth > 0) {
+        this._bindingRefreshPending = true;
       } else {
-        this.refreshBindingTargets();
+        this._refreshBindingTargets();
       }
     }
     if (this.parent !== null) {
-      (this.parent as Controller).requestBindingTargetRefreshes();
+      (this.parent as Controller)._requestBindingTargetRefreshes();
     }
   }
 

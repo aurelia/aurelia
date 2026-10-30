@@ -84,25 +84,22 @@ describe('3-runtime-html/select-sync-initial.spec.ts', function () {
     });
   }
 
-  it('batches repeated option mounts into one synchronous refresh', function () {
+  it('batches initial repeated option mounts into one synchronous refresh', function () {
     let matches = 0;
     const selected = { id: 3 };
-    const { component, queryBy } = createFixture(
+    const { queryBy } = createFixture(
       `<select value.one-time="selected" matcher.bind="matchById">
         <option repeat.for="option of options" model.bind="option">\${option.id}</option>
       </select>`,
       {
         selected,
-        options: [] as { id: number }[],
+        options: [{ id: 1 }, { id: 2 }, { id: 3 }],
         matchById: (left: { id: number }, right: { id: number }) => {
           ++matches;
           return left?.id === right?.id;
         },
       },
     );
-
-    matches = 0;
-    component.options.push({ id: 1 }, { id: 2 }, { id: 3 });
 
     const select = queryBy('select') as HTMLSelectElement;
     assert.deepEqual(Array.from(select.options, option => option.selected), [false, false, true]);

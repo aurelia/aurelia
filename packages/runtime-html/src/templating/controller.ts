@@ -1091,6 +1091,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       return;
     }
     if (--this._activatingStack === 0) {
+      this._bindingRefreshTargets = void 0;
+      this._bindingRefreshPending = false;
       if (this.vmKind !== vmkSynth && this._lifecycleHooks!.attached != null) {
         _retPromise = onResolveAll(...this._lifecycleHooks!.attached.map(callAttachedHook, this));
       }

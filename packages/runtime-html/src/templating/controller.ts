@@ -66,7 +66,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   public bindings: IBinding[] | null = null;
   public children: Controller[] | null = null;
   private bindingRefreshTargets?: Set<IRefreshable>;
-  private bindingRefreshQueued: boolean = false;
+  private bindingRefreshBatchDepth: number = 0;
+  private bindingRefreshPending: boolean = false;
 
   public scope: Scope | null = null;
   public isBound: boolean = false;
@@ -789,62 +790,66 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     /* istanbul ignore next */
     if (__DEV__ && this.debug) { this.logger!.trace(`attach()`); }
 
-    switch (this.mountTarget) {
-      case targetHost:
-        this.nodes!.appendTo(this.host!, this.definition != null && (this.definition as CustomElementDefinition).enhance);
-        break;
-      case targetShadowRoot: {
-        const container = this.container;
-        const styles = container.has(IShadowDOMStyles, false)
-          ? container.get(IShadowDOMStyles)
-          : container.get(IShadowDOMGlobalStyles);
-        styles.applyTo(this.shadowRoot!);
-        this.nodes!.appendTo(this.shadowRoot!);
-        break;
-      }
-      case targetLocation:
-        this.nodes!.insertBefore(this.location!);
-        break;
-    }
-
-    if (this.parent !== null) {
-      // Child bindings can settle before their nodes are visible to a parent target.
-      (this.parent as Controller).queueBindingTargetRefreshes();
-    }
-
     let i = 0;
     let ret: Promise<void> | void = void 0;
-
-    if (this.vmKind !== vmkSynth && this._lifecycleHooks!.attaching != null) {
-      /* istanbul ignore next */
-      if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.attaching()`); }
-
-      ret = onResolveAll(...this._lifecycleHooks!.attaching!.map(callAttachingHook, this));
-    }
-
-    if (this._vmHooks._attaching) {
-      /* istanbul ignore next */
-      if (__DEV__ && this.debug) { this.logger!.trace(`attaching()`); }
-
-      ret = onResolveAll(ret, this._vm!.attaching(this.$initiator, this.parent));
-    }
-
-    if (isPromise(ret)) {
-      this._ensurePromise();
-      this._enterActivating();
-      ret.then(() => {
-        this._leaveActivating();
-      }).catch((err: Error) => {
-        this._reject(err);
-      });
-    }
-
-    // attaching() and child activation run in parallel, and attached() is called when both are finished
-    if (this.children !== null) {
-      for (; i < this.children.length; ++i) {
-        // Any promises returned from child activation are cumulatively awaited before this.$promise resolves
-        void this.children[i].activate(this.$initiator, this as IHydratedController, this.scope);
+    this.beginBindingRefreshBatch();
+    try {
+      switch (this.mountTarget) {
+        case targetHost:
+          this.nodes!.appendTo(this.host!, this.definition != null && (this.definition as CustomElementDefinition).enhance);
+          break;
+        case targetShadowRoot: {
+          const container = this.container;
+          const styles = container.has(IShadowDOMStyles, false)
+            ? container.get(IShadowDOMStyles)
+            : container.get(IShadowDOMGlobalStyles);
+          styles.applyTo(this.shadowRoot!);
+          this.nodes!.appendTo(this.shadowRoot!);
+          break;
+        }
+        case targetLocation:
+          this.nodes!.insertBefore(this.location!);
+          break;
       }
+
+      if (this.parent !== null) {
+        // Child bindings can settle before their nodes are visible to a parent target.
+        (this.parent as Controller).requestBindingTargetRefreshes();
+      }
+
+      if (this.vmKind !== vmkSynth && this._lifecycleHooks!.attaching != null) {
+        /* istanbul ignore next */
+        if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.attaching()`); }
+
+        ret = onResolveAll(...this._lifecycleHooks!.attaching!.map(callAttachingHook, this));
+      }
+
+      if (this._vmHooks._attaching) {
+        /* istanbul ignore next */
+        if (__DEV__ && this.debug) { this.logger!.trace(`attaching()`); }
+
+        ret = onResolveAll(ret, this._vm!.attaching(this.$initiator, this.parent));
+      }
+
+      if (isPromise(ret)) {
+        this._ensurePromise();
+        this._enterActivating();
+        ret.then(() => {
+          this._leaveActivating();
+        }).catch((err: Error) => {
+          this._reject(err);
+        });
+      }
+
+      // attaching() and child activation run in parallel, and attached() is called when both are finished
+      if (this.children !== null) {
+        for (; i < this.children.length; ++i) {
+          // Any promises returned from child activation are cumulatively awaited before this.$promise resolves
+          void this.children[i].activate(this.$initiator, this as IHydratedController, this.scope);
+        }
+      }
+    } finally {
+      this.endBindingRefreshBatch();
     }
 
     // attached() is invoked by Controller#leaveActivating when `activatingStack` reaches 0
@@ -1228,17 +1233,35 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
   }
 
-  private queueBindingTargetRefreshes(): void {
-    if (this.bindingRefreshTargets !== void 0 && !this.bindingRefreshQueued) {
-      this.bindingRefreshQueued = true;
-      // A repeated view can mount many children at once; reconcile each owner once.
-      queueTask(() => {
-        this.bindingRefreshQueued = false;
-        this.refreshBindingTargets();
-      });
+  /** @internal */
+  public beginBindingRefreshBatch(): void {
+    ++this.bindingRefreshBatchDepth;
+    if (this.parent !== null) {
+      (this.parent as Controller).beginBindingRefreshBatch();
+    }
+  }
+
+  /** @internal */
+  public endBindingRefreshBatch(): void {
+    if (--this.bindingRefreshBatchDepth === 0 && this.bindingRefreshPending) {
+      this.bindingRefreshPending = false;
+      this.refreshBindingTargets();
     }
     if (this.parent !== null) {
-      (this.parent as Controller).queueBindingTargetRefreshes();
+      (this.parent as Controller).endBindingRefreshBatch();
+    }
+  }
+
+  private requestBindingTargetRefreshes(): void {
+    if (this.bindingRefreshTargets !== void 0) {
+      if (this.bindingRefreshBatchDepth > 0) {
+        this.bindingRefreshPending = true;
+      } else {
+        this.refreshBindingTargets();
+      }
+    }
+    if (this.parent !== null) {
+      (this.parent as Controller).requestBindingTargetRefreshes();
     }
   }
 
@@ -1656,6 +1679,8 @@ export interface IController<C extends IViewModel = IViewModel> extends IDisposa
 
   addBinding(binding: IBinding): void;
   /** @internal */ prependBinding(binding: IBinding): void;
+  /** @internal */ beginBindingRefreshBatch(): void;
+  /** @internal */ endBindingRefreshBatch(): void;
 
   /** @internal */head: IHydratedController | null;
   /** @internal */tail: IHydratedController | null;

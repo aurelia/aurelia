@@ -1,6 +1,5 @@
 import { assert, createFixture } from '@aurelia/testing';
 import { CustomElement } from '@aurelia/runtime-html';
-import { tasksSettled } from '@aurelia/runtime';
 
 describe('3-runtime-html/select-sync-initial.spec.ts', function () {
   it('makes static option selection available to the owning component bound hook', function () {
@@ -31,7 +30,7 @@ describe('3-runtime-html/select-sync-initial.spec.ts', function () {
   for (const kind of ['repeated', 'conditional']) {
     for (const mode of ['bind', 'to-view', 'one-time']) {
       for (const multiple of [false, true]) {
-        it(`selects ${kind} options with ${multiple ? 'multiple' : 'single'} value.${mode}`, async function () {
+        it(`selects ${kind} options with ${multiple ? 'multiple' : 'single'} value.${mode}`, function () {
           const options = [{ id: 1 }, { id: 2 }];
           const selected = options[1];
           const selection = multiple ? [selected] : selected;
@@ -52,9 +51,8 @@ describe('3-runtime-html/select-sync-initial.spec.ts', function () {
               matchById: (left: { id: number }, right: { id: number }) => left?.id === right?.id,
             },
           );
-          // These options belong to a child view. Allow its activation and
-          // mutation delivery to finish before checking eventual selection.
-          await tasksSettled();
+          // These options belong to a child view, but their synchronous mount
+          // still completes selection before createFixture returns.
           const select = queryBy('select') as HTMLSelectElement;
           assert.strictEqual(select.options.length, 2);
           assert.deepEqual(Array.from(select.options, option => option.selected), [false, true]);
@@ -84,6 +82,31 @@ describe('3-runtime-html/select-sync-initial.spec.ts', function () {
       assert.strictEqual(component.selected, selected);
     });
   }
+
+  it('batches repeated option mounts into one synchronous refresh', function () {
+    let matches = 0;
+    const selected = { id: 3 };
+    const { component, queryBy } = createFixture(
+      `<select value.one-time="selected" matcher.bind="matchById">
+        <option repeat.for="option of options" model.bind="option">\${option.id}</option>
+      </select>`,
+      {
+        selected,
+        options: [] as { id: number }[],
+        matchById: (left: { id: number }, right: { id: number }) => {
+          ++matches;
+          return left?.id === right?.id;
+        },
+      },
+    );
+
+    matches = 0;
+    component.options.push({ id: 1 }, { id: 2 }, { id: 3 });
+
+    const select = queryBy('select') as HTMLSelectElement;
+    assert.deepEqual(Array.from(select.options, option => option.selected), [false, false, true]);
+    assert.strictEqual(matches, 3, 'refreshes once after the complete mount batch');
+  });
 
   it('synchronizes before descendant async activation settles', async function () {
     let resolveAttaching!: () => void;

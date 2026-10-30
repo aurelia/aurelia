@@ -118,9 +118,11 @@ export class Portal implements ICustomAttributeViewModel {
     if (this._running) {
       // a synchronous callback of the running step made this change. Applying it now would let the
       // step carry on with the old placement afterwards, so it waits until the step is done
-      this._pending ??= new Promise<void>(r => { this._release = r; });
+      if (this._pending === void 0) {
+        this._pending = new Promise<void>(r => { this._release = r; });
+      }
     }
-    let ret: void | Promise<void>;
+    let ret: void | Promise<void> = void 0;
     if (this._pending !== void 0) {
       ret = this._pending.then(fn);
     } else {
@@ -132,12 +134,17 @@ export class Portal implements ICustomAttributeViewModel {
         const release = this._release;
         if (release !== null) {
           this._release = null;
-          const queued: Promise<void> = this._pending;
-          // start the queued changes once the step settles, even if it failed, and keep the queue
-          // busy until they're done. `queued` never rejects, so a failure is passed on after it
-          ret = isPromise(ret)
-            ? ret.finally(release).then(() => queued, err => queued.then(() => { throw err; }))
-            : (release(), queued);
+          // The running callback may have replaced the gate with its queued chain.
+          const queued = this._getPending();
+          if (queued === void 0) {
+            release();
+          } else {
+            // start the queued changes once the step settles, even if it failed, and keep the queue
+            // busy until they're done. `queued` never rejects, so a failure is passed on after it
+            ret = isPromise(ret)
+              ? ret.finally(release).then(() => queued, err => queued.then(() => { throw err; }))
+              : (release(), queued);
+          }
         }
       }
     }
@@ -152,6 +159,11 @@ export class Portal implements ICustomAttributeViewModel {
       const pending: Promise<void> = this._pending = ret.then(clear, clear);
     }
     return ret;
+  }
+
+  /** @internal */
+  private _getPending(): void | Promise<void> {
+    return this._pending;
   }
 
   /** @internal */

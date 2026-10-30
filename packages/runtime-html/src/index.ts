@@ -58,6 +58,8 @@ export {
   isSSRTemplateController,
   isSSRScope,
   ISSRContext,
+  prepareSSRForSerialization,
+  restoreSSRTextNodes,
   // SSR view adoption helpers (for template controllers)
   type AdoptedViewResult,
   type AdoptedViewsResult,

@@ -9,8 +9,8 @@ import type {
   ISubscriberCollection,
   ISubscriberRecord,
 } from './interfaces';
-import { addValueBatch, batching } from './subscriber-batch';
-import { Class, Constructable } from '@aurelia/kernel';
+import { addValueBatch, batching, flushing, takeBatchRecord } from './subscriber-batch';
+import { areEqual, Class, Constructable } from '@aurelia/kernel';
 
 export type IAnySubscriber = ISubscriber | ICollectionSubscriber;
 
@@ -103,6 +103,17 @@ export const subscriberCollection = /*@__PURE__*/(() => {
       if (batching) {
         addValueBatch(this, val, oldVal);
         return;
+      }
+      if (flushing) {
+        // A reentrant update supersedes the value still waiting in a batch,
+        // but keeps its original old value and synchronous delivery.
+        const pending = takeBatchRecord(this);
+        if (pending?.[0] === 1) {
+          oldVal = pending[2];
+          if (areEqual(val, oldVal)) {
+            return;
+          }
+        }
       }
 
       const subs = this._subs;

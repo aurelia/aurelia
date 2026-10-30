@@ -140,7 +140,7 @@ export const getMapObserver = /*@__PURE__*/ (() => {
 
       const indexMap = this.indexMap;
       if (batching) {
-        addCollectionBatch(subs, this.collection, indexMap);
+        addCollectionBatch(subs, this);
         return;
       }
 

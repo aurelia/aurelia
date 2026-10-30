@@ -4,31 +4,30 @@ This guide covers advanced performance optimization techniques for Aurelia appli
 
 ## Framework-Specific Optimizations
 
-### Task Queue Performance
+### Update Performance
 
-The Aurelia task queue provides several performance optimization features:
+Use synchronous batching to group related state changes:
 
-#### Task Batching
+#### Synchronous Batching
 
-Batch DOM updates to improve rendering performance:
+`batch()` collects changes per observer and delivers them to that observer's subscribers at the synchronous batch boundary. Different properties still notify separately:
 
 ```typescript
 import { batch } from 'aurelia';
 
-// Batch multiple DOM updates in a single frame
+// Defer change notifications to subscribers while making these assignments
 batch(() => {
-  // both assignment will not immediately trigger rerendering
   component.prop = someValue;
   component2.prop = someOtherValue;
 });
 
-// With mordern browser implementation, normally all DOM changes execute in the same task
-// and without triggering layout-ing or reflow unless there's a DOM property read in between
-// that triggers those.
+// Direct DOM writes happen immediately; batch() does not schedule a frame
 element1.style.left = '100px';
 element2.style.top = '200px';
 element3.textContent = 'Updated';
 ```
+
+The callback and its notification flush run synchronously. Property change callbacks such as `@observable`'s `firstNameChanged` still run during assignments. A batch does not make the changes an atomic transaction. See [managing state updates with batch](../getting-to-know-aurelia/synchronous-binding-system.md#managing-state-updates-with-batch) and [nested batches](../getting-to-know-aurelia/synchronous-binding-system.md#nested-batches) for the timing rules.
 
 ### State Management Performance
 
@@ -545,7 +544,7 @@ export class MetadataManager {
 
 #### Batch Multiple State Changes
 
-When making multiple property changes, use `batch()` to combine them into a single change notification:
+When making multiple property changes, use `batch()` to defer change notifications to subscribers until the callback finishes. Repeated writes to the same observed property are coalesced; different properties still notify their own subscribers:
 
 ```typescript
 import { batch, observable } from '@aurelia/runtime';
@@ -558,30 +557,31 @@ export class UserProfile {
   @observable email = '';
   @observable phoneNumber = '';
 
-  // Without batching: 4 separate change notifications
-  updateUserSlow(data: UserData): void {
-    this.firstName = data.firstName;    // triggers update
-    this.lastName = data.lastName;      // triggers update
-    this.email = data.email;            // triggers update
-    this.phoneNumber = data.phoneNumber; // triggers update
+  // Without batching: each changed property notifies its subscribers during assignment
+  updateUserWithoutBatch(data: UserData): void {
+    this.firstName = data.firstName;
+    this.lastName = data.lastName;
+    this.email = data.email;
+    this.phoneNumber = data.phoneNumber;
   }
 
-  // With batching: 1 combined change notification
-  updateUserFast(data: UserData): void {
+  // With batching: notifications for each changed property wait until the batch boundary
+  updateUserWithBatch(data: UserData): void {
     batch(() => {
       this.firstName = data.firstName;
       this.lastName = data.lastName;
       this.email = data.email;
       this.phoneNumber = data.phoneNumber;
-      // All changes are batched into a single update cycle
     });
   }
 }
 ```
 
+Batching does not merge the four property observers into one: each notifies its own subscribers. The `@observable` decorator's direct change callbacks, such as `firstNameChanged`, are separate from these subscriber notifications and are not deferred by `batch()`.
+
 #### Batch Array Mutations
 
-Batch multiple array operations to prevent repeated re-renders:
+For an array observed by `repeat.for`, batch multiple `push` and `splice` operations so its collection subscribers process the accumulated changes at the batch boundary:
 
 ```typescript
 import { batch, observable } from '@aurelia/runtime';
@@ -604,17 +604,18 @@ export class TodoList {
           Object.assign(update.item, update.changes);
         }
       }
-      // Only one change notification for all operations
+      // Array mutations are coalesced into a collection notification when needed
+      // Observed item properties changed by Object.assign notify separately
     });
   }
 }
 ```
 
 **Performance Benefits:**
-- Reduces the number of change notifications
-- Prevents unnecessary intermediate UI updates
-- Particularly effective when updating multiple related properties
-- Essential for bulk data operations
+- Coalesces repeated changes to the same observed property or collection
+- Reduces intermediate binding updates from those subscriber notifications
+- Particularly effective for multiple mutations of the same observed array
+- Keeps notification delivery synchronous at each batch boundary
 
 ## Large Data Handling
 
@@ -708,8 +709,10 @@ export class InfiniteScroll {
 
 #### Streaming Large Datasets
 
+Process a bounded chunk synchronously, then yield to a later browser task. `batch()` does not schedule work or keep a batch open across `await`; a single `push(...chunk)` needs no additional batching.
+
 ```typescript
-import { customElement, batch } from 'aurelia';
+import { customElement } from 'aurelia';
 
 @customElement({ name: 'data-stream' })
 export class DataStream {
@@ -722,28 +725,24 @@ export class DataStream {
     for await (const chunk of stream) {
       this.processingQueue.push(...chunk);
 
-      // Process in batches to avoid blocking the UI
-      if (this.processingQueue.length >= 100) {
+      // Process bounded chunks, yielding between them
+      while (this.processingQueue.length >= 100) {
         await this.processBatch();
       }
     }
 
     // Process remaining items
-    if (this.processingQueue.length > 0) {
+    while (this.processingQueue.length > 0) {
       await this.processBatch();
     }
   }
 
   private async processBatch(): Promise<void> {
-    const batch = this.processingQueue.splice(0, 100);
+    const chunk = this.processingQueue.splice(0, 100);
+    this.items.push(...chunk);
 
-    // Process batch in task queue to avoid blocking
-    await new Promise<void>(resolve => {
-      batch(() => {
-        this.items.push(...batch);
-        resolve();
-      });
-    });
+    // Yield to a later browser task before processing more items
+    await new Promise<void>(resolve => setTimeout(resolve, 0));
   }
 
   private async *getStreamingData(): AsyncGenerator<Item[]> {
@@ -753,6 +752,8 @@ export class DataStream {
   }
 }
 ```
+
+The timer gives other browser work a chance to run; it does not guarantee a paint between chunks.
 
 ## Performance Monitoring
 
@@ -867,7 +868,7 @@ export class LiveDashboard {
   private updateTask?: any;
 
   attaching(): void {
-    // Batch multiple metric updates together
+    // Schedule recurring metric updates
     this.updateTask = queueRecurringTask(() => {
       this.updateMetrics();
     }, { interval: 1000 });
@@ -881,7 +882,7 @@ export class LiveDashboard {
     // Fetch latest metrics from API
     const newMetrics = this.fetchLatestMetrics();
 
-    // Use batch to update all metrics at once
+    // Defer change notifications to subscribers while assigning the metrics
     batch(() => {
       this.metrics.activeUsers = newMetrics.activeUsers;
       this.metrics.requestsPerSecond = newMetrics.requestsPerSecond;
@@ -898,7 +899,7 @@ export class LiveDashboard {
 ```
 
 **Performance Features Used:**
-- `batch()` combines multiple updates into one notification
+- `batch()` defers change notifications to subscribers until the assignments finish; each changed metric notifies separately
 - Persistent task with delay for regular updates
 - Task cancellation on component detach prevents leaks
 
@@ -921,7 +922,7 @@ Optimize large image galleries:
 ```
 
 ```typescript
-import { customElement, batch } from 'aurelia';
+import { customElement } from 'aurelia';
 
 @customElement({ name: 'image-gallery' })
 export class ImageGallery {
@@ -939,13 +940,9 @@ export class ImageGallery {
     for (let i = 0; i < allImages.length; i += chunkSize) {
       const chunk = allImages.slice(i, i + chunkSize);
 
-      // Use task queue to prevent blocking
-      await new Promise<void>(resolve => {
-        batch(() => {
-          this.images.push(...chunk);
-          resolve();
-        });
-      });
+      // Add a chunk, then yield to a later browser task
+      this.images.push(...chunk);
+      await new Promise<void>(resolve => setTimeout(resolve, 0));
     }
   }
 
@@ -959,8 +956,8 @@ export class ImageGallery {
 **Performance Features Used:**
 - `variable-height` handles different aspect ratios
 - Native lazy loading with `loading="lazy"`
-- Task queue prevents UI blocking during data loading
-- Chunked loading for progressive rendering
+- Yielding between chunks gives other browser work a chance to run
+- Chunked loading limits work per iteration; it does not guarantee a paint between chunks
 
 ### Scenario 4: Complex Form with Validation
 
@@ -990,7 +987,7 @@ export class ComplexForm {
   `;
 
   loadFormData(data: FormData): void {
-    // Batch all field updates
+    // Defer change notifications to subscribers while loading the fields
     batch(() => {
       Object.assign(this.formData.personalInfo, data.personalInfo);
       Object.assign(this.formData.address, data.address);
@@ -1021,7 +1018,7 @@ export class ComplexForm {
 ## Best Practices Summary
 
 ### 1. Framework Usage
-- Use `batch` for array mutation operations
+- Use `batch` for multiple mutations of the same observed array
 - Implement memoization with `createStateMemoizer` for expensive state computations
 - Choose appropriate flush modes (`sync` or `async`) for computed properties
 - Optimize watch expressions and prefer computed properties
@@ -1040,7 +1037,7 @@ export class ComplexForm {
 - Use fixed `item-height` for best virtual-repeat performance
 - Enable `variable-height` only when necessary
 - Use pagination or infinite scroll for large datasets
-- Process data in batches with `batch()` to avoid blocking the UI
+- Yield between chunks of long-running data processing; `batch()` itself is synchronous
 - Stream large datasets when possible using task queue
 
 ### 4. Binding Optimization
@@ -1064,4 +1061,3 @@ export class ComplexForm {
 - Test with realistic data volumes
 
 These optimization techniques will help you build high-performance Aurelia applications that scale well and provide excellent user experiences.
-

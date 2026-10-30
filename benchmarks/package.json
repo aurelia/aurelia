@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "bench:micro": "node micro/runner.mjs",
     "bench:variants": "node prepare-variants.mjs",
     "bench:variants:test": "node --test variant-utils.spec.mjs",
     "bench:test": "node --test variant-utils.spec.mjs benchmark-comparison.spec.cjs prepare-comparison.spec.mjs benchmark-page.spec.mjs benchmark-summary.spec.mjs benchmark-report.spec.mjs benchmark-ci.spec.mjs live-benchmark-control.spec.mjs live-benchmark-utils.spec.mjs live-benchmark-session.spec.mjs live-profile-utils.spec.mjs live-profile.spec.mjs run-tachometer.spec.mjs realistic-data.spec.mjs measure-used-heap.spec.mjs ../.github/scripts/benchmark-comment.spec.cjs ../.github/scripts/trigger-benchmark-pipeline.spec.cjs",

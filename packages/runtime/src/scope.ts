@@ -40,30 +40,42 @@ export class Scope {
       return name in overrideContext ? overrideContext : currentScope.bindingContext;
     }
 
-    // walk the scope hierarchy until
-    // the first scope that has the property in its contexts
-    // or
-    // the closet boundary scope
+    // Walk the scope hierarchy until the first scope that has the property in
+    // its contexts or the closest boundary scope. Return as soon as a context
+    // matches so each context is checked at most once.
     // -------------------------
     // this behavior is different with v1
     // where it would fallback to the immediate scope instead of the root one
-    // TODO: maybe avoid immediate loop and return earlier
     // -------------------------
-    while (
-      currentScope != null
-      && !currentScope.isBoundary
-      && !(name in currentScope.overrideContext)
-      && !(name in currentScope.bindingContext)
-    ) {
-      currentScope = currentScope.parent;
+    if (name in overrideContext) {
+      return overrideContext;
     }
-
-    if (currentScope == null) {
+    if (scope.isBoundary) {
+      return scope.bindingContext;
+    }
+    if (name in scope.bindingContext) {
       return scope.bindingContext;
     }
 
-    overrideContext = currentScope.overrideContext;
-    return name in overrideContext ? overrideContext : currentScope.bindingContext;
+    currentScope = scope.parent;
+    while (currentScope != null) {
+      overrideContext = currentScope.overrideContext;
+      if (name in overrideContext) {
+        return overrideContext;
+      }
+
+      if (currentScope.isBoundary) {
+        return currentScope.bindingContext;
+      }
+
+      if (name in currentScope.bindingContext) {
+        return currentScope.bindingContext;
+      }
+
+      currentScope = currentScope.parent;
+    }
+
+    return scope.bindingContext;
   }
 
   /**

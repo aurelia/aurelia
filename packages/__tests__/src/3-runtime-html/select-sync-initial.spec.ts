@@ -1,5 +1,6 @@
 import { assert, createFixture } from '@aurelia/testing';
 import { CustomElement } from '@aurelia/runtime-html';
+import { tasksSettled } from '@aurelia/runtime';
 
 describe('3-runtime-html/select-sync-initial.spec.ts', function () {
   it('makes static option selection available to the owning component bound hook', function () {
@@ -107,6 +108,58 @@ describe('3-runtime-html/select-sync-initial.spec.ts', function () {
     assert.deepEqual(Array.from(select.options, option => option.selected), [false, false, true]);
     assert.strictEqual(matches, 3, 'refreshes once after the complete mount batch');
   });
+
+  for (const mode of ['bind', 'to-view', 'one-time']) {
+    it(`preserves a user selection when unrelated help content mounts with value.${mode}`, async function () {
+      const { component, ctx, queryBy } = createFixture(
+        `<select value.${mode}="selected">
+          <option value="first">First</option>
+          <option value="second">Second</option>
+        </select>
+        <p if.bind="showHelp" data-help>Help</p>`,
+        { selected: 'first', showHelp: false },
+      );
+      const select = queryBy('select') as HTMLSelectElement;
+      select.value = 'second';
+      select.dispatchEvent(new ctx.Event('change'));
+      await tasksSettled();
+      assert.strictEqual(select.value, 'second');
+
+      // A one-way binding can provide the form's initial value without owning
+      // subsequent user input. Mounting help changes neither this select nor its options.
+      component.showHelp = true;
+      await tasksSettled();
+      assert.strictEqual(queryBy('[data-help]')?.textContent, 'Help');
+      assert.strictEqual(select.value, 'second');
+    });
+  }
+
+  for (const mode of ['to-view', 'one-time']) {
+    it(`selects options after their child component finishes async binding with value.${mode}`, async function () {
+      let finishBinding!: () => void;
+      const AsyncOptions = CustomElement.define({
+        name: 'async-options',
+        template: '<option value="first">First</option><option value="second">Second</option>',
+      }, class {
+        public binding(): Promise<void> {
+          return new Promise(resolve => { finishBinding = resolve; });
+        }
+      });
+      const { queryBy, started } = createFixture(
+        `<select value.${mode}="selected"><optgroup as-element="async-options"></optgroup></select>`,
+        { selected: 'second' },
+        [AsyncOptions],
+      );
+      const select = queryBy('select') as HTMLSelectElement;
+      try {
+        assert.strictEqual(select.options.length, 0, 'the child has not mounted its options yet');
+      } finally {
+        finishBinding();
+      }
+      await started;
+      assert.deepEqual(Array.from(select.options, option => option.selected), [false, true]);
+    });
+  }
 
   it('synchronizes before descendant async activation settles', async function () {
     let resolveAttaching!: () => void;

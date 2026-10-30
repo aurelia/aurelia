@@ -56,6 +56,12 @@ import type { LifecycleHooksLookup } from './lifecycle-hooks';
 import type { IViewFactory } from './view';
 import { IBinding, type RefreshPhase } from '../binding/interfaces-bindings';
 
+interface BindingRefreshTransaction {
+  readonly targets: Map<Controller, Set<IRefreshable>>;
+  depth: number;
+  pending: boolean;
+}
+
 export class Controller<C extends IViewModel = IViewModel> implements IController<C> {
 
   public head: IHydratedController | null = null;
@@ -67,11 +73,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   public children: Controller[] | null = null;
 
   /** @internal */
-  private _bindingRefreshTargets?: Set<IRefreshable>;
-  /** @internal */
-  private _bindingRefreshBatchDepth: number = 0;
-  /** @internal */
-  private _bindingRefreshPending: boolean = false;
+  private declare _bindingRefreshTransaction: BindingRefreshTransaction | undefined;
 
   public scope: Scope | null = null;
   public isBound: boolean = false;
@@ -796,7 +798,10 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     let i = 0;
     let ret: Promise<void> | void = void 0;
-    this.beginBindingRefreshBatch();
+    const refreshTransaction = (this.$initiator as Controller)._bindingRefreshTransaction;
+    if (refreshTransaction !== void 0) {
+      ++refreshTransaction.depth;
+    }
     try {
       switch (this.mountTarget) {
         case targetHost:
@@ -816,9 +821,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
           break;
       }
 
-      if (this.parent !== null) {
+      if (this.parent !== null && refreshTransaction !== void 0) {
         // Child bindings can settle before their nodes are visible to a parent target.
-        (this.parent as Controller)._requestBindingTargetRefreshes();
+        refreshTransaction.pending = true;
       }
 
       if (this.vmKind !== vmkSynth && this._lifecycleHooks!.attaching != null) {
@@ -853,7 +858,14 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         }
       }
     } finally {
-      this.endBindingRefreshBatch();
+      if (
+        refreshTransaction !== void 0
+        && --refreshTransaction.depth === 0
+        && refreshTransaction.pending
+      ) {
+        refreshTransaction.pending = false;
+        refreshBindingTransaction(refreshTransaction);
+      }
     }
 
     // attached() is invoked by Controller#leaveActivating when `activatingStack` reaches 0
@@ -996,7 +1008,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         this.bindings[i].unbind();
       }
     }
-    this._bindingRefreshTargets = void 0;
+    this._clearBindingRefreshTargets();
 
     this.parent = null;
 
@@ -1081,7 +1093,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   private _leaveActivating(): void {
     if (this.state !== activating) {
       if (--this._activatingStack === 0) {
-        this._bindingRefreshTargets = void 0;
+        this._bindingRefreshTransaction = void 0;
       }
       // skip doing rest of the work if the controller is deactivated.
       this._resolve();
@@ -1091,8 +1103,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       return;
     }
     if (--this._activatingStack === 0) {
-      this._bindingRefreshTargets = void 0;
-      this._bindingRefreshPending = false;
+      this._bindingRefreshTransaction = void 0;
       if (this.vmKind !== vmkSynth && this._lifecycleHooks!.attached != null) {
         _retPromise = onResolveAll(...this._lifecycleHooks!.attached.map(callAttachedHook, this));
       }
@@ -1230,46 +1241,31 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   /** @internal */
   public requestRefresh(target: IRefreshable, _phase: RefreshPhase): void {
-    (this._bindingRefreshTargets ??= new Set()).add(target);
+    const initiator = this.$initiator as Controller;
+    const transaction = initiator._bindingRefreshTransaction ??= {
+      targets: new Map(),
+      depth: 0,
+      pending: false,
+    };
+    let targets: Set<IRefreshable> | undefined = transaction.targets.get(this);
+    if (targets === void 0) {
+      transaction.targets.set(this, targets = new Set());
+    }
+    targets.add(target);
   }
 
   /** @internal */
   private _refreshBindingTargets(): void {
     if (this.isActive) {
-      this._bindingRefreshTargets?.forEach(callRefreshTarget);
+      (this.$initiator as Controller)._bindingRefreshTransaction?.targets.get(this)?.forEach(callRefreshTarget);
     }
   }
 
   /** @internal */
-  public beginBindingRefreshBatch(): void {
-    ++this._bindingRefreshBatchDepth;
-    if (this.parent !== null) {
-      (this.parent as Controller).beginBindingRefreshBatch();
-    }
-  }
-
-  /** @internal */
-  public endBindingRefreshBatch(): void {
-    if (--this._bindingRefreshBatchDepth === 0 && this._bindingRefreshPending) {
-      this._bindingRefreshPending = false;
-      this._refreshBindingTargets();
-    }
-    if (this.parent !== null) {
-      (this.parent as Controller).endBindingRefreshBatch();
-    }
-  }
-
-  /** @internal */
-  private _requestBindingTargetRefreshes(): void {
-    if (this._bindingRefreshTargets != null) {
-      if (this._bindingRefreshBatchDepth > 0) {
-        this._bindingRefreshPending = true;
-      } else {
-        this._refreshBindingTargets();
-      }
-    }
-    if (this.parent !== null) {
-      (this.parent as Controller)._requestBindingTargetRefreshes();
+  private _clearBindingRefreshTargets(): void {
+    const transaction = (this.$initiator as Controller)._bindingRefreshTransaction;
+    if (transaction !== void 0) {
+      transaction.targets.delete(this);
     }
   }
 
@@ -1687,8 +1683,6 @@ export interface IController<C extends IViewModel = IViewModel> extends IDisposa
 
   addBinding(binding: IBinding): void;
   /** @internal */ prependBinding(binding: IBinding): void;
-  /** @internal */ beginBindingRefreshBatch(): void;
-  /** @internal */ endBindingRefreshBatch(): void;
 
   /** @internal */head: IHydratedController | null;
   /** @internal */tail: IHydratedController | null;
@@ -2084,6 +2078,14 @@ export interface IControllerElementHydrationInstruction {
 
 function callDispose(disposable: IDisposable): void {
   disposable.dispose();
+}
+
+function refreshBindingTransaction(transaction: BindingRefreshTransaction): void {
+  transaction.targets.forEach((targets, controller) => {
+    if (controller.isActive) {
+      targets.forEach(callRefreshTarget);
+    }
+  });
 }
 
 function callRefreshTarget(target: IRefreshable): void {

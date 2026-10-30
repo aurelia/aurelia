@@ -679,20 +679,14 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     initiator: IHydratedController,
     $items: unknown[],
   ): void | Promise<void> {
-    const controller = this.$controller;
-    controller.beginBindingRefreshBatch();
-    try {
-      // SSR hydration: adopt existing DOM instead of creating new views.
-      // _hydrateViews clears ssrScope, so reactivation takes the normal path.
-      const ssrScope = this.$controller.ssrScope;
-      if (ssrScope != null && isSSRTemplateController(ssrScope) && ssrScope.type === 'repeat') {
-        return this._hydrateViews(initiator, $items, ssrScope);
-      }
-
-      return this._activateAllViewsFresh(initiator, $items);
-    } finally {
-      controller.endBindingRefreshBatch();
+    // SSR hydration: adopt existing DOM instead of creating new views.
+    // _hydrateViews clears ssrScope, so reactivation takes the normal path.
+    const ssrScope = this.$controller.ssrScope;
+    if (ssrScope != null && isSSRTemplateController(ssrScope) && ssrScope.type === 'repeat') {
+      return this._hydrateViews(initiator, $items, ssrScope);
     }
+
+    return this._activateAllViewsFresh(initiator, $items);
   }
 
   // SSR hydration adopts existing DOM nodes instead of creating new ones.
@@ -901,19 +895,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
   /** @internal */
   private _createAndActivateAndSortViewsByKey(
-    indexMap: IndexMap,
-  ): void | Promise<void> {
-    const controller = this.$controller;
-    controller.beginBindingRefreshBatch();
-    try {
-      return this._createAndActivateAndSortViewsByKeyCore(indexMap);
-    } finally {
-      controller.endBindingRefreshBatch();
-    }
-  }
-
-  /** @internal */
-  private _createAndActivateAndSortViewsByKeyCore(
     indexMap: IndexMap,
   ): void | Promise<void> {
     let transition: RowTransitionState | undefined;

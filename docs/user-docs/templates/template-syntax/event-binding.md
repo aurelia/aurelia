@@ -52,7 +52,19 @@ Here, `action` supplies the method name and `this` inside the method refers to `
 
 ### Shorthand syntax for events (`@event`)
 
-To make it easier for teams migrating from Vue or other frameworks, Aurelia also understands the `@event="handler"` shorthand. The compiler converts it to the equivalent `event.trigger` binding, including modifiers after a colon.
+The `@event="handler"` shorthand is **opt-in**. Register `ShortHandBindingSyntax` in your application startup before using it:
+
+```typescript
+import Aurelia, { ShortHandBindingSyntax } from 'aurelia';
+import { MyApp } from './my-app';
+
+Aurelia
+  .register(ShortHandBindingSyntax)
+  .app(MyApp)
+  .start();
+```
+
+With this registration, the compiler converts `@event` to the equivalent `event.trigger` binding, including modifiers after a colon.
 
 ```html
 <!-- These two lines are identical -->
@@ -60,10 +72,10 @@ To make it easier for teams migrating from Vue or other frameworks, Aurelia also
 <button @click="save()">Save</button>
 
 <!-- Modifiers work the same way -->
-<button @click:ctrl+enter="send()">Send (Ctrl + Enter)</button>
+<button @keydown:ctrl+enter="send()">Send (Ctrl + Enter)</button>
 ```
 
-Use whichever style you prefer—the generated instructions are the same. If you need capturing semantics, use the explicit `event.capture` syntax because the shorthand only targets the bubbling (`.trigger`) command.
+The explicit `event.trigger` syntax works without this registration. If you need capturing semantics, use `event.capture` because the shorthand only targets the bubbling (`.trigger`) command.
 
 ### Passing Event Data to Handlers
 

@@ -6,17 +6,15 @@ description: >-
 
 # Global Variables in Templates
 
-By design, Aurelia templates limit direct access to global variables like `window` or `document` for security and maintainability reasons. However, Aurelia recognizes that some JavaScript globals are frequently needed—like `Math`, `JSON`, or `Array`—and therefore provides a **predefined list** of global objects that can be safely accessed in template expressions.
+Aurelia's standard template expression parser recognizes a **fixed built-in list** of JavaScript globals, including `Math`, `JSON`, and `Array`. There is no configuration option to add names to this list.
 
 ---
 
 ## Why Limit Global Access?
 
-- **Security:** Restricting direct access to browser globals reduces the risk of accidental or malicious operations on sensitive objects.
-- **Maintainability:** Encourages developers to keep logic in their view models, improving code clarity.
-- **Performance:** Minimizes the amount of unnecessary logic in templates, preventing overuse of global operations in tight rendering loops.
+The built-in names let templates use common JavaScript utilities directly. Other names, including `window` and `document`, are resolved through the template's binding scope. Expose the values or operations your template needs through its view model, as shown below. Adding a property to `globalThis` does not add it to the parser's built-in list.
 
-Despite these constraints, Aurelia acknowledges the utility of common global constructors and functions. Below is the canonical list accessible within Aurelia 2 templates **without** additional configuration:
+The standard parser recognizes these global names:
 
 - Infinity
 - NaN
@@ -41,6 +39,23 @@ Despite these constraints, Aurelia acknowledges the utility of common global con
 - JSON
 - Math
 - Intl
+
+## Using Other APIs and Helpers
+
+For an API outside the built-in list, expose a view-model property or method. For example, `URL` is not a built-in template global, but a component can make it available:
+
+```typescript
+export class MyApp {
+  readonly URL = URL;
+  address = 'https://example.com/products?page=2';
+}
+```
+
+```html
+<p>Host: ${new URL(address).hostname}</p>
+```
+
+Here, `URL` is a property of `MyApp`, and the template displays `Host: example.com`. The same approach works for an imported helper function: expose it on the view model and call it from the template.
 
 ---
 
@@ -132,9 +147,9 @@ Filter, map, and transform arrays:
 1. Use Sparingly
    - Keep business logic in your view models, not in templates. Inline calls to complex global functions (e.g., JSON.stringify on large data) can degrade performance and reduce readability.
 2. Security
-   - Even though Aurelia limits global access, treat any data you process via global functions (e.g., decodeURI) with caution to prevent potential XSS attacks or other vulnerabilities.
+   - Treat templates as trusted application code. The built-in list controls name lookup; it does not make template expressions a security sandbox.
 3. Performance
-   - Template expressions run on each re-render. If you repeatedly perform expensive operations (like JSON.stringify on large objects), consider handling them in the view model and binding to a computed property instead.
+   - Bindings can reevaluate expressions when their observed dependencies change. If you repeatedly perform expensive operations (like JSON.stringify on large objects), consider handling them in the view model and binding to a computed property instead.
 4. Reactivity
    - Accessing global objects doesn’t magically become reactive. If you want to update the UI when data changes, store and manipulate it in the view model, ensuring Aurelia’s change detection can pick it up.
 5. Clarity and Testing

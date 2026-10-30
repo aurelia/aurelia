@@ -1,4 +1,4 @@
-import { CollectionLengthObserver, CollectionSizeObserver, ComputedObserver, DirtyCheckProperty, runTasks, PrimitiveObserver, PropertyAccessor, SetterObserver } from '@aurelia/runtime';
+import { CollectionLengthObserver, CollectionSizeObserver, ComputedObserver, DirtyCheckProperty, runTasks, PrimitiveObserver, PropertyAccessor, SetterObserver, tasksSettled, type IRefreshable } from '@aurelia/runtime';
 import {
   AttributeNSAccessor,
   CheckedObserver,
@@ -7,8 +7,9 @@ import {
   SelectValueObserver,
   StyleAttributeAccessor,
   ValueAttributeObserver,
+  NodeObserverLocator,
 } from '@aurelia/runtime-html';
-import { _, TestContext, assert, PLATFORM } from '@aurelia/testing';
+import { _, TestContext, assert, PLATFORM, createFixture as createAppFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/observer-locator.spec.ts', function () {
   function createFixture() {
@@ -17,6 +18,58 @@ describe('3-runtime-html/observer-locator.spec.ts', function () {
 
     return { ctx, sut };
   }
+
+  describe('refreshable node observers', function () {
+    for (const mode of ['one-time', 'to-view', 'two-way', 'from-view']) {
+      it(`uses the public observer configuration with value.${mode}`, async function () {
+        const seen: { observer: ValueAttributeObserver; minimum: string }[] = [];
+        class FormValueObserver extends ValueAttributeObserver implements IRefreshable {
+          public readonly element: HTMLInputElement;
+          public constructor(...args: ConstructorParameters<typeof ValueAttributeObserver>) {
+            super(args[0], 'value', args[2]);
+            this.element = args[0] as HTMLInputElement;
+          }
+          public refresh(): void {
+            seen.push({ observer: this, minimum: this.element.min });
+          }
+        }
+        const ctx = TestContext.create();
+        const nodeObserverLocator = ctx.container.get(NodeObserverLocator);
+        nodeObserverLocator.useConfig('INPUT', 'draft', {
+          type: FormValueObserver,
+          events: ['input'],
+          default: '',
+        });
+        nodeObserverLocator.overrideAccessor('INPUT', 'draft');
+        const fixture = createAppFixture(
+          `<input value="native" draft.${mode}="value" min.bind="minimum"><p if.bind="help">Help</p>`,
+          { value: '3', minimum: 2, help: false },
+          [],
+          true,
+          ctx,
+        );
+        const input = fixture.getBy('input');
+        const observer = ctx.observerLocator.getObserver(input, 'draft');
+        assert.instanceOf(observer, FormValueObserver);
+        // Target-writing bindings opt in through the observer, not a custom
+        // controller. The callback retains its receiver and sees later bindings.
+        assert.strictEqual(seen.length > 0, mode !== 'from-view');
+        for (const snapshot of seen) {
+          assert.strictEqual(snapshot.observer, observer);
+          assert.strictEqual(snapshot.minimum, '2');
+        }
+        const initialRefreshes = seen.length;
+        fixture.component.value = '4';
+        fixture.component.help = true;
+        await tasksSettled();
+        assert.strictEqual(seen.length, initialRefreshes, 'ordinary updates do not restart initialization');
+        await fixture.stop();
+        fixture.component.value = '5';
+        await tasksSettled();
+        assert.strictEqual(seen.length, initialRefreshes, 'unbound targets are no longer refreshed');
+      });
+    }
+  });
 
   for (const markup of [
     `<div class="foo"></div>`,

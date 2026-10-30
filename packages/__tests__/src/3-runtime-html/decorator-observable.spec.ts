@@ -40,6 +40,89 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
     assert.strictEqual(instance.value, newValue);
   });
 
+  // https://github.com/aurelia/aurelia/issues/2481
+  it('keeps field initial values per instance #2481', function () {
+    let counter = 0;
+    class Bar {
+      @observable
+      public value = counter++;
+    }
+
+    // construct all instances before reading any of them
+    const a = new Bar();
+    const b = new Bar();
+    const c = new Bar();
+
+    assert.strictEqual(a.value, 0);
+    assert.strictEqual(b.value, 1);
+    assert.strictEqual(c.value, 2);
+  });
+
+  // https://github.com/aurelia/aurelia/issues/2481
+  it('does not share array initial values across instances #2481', function () {
+    class Todo {
+      @observable
+      public tags: string[] = [];
+    }
+
+    const a = new Todo();
+    const b = new Todo();
+
+    assert.notStrictEqual(a.tags, b.tags);
+    a.tags.push('todo');
+    assert.deepStrictEqual(b.tags, []);
+  });
+
+  // https://github.com/aurelia/aurelia/issues/2481
+  it('invokes change handler with the per instance initial value #2481', function () {
+    let counter = 0;
+    const calls: [Test, number, number][] = [];
+    class Test {
+      @observable
+      public value = counter++;
+
+      public valueChanged(newValue: number, oldValue: number) {
+        calls.push([this, newValue, oldValue]);
+      }
+    }
+
+    const a = new Test();
+    const b = new Test();
+
+    a.value = 10;
+    assert.deepStrictEqual(calls, [[a, 10, 0]]);
+    assert.strictEqual(b.value, 1);
+
+    b.value = 1;
+    assert.strictEqual(calls.length, 1);
+  });
+
+  // https://github.com/aurelia/aurelia/issues/2481
+  it('uses the defined field value with stacked decorators #2481', function () {
+    let callCount = 0;
+    class Test {
+      @observable
+      @double
+      public value = 1;
+
+      public valueChanged() {
+        callCount++;
+      }
+    }
+
+    function double(_target: undefined, _context: ClassFieldDecoratorContext<Test, number>) {
+      return function (value: number) {
+        return value * 2;
+      };
+    }
+
+    const instance = new Test();
+    assert.strictEqual(instance.value, 2);
+
+    instance.value = 2;
+    assert.strictEqual(callCount, 0);
+  });
+
   it('should not call valueChanged when property is assigned the same value', async function () {
     let callCount = 0;
     class Test {

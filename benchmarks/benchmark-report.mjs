@@ -69,6 +69,7 @@ const resultContracts = {
   'app-repeat-view-keyed-string.json': { scenario: 'keyed string', entryName: 'keyed-string', metrics: ['perf', 'used JS heap'] },
   'repeat-realistic-startup-1000.json': { scenario: 'realistic startup 1000', entryName: 'realistic-startup-1000', metrics: ['perf', 'used JS heap'] },
   'repeat-realistic-refresh-1000.json': { scenario: 'realistic keyed refresh 1000', entryName: 'realistic-refresh-1000', metrics: ['perf', 'used JS heap'] },
+  'repeat-realistic-reshow-1000.json': { scenario: 'realistic cached-if reshow 1000', entryName: 'realistic-reshow-1000', metrics: ['perf', 'used JS heap'] },
   'repeat-realistic-refresh-loop-20x1000.json': [
     { scenario: 'realistic keyed refresh loop 20x1000', entryName: 'realistic-refresh-loop-20x1000', metrics: ['perf'] },
     { scenario: 'realistic keyed refresh loop 20x1000', entryName: 'realistic-refresh-median-1000', metrics: ['median refresh'] },
@@ -113,6 +114,7 @@ const fullFiles = [
   'repeat-realistic-refresh-1000.json',
   'repeat-realistic-mixed-1000.json',
   'repeat-realistic-refresh-loop-20x1000.json',
+  'repeat-realistic-reshow-1000.json',
   'binding-dependency-rotation.json',
   'i18n-formatting-refresh-1000.json',
   'template-compilation.json',

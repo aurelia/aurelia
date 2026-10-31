@@ -6,12 +6,10 @@ import { State } from '../templating/controller';
 /** @internal */ export const { default: defaultMode, oneTime, toView, fromView, twoWay } = BindingMode;
 export { BindingMode } from '@aurelia/template-compiler';
 
-export type RefreshPhase = 'after-bindings';
-
 export interface IBindingController {
   readonly state: State;
   /** @internal */
-  requestRefresh?(target: IRefreshable, phase: RefreshPhase, bindingTarget: object): void;
+  requestRefresh?(target: IRefreshable, bindingTarget: object): void;
 }
 
 export interface IBinding {

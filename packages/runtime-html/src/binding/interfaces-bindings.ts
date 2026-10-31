@@ -11,7 +11,7 @@ export type RefreshPhase = 'after-bindings';
 export interface IBindingController {
   readonly state: State;
   /** @internal */
-  requestRefresh?(target: IRefreshable, phase: RefreshPhase): void;
+  requestRefresh?(target: IRefreshable, phase: RefreshPhase, bindingTarget: object): void;
 }
 
 export interface IBinding {

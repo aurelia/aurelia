@@ -56,11 +56,16 @@ import type { LifecycleHooksLookup } from './lifecycle-hooks';
 import type { IViewFactory } from './view';
 import { IBinding, type RefreshPhase } from '../binding/interfaces-bindings';
 
-interface BindingRefreshTransaction {
-  readonly targets: Map<Controller, Set<IRefreshable>>;
-  depth: number;
-  pending: boolean;
+interface BindingRefreshRegistration {
+  readonly owner: Controller;
+  readonly bindingTarget: object;
+  readonly target: IRefreshable;
 }
+
+const bindingRefreshRegistrations = new WeakMap<object, Set<BindingRefreshRegistration>>();
+let bindingRefreshRegistrationCount = 0;
+let bindingRefreshAttachDepth = 0;
+let pendingBindingRefreshes: Set<BindingRefreshRegistration> | undefined;
 
 export class Controller<C extends IViewModel = IViewModel> implements IController<C> {
 
@@ -73,7 +78,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   public children: Controller[] | null = null;
 
   /** @internal */
-  private declare _bindingRefreshTransaction: BindingRefreshTransaction | undefined;
+  private declare _bindingRefreshRegistrations: BindingRefreshRegistration[] | undefined;
 
   public scope: Scope | null = null;
   public isBound: boolean = false;
@@ -798,14 +803,14 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     let i = 0;
     let ret: Promise<void> | void = void 0;
-    const refreshTransaction = (this.$initiator as Controller)._bindingRefreshTransaction;
-    if (refreshTransaction !== void 0) {
-      ++refreshTransaction.depth;
-    }
+    ++bindingRefreshAttachDepth;
     try {
       switch (this.mountTarget) {
         case targetHost:
           this.nodes!.appendTo(this.host!, this.definition != null && (this.definition as CustomElementDefinition).enhance);
+          if (bindingRefreshRegistrationCount > 0) {
+            requestMountedTargetRefreshes(this.host!);
+          }
           break;
         case targetShadowRoot: {
           const container = this.container;
@@ -814,16 +819,17 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
             : container.get(IShadowDOMGlobalStyles);
           styles.applyTo(this.shadowRoot!);
           this.nodes!.appendTo(this.shadowRoot!);
+          if (bindingRefreshRegistrationCount > 0) {
+            requestMountedTargetRefreshes(this.shadowRoot!);
+          }
           break;
         }
         case targetLocation:
           this.nodes!.insertBefore(this.location!);
+          if (bindingRefreshRegistrationCount > 0) {
+            requestMountedTargetRefreshes(this.location!.parentNode!);
+          }
           break;
-      }
-
-      if (this.parent !== null && refreshTransaction !== void 0) {
-        // Child bindings can settle before their nodes are visible to a parent target.
-        refreshTransaction.pending = true;
       }
 
       if (this.vmKind !== vmkSynth && this._lifecycleHooks!.attaching != null) {
@@ -858,13 +864,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         }
       }
     } finally {
-      if (
-        refreshTransaction !== void 0
-        && --refreshTransaction.depth === 0
-        && refreshTransaction.pending
-      ) {
-        refreshTransaction.pending = false;
-        refreshBindingTransaction(refreshTransaction);
+      if (--bindingRefreshAttachDepth === 0) {
+        flushPendingBindingRefreshes();
       }
     }
 
@@ -1093,7 +1094,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   private _leaveActivating(): void {
     if (this.state !== activating) {
       if (--this._activatingStack === 0) {
-        this._bindingRefreshTransaction = void 0;
+        this._clearBindingRefreshTargets();
       }
       // skip doing rest of the work if the controller is deactivated.
       this._resolve();
@@ -1103,7 +1104,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       return;
     }
     if (--this._activatingStack === 0) {
-      this._bindingRefreshTransaction = void 0;
+      this._retireBindingRefreshTargets();
       if (this.vmKind !== vmkSynth && this._lifecycleHooks!.attached != null) {
         _retPromise = onResolveAll(...this._lifecycleHooks!.attached.map(callAttachedHook, this));
       }
@@ -1240,32 +1241,59 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   /** @internal */
-  public requestRefresh(target: IRefreshable, _phase: RefreshPhase): void {
-    const initiator = this.$initiator as Controller;
-    const transaction = initiator._bindingRefreshTransaction ??= {
-      targets: new Map(),
-      depth: 0,
-      pending: false,
+  public requestRefresh(target: IRefreshable, _phase: RefreshPhase, bindingTarget: object): void {
+    const registration: BindingRefreshRegistration = {
+      owner: this,
+      bindingTarget,
+      target,
     };
-    let targets: Set<IRefreshable> | undefined = transaction.targets.get(this);
-    if (targets === void 0) {
-      transaction.targets.set(this, targets = new Set());
+    (this._bindingRefreshRegistrations ??= []).push(registration);
+    let registrations = bindingRefreshRegistrations.get(bindingTarget);
+    if (registrations === void 0) {
+      bindingRefreshRegistrations.set(bindingTarget, registrations = new Set());
     }
-    targets.add(target);
+    registrations.add(registration);
+    ++bindingRefreshRegistrationCount;
   }
 
   /** @internal */
   private _refreshBindingTargets(): void {
-    if (this.isActive) {
-      (this.$initiator as Controller)._bindingRefreshTransaction?.targets.get(this)?.forEach(callRefreshTarget);
+    if (!this.isActive) {
+      return;
+    }
+    const registrations = this._bindingRefreshRegistrations;
+    if (registrations !== void 0) {
+      for (let i = 0, ii = registrations.length; i < ii; ++i) {
+        registrations[i].target.refresh();
+      }
     }
   }
 
   /** @internal */
   private _clearBindingRefreshTargets(): void {
-    const transaction = (this.$initiator as Controller)._bindingRefreshTransaction;
-    if (transaction !== void 0) {
-      transaction.targets.delete(this);
+    const registrations = this._bindingRefreshRegistrations;
+    if (registrations === void 0) {
+      return;
+    }
+    this._bindingRefreshRegistrations = void 0;
+    for (let i = 0, ii = registrations.length; i < ii; ++i) {
+      removeBindingRefreshRegistration(registrations[i]);
+    }
+  }
+
+  /** @internal */
+  private _retireBindingRefreshTargets(): void {
+    const registrations = this._bindingRefreshRegistrations;
+    if (registrations === void 0) {
+      return;
+    }
+    this._bindingRefreshRegistrations = void 0;
+    for (let i = 0, ii = registrations.length; i < ii; ++i) {
+      const registration = registrations[i];
+      if (pendingBindingRefreshes?.delete(registration)) {
+        registration.target.refresh();
+      }
+      removeBindingRefreshRegistration(registration);
     }
   }
 
@@ -2080,16 +2108,41 @@ function callDispose(disposable: IDisposable): void {
   disposable.dispose();
 }
 
-function refreshBindingTransaction(transaction: BindingRefreshTransaction): void {
-  transaction.targets.forEach((targets, controller) => {
-    if (controller.isActive) {
-      targets.forEach(callRefreshTarget);
+function requestMountedTargetRefreshes(target: Node): void {
+  let current: Node | null = target;
+  while (current !== null) {
+    const registrations = bindingRefreshRegistrations.get(current);
+    if (registrations !== void 0) {
+      const pending = pendingBindingRefreshes ??= new Set();
+      registrations.forEach(registration => {
+        pending.add(registration);
+      });
+    }
+    current = current.parentNode;
+  }
+}
+
+function flushPendingBindingRefreshes(): void {
+  const pending = pendingBindingRefreshes;
+  if (pending === void 0) {
+    return;
+  }
+  pendingBindingRefreshes = void 0;
+  pending.forEach(registration => {
+    if (registration.owner.isActive) {
+      registration.target.refresh();
     }
   });
 }
 
-function callRefreshTarget(target: IRefreshable): void {
-  target.refresh();
+function removeBindingRefreshRegistration(registration: BindingRefreshRegistration): void {
+  pendingBindingRefreshes?.delete(registration);
+  const registrations = bindingRefreshRegistrations.get(registration.bindingTarget)!;
+  registrations.delete(registration);
+  --bindingRefreshRegistrationCount;
+  if (registrations.size === 0) {
+    bindingRefreshRegistrations.delete(registration.bindingTarget);
+  }
 }
 
 function callCreatedHook(this: Controller, l: LifecycleHooksEntry<ICompileHooks, 'created'>) {

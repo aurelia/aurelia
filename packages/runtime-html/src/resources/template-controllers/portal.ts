@@ -62,7 +62,7 @@ export class Portal implements ICustomAttributeViewModel {
    *
    * @internal
    */
-  private _pending: void | Promise<void> = void 0;
+  private _pending: Promise<void> | undefined = void 0;
   /** Whether a step is running synchronously, outside of `_pending`. @internal */
   private _running: boolean = false;
   /** Starts the changes a synchronous callback queued behind the running step. @internal */
@@ -123,8 +123,9 @@ export class Portal implements ICustomAttributeViewModel {
       }
     }
     let ret: void | Promise<void> = void 0;
-    if (this._pending !== void 0) {
-      ret = this._pending.then(fn);
+    const current = this._pending;
+    if (current !== void 0) {
+      ret = current.then(fn);
     } else {
       this._running = true;
       try {
@@ -134,17 +135,14 @@ export class Portal implements ICustomAttributeViewModel {
         const release = this._release;
         if (release !== null) {
           this._release = null;
-          // The running callback may have replaced the gate with its queued chain.
-          const queued = this._getPending();
-          if (queued === void 0) {
-            release();
-          } else {
-            // start the queued changes once the step settles, even if it failed, and keep the queue
-            // busy until they're done. `queued` never rejects, so a failure is passed on after it
-            ret = isPromise(ret)
-              ? ret.finally(release).then(() => queued, err => queued.then(() => { throw err; }))
-              : (release(), queued);
-          }
+          // A release exists only while its pending gate is installed. The gate is cleared in a
+          // later promise reaction, so it cannot be absent during this synchronous finally block.
+          const queued = this._pending!;
+          // start the queued changes once the step settles, even if it failed, and keep the queue
+          // busy until they're done. `queued` never rejects, so a failure is passed on after it
+          ret = isPromise(ret)
+            ? ret.finally(release).then(() => queued, err => queued.then(() => { throw err; }))
+            : (release(), queued);
         }
       }
     }
@@ -159,11 +157,6 @@ export class Portal implements ICustomAttributeViewModel {
       const pending: Promise<void> = this._pending = ret.then(clear, clear);
     }
     return ret;
-  }
-
-  /** @internal */
-  private _getPending(): void | Promise<void> {
-    return this._pending;
   }
 
   /** @internal */

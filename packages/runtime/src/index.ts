@@ -129,6 +129,7 @@ export {
   type ICollectionObserver,
   type IConnectable,
   type ICollectionSubscriber,
+  type IRefreshable,
   type IndexMap,
   type IObserver,
   type IObservable,

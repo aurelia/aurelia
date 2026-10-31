@@ -1,4 +1,4 @@
-import { Registration, newInstanceForScope, resolve } from '@aurelia/kernel';
+import { DI, Registration, newInstanceForScope, resolve, type IContainer } from '@aurelia/kernel';
 import { tasksSettled } from '@aurelia/runtime';
 import {
   Aurelia,
@@ -1018,6 +1018,80 @@ describe('3-runtime-html/defer.spec.ts', function () {
       assert.strictEqual(text(appHost), 'chart:');
     });
 
+    for (const renderContent of [false, true]) {
+      it(`disposes loaded registrations when an uncached block is removed ${renderContent ? 'after rendering' : 'after prefetch only'}`, async function () {
+        const owned: IContainer[] = [];
+        const cleanupKey = DI.createInterface('deferred-resource-cleanup');
+        let cleanups = 0;
+        const registry = {
+          register(container: IContainer): void {
+            owned.push(container);
+            // A loaded plugin can register scoped cleanup before a component
+            // resolves anything from it. That ownership must not require a view.
+            container.registerResolver(cleanupKey, {
+              $isResolver: true,
+              resolve: () => registry,
+              dispose: () => { ++cleanups; },
+            }, true);
+          },
+        };
+        const loader = createLoader(registry);
+        const fixture = createDeferFixture(
+          `<section if="value.bind: show; cache: false">
+            <div defer="on: interaction; prefetch: idle; load.bind: load">content</div>
+            <button defer-placeholder>load</button>
+          </section>`,
+          { show: true, load: loader.load },
+        );
+        try {
+          idle.run();
+          loader.resolve();
+          await wait(0);
+          if (renderContent) {
+            fixture.getBy('button').click();
+            await wait(0);
+            assert.strictEqual(owned.length, 1);
+          }
+          assert.strictEqual(text(fixture.appHost), renderContent ? 'content' : 'load');
+          fixture.component.show = false;
+          await tasksSettled();
+          assert.strictEqual(text(fixture.appHost), '');
+          // Also permits an implementation that delays registration until
+          // rendering: prefetch need not create a container in the first place.
+          assert.strictEqual(cleanups, owned.length);
+          for (const container of owned) {
+            assert.strictEqual(container.has(cleanupKey, false), false);
+          }
+        } finally {
+          await fixture.stop(true);
+          for (const container of owned) container.dispose();
+        }
+      });
+    }
+
+    it('does not install a loaded registry after its uncached block has been disposed', async function () {
+      let registrations = 0;
+      const loader = createLoader({
+        register(): void { ++registrations; },
+      });
+      const fixture = createDeferFixture(
+        `<section if="value.bind: show; cache: false">
+          <div defer="on: immediate; load.bind: load">content</div>
+          <p defer-placeholder>waiting</p>
+        </section>`,
+        { show: true, load: loader.load },
+      );
+      assert.strictEqual(loader.calls, 1);
+      fixture.component.show = false;
+      await tasksSettled();
+      assert.strictEqual(text(fixture.appHost), '');
+      // The import itself may finish; installing per-block resources is a
+      // separate side effect and should not outlive the disposed owner.
+      loader.resolve();
+      await wait(0);
+      assert.strictEqual(registrations, 0);
+    });
+
     it('does not arm prefetch triggers when the block renders while arming', function () {
       createDeferFixture('<div defer="on: immediate; prefetch: idle">content</div>');
 
@@ -1341,6 +1415,38 @@ describe('3-runtime-html/defer.spec.ts', function () {
       assert.strictEqual(warnings.length, 2);
       assert.match(warnings[0] as string, /A module loaded by \[defer\] in <app> exports no resources/);
       assert.match(warnings[1] as string, /A loader of \[defer\] in <app> resolved to undefined/);
+    });
+
+    it('preserves a placeholder binding failure during initial activation', function () {
+      const failure = new Error('expected placeholder binding failure');
+      const Placeholder = CustomElement.define({ name: 'failing-placeholder', template: 'placeholder' }, class {
+        public binding(): never { throw failure; }
+      });
+      assert.throws(() => createDeferFixture(
+        '<div defer="when.bind: go">content</div><failing-placeholder defer-placeholder></failing-placeholder>',
+        { go: false },
+        [Placeholder],
+      ), (error: unknown) => error === failure);
+    });
+
+    it('reports the original content binding failure after a trigger', async function () {
+      const failure = new Error('expected deferred content binding failure');
+      const Content = CustomElement.define({ name: 'failing-content', template: 'content' }, class {
+        public binding(): never { throw failure; }
+      });
+      const errors = await captureReportedErrors(async () => {
+        const { component } = createDeferFixture(
+          '<div defer="when.bind: go"><failing-content></failing-content></div><p defer-placeholder>waiting</p>',
+          { go: false },
+          [Content],
+        );
+        // Loading and compilation are already valid. A component's hook failure
+        // still reaches the existing task error channel with its identity intact.
+        component.go = true;
+        await wait(0);
+      });
+      assert.strictEqual(errors.length, 1);
+      assert.strictEqual(errors[0], failure);
     });
 
     it('does not leak $defer into the surrounding scope', function () {

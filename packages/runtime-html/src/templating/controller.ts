@@ -58,11 +58,11 @@ import { IBinding } from '../binding/interfaces-bindings';
 
 interface BindingRefreshRegistration {
   readonly owner: Controller;
-  readonly bindingTarget: object;
   readonly target: IRefreshable;
+  readonly mountTargets: Node[];
 }
 
-const bindingRefreshRegistrations = new WeakMap<object, Set<BindingRefreshRegistration>>();
+const bindingRefreshRegistrations = new WeakMap<Node, Set<BindingRefreshRegistration>>();
 let bindingRefreshRegistrationCount = 0;
 let bindingRefreshAttachDepth = 0;
 let pendingBindingRefreshes: Set<BindingRefreshRegistration> | undefined;
@@ -809,7 +809,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         case targetHost:
           this.nodes!.appendTo(this.host!, this.definition != null && (this.definition as CustomElementDefinition).enhance);
           if (bindingRefreshRegistrationCount > 0) {
-            requestMountedTargetRefreshes(this.host!);
+            requestMountedTargetRefreshes(this.host!, this.nodes!.childNodes);
           }
           break;
         case targetShadowRoot: {
@@ -820,14 +820,14 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
           styles.applyTo(this.shadowRoot!);
           this.nodes!.appendTo(this.shadowRoot!);
           if (bindingRefreshRegistrationCount > 0) {
-            requestMountedTargetRefreshes(this.shadowRoot!);
+            requestMountedTargetRefreshes(this.shadowRoot!, this.nodes!.childNodes);
           }
           break;
         }
         case targetLocation:
           this.nodes!.insertBefore(this.location!);
           if (bindingRefreshRegistrationCount > 0) {
-            requestMountedTargetRefreshes(this.location!.parentNode!);
+            requestMountedTargetRefreshes(this.location!.parentNode!, this.nodes!.childNodes);
           }
           break;
       }
@@ -1244,15 +1244,11 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   public requestRefresh(target: IRefreshable, bindingTarget: object): void {
     const registration: BindingRefreshRegistration = {
       owner: this,
-      bindingTarget,
       target,
+      mountTargets: [],
     };
     (this._bindingRefreshRegistrations ??= []).push(registration);
-    let registrations = bindingRefreshRegistrations.get(bindingTarget);
-    if (registrations === void 0) {
-      bindingRefreshRegistrations.set(bindingTarget, registrations = new Set());
-    }
-    registrations.add(registration);
+    addBindingRefreshRegistration(registration, bindingTarget as Node);
     ++bindingRefreshRegistrationCount;
   }
 
@@ -2108,18 +2104,18 @@ function callDispose(disposable: IDisposable): void {
   disposable.dispose();
 }
 
-function requestMountedTargetRefreshes(target: Node): void {
-  let current: Node | null = target;
-  while (current !== null) {
-    const registrations = bindingRefreshRegistrations.get(current);
-    if (registrations !== void 0) {
-      const pending = pendingBindingRefreshes ??= new Set();
-      registrations.forEach(registration => {
-        pending.add(registration);
-      });
-    }
-    current = current.parentNode;
+function requestMountedTargetRefreshes(target: Node, mountedNodes: ArrayLike<Node>): void {
+  const registrations = bindingRefreshRegistrations.get(target);
+  if (registrations === void 0) {
+    return;
   }
+  const pending = pendingBindingRefreshes ??= new Set();
+  registrations.forEach(registration => {
+    pending.add(registration);
+    for (let i = 0, ii = mountedNodes.length; i < ii; ++i) {
+      addBindingRefreshRegistration(registration, mountedNodes[i]);
+    }
+  });
 }
 
 function flushPendingBindingRefreshes(): void {
@@ -2137,11 +2133,33 @@ function flushPendingBindingRefreshes(): void {
 
 function removeBindingRefreshRegistration(registration: BindingRefreshRegistration): void {
   pendingBindingRefreshes?.delete(registration);
-  const registrations = bindingRefreshRegistrations.get(registration.bindingTarget)!;
-  registrations.delete(registration);
+  const mountTargets = registration.mountTargets;
+  for (let i = 0, ii = mountTargets.length; i < ii; ++i) {
+    const mountTarget = mountTargets[i];
+    const registrations = bindingRefreshRegistrations.get(mountTarget)!;
+    registrations.delete(registration);
+    if (registrations.size === 0) {
+      bindingRefreshRegistrations.delete(mountTarget);
+    }
+  }
   --bindingRefreshRegistrationCount;
-  if (registrations.size === 0) {
-    bindingRefreshRegistrations.delete(registration.bindingTarget);
+}
+
+function addBindingRefreshRegistration(registration: BindingRefreshRegistration, node: Node): void {
+  if (node.nodeType === 1 /* Element */) {
+    let registrations = bindingRefreshRegistrations.get(node);
+    if (registrations === void 0) {
+      bindingRefreshRegistrations.set(node, registrations = new Set());
+    }
+    if (!registrations.has(registration)) {
+      registrations.add(registration);
+      registration.mountTargets.push(node);
+    }
+  }
+  let child = node.firstChild;
+  while (child !== null) {
+    addBindingRefreshRegistration(registration, child);
+    child = child.nextSibling;
   }
 }
 

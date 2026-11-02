@@ -54,4 +54,30 @@ describe('2-runtime/collection-length-observer.spec.ts', function () {
       }
     });
   }
+
+  const mutationCases: readonly [name: string, createCollection: () => Collection, grow: (c: any) => void, shrink: (c: any) => void][] = [
+    ['array length', () => [1], (arr: number[]) => arr.push(2), (arr: number[]) => arr.pop()],
+    ['map size', () => new Map([[1, 1]]), (map: Map<number, number>) => map.set(2, 2), (map: Map<number, number>) => map.delete(2)],
+    ['set size', () => new Set([1]), (set: Set<number>) => set.add(2), (set: Set<number>) => set.delete(2)],
+  ];
+
+  for (const [name, createCollection, grow, shrink] of mutationCases) {
+    // https://github.com/aurelia/aurelia/issues/2583
+    it(`notifies a ${name} change back to the count cached before the observer detached`, function () {
+      const collection = createCollection();
+      const observer = getCollectionObserver(collection).getLengthObserver();
+      const changes: [newValue: number, oldValue: number][] = [];
+      const subscriber: ISubscriber = { handleChange(newValue: number, oldValue: number) { changes.push([newValue, oldValue]); } };
+
+      observer.subscribe(subscriber);
+      observer.unsubscribe(subscriber);
+      grow(collection);
+
+      observer.subscribe(subscriber);
+      shrink(collection);
+
+      assert.deepStrictEqual(changes, [[1, 2]]);
+      observer.unsubscribe(subscriber);
+    });
+  }
 });

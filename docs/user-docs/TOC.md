@@ -187,6 +187,13 @@
   * [Advanced testing techniques](developer-guides/testing/advanced-testing.md)
   * [Outcome Recipes](developer-guides/testing/outcome-recipes.md)
 * [Developing with AI](developer-guides/developing-with-ai.md)
+  * [AGENTS.md template](developer-guides/developing-with-ai/agents-md-template.md)
+  * [Claude Code](developer-guides/developing-with-ai/claude-code.md)
+  * [OpenAI Codex](developer-guides/developing-with-ai/codex.md)
+  * [Cursor](developer-guides/developing-with-ai/cursor.md)
+  * [GitHub Copilot](developer-guides/developing-with-ai/github-copilot.md)
+  * [Devin](developer-guides/developing-with-ai/devin.md)
+  * [Other AI agents](developer-guides/developing-with-ai/other-ai-agents.md)
 * Animation
   * [Adding Animation (Beginner Guide)](app-basics/adding-animation.md)
   * [Animation (Comprehensive Guide)](developer-guides/animation.md)

@@ -429,7 +429,7 @@ export const {
 
       const indexMap = this.indexMap;
       if (batching) {
-        addCollectionBatch(subs, this.collection, indexMap);
+        addCollectionBatch(subs, this);
         return;
       }
 

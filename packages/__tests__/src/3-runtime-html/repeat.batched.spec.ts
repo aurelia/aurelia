@@ -1,6 +1,67 @@
+import { batch } from '@aurelia/runtime';
 import { createFixture } from "@aurelia/testing";
 
 describe("3-runtime-html/repeat.batched.spec.ts", function () {
+  it('renders later synchronous mutations after a batched array deletion (#2480)', function () {
+    const { assertText, component } = createFixture(
+      `<span repeat.for="item of items">\${item}</span>`,
+      class { items = [1, 2, 3]; },
+    );
+    batch(() => component.items.splice(0, 1));
+    assertText('23');
+    component.items.push(4);
+    assertText('234');
+    component.items.push(5);
+    assertText('2345');
+  });
+
+  it('renders later synchronous mutations after a batched map deletion (#2480)', function () {
+    const { assertText, component } = createFixture(
+      `<span repeat.for="[key, value] of items">\${value}</span>`,
+      class { items = new Map([[1, 1], [2, 2], [3, 3]]); },
+    );
+    batch(() => component.items.delete(1));
+    assertText('23');
+    component.items.set(4, 4);
+    assertText('234');
+    component.items.set(5, 5);
+    assertText('2345');
+  });
+
+  it('renders later synchronous mutations after a batched set deletion (#2480)', function () {
+    const { assertText, component } = createFixture(
+      `<span repeat.for="item of items">\${item}</span>`,
+      class { items = new Set([1, 2, 3]); },
+    );
+    batch(() => component.items.delete(1));
+    assertText('23');
+    component.items.add(4);
+    assertText('234');
+    component.items.add(5);
+    assertText('2345');
+  });
+
+  it('keeps rendering coherent when collection edits continue after an inner batch flush (#2480)', function () {
+    const { assertText, component } = createFixture(
+      `<span repeat.for="item of items">\${item}</span>`,
+      class { items = [1, 2, 3]; },
+    );
+    batch(() => {
+      component.items.shift();
+      batch(() => component.items.push(4));
+      assertText('234');
+
+      // An inner boundary renders immediately; subsequent edits still belong
+      // to the outer batch and must use the rows produced by that inner flush.
+      component.items.shift();
+      component.items.push(5);
+      assertText('234');
+    });
+    assertText('345');
+    component.items.push(6);
+    assertText('3456');
+  });
+
   describe('tests that failed before batched array mutation fixes', function () {
     it('combined remove and sort', function () {
       const { assertText, component } = createFixture(

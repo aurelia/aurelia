@@ -67,8 +67,8 @@ export class ClassAttributeAccessor implements IAccessor {
       return;
     }
 
+    // Keys are already mapped class names, so they must not be mapped again here
     for (name in nameIndex) {
-      name = this.mapping[name] || name;
       if (nameIndex[name] === version) {
         continue;
       }
@@ -77,6 +77,10 @@ export class ClassAttributeAccessor implements IAccessor {
       // Better would be do have some configurability for this behavior, allowing the user to
       // decide whether initial classes always need to be kept, always removed, or something in between
       classList.remove(name);
+      // Forget removed names so the index only holds classes from the previous update,
+      // otherwise every distinct class ever applied is removed again on each update
+      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+      delete nameIndex[name];
     }
   }
 }

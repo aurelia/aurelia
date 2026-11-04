@@ -1,213 +1,138 @@
+---
+description: Set up Claude Code, Codex, Cursor, GitHub Copilot, Devin, and other coding agents to write correct Aurelia 2 code.
+---
+
 # Developing with AI
 
-AI coding assistants are increasingly becoming valuable tools for Aurelia development. Modern AI tools can understand large codebases, generate framework-specific code, and help with complex development tasks. This guide covers practical approaches to integrating AI assistants effectively with Aurelia projects.
+Coding agents write Aurelia 2 code well when they have two things: the current documentation, and a short instruction file that describes your project. Without them, most models fall back on Aurelia 1 patterns or habits from React and Angular, because those dominate their training data.
 
-## How AI Tools Help with Aurelia Development
+This page covers both, then lists the mistakes agents make most often in Aurelia code so you know what to check in review.
 
-AI assistants can significantly enhance your Aurelia development workflow:
+## Connect the docs
 
-- **Component generation**: Creating custom elements, attributes, and value converters that follow Aurelia conventions
-- **Service development**: Building properly structured services with dependency injection patterns
-- **Template work**: Generating binding expressions and template syntax
-- **Testing support**: Creating test setups using `@aurelia/testing` patterns
-- **Code explanation**: Understanding complex Aurelia patterns, lifecycle behaviors, and architectural decisions
-- **Migration assistance**: Converting between Aurelia versions or from other frameworks
-- **Refactoring**: Modernizing code to use current Aurelia best practices
+The Aurelia docs are available in formats that agents can read directly. Use whichever your tool supports.
 
-## Understanding AI Tool Capabilities
+| Source | URL | Use it for |
+| --- | --- | --- |
+| MCP server | `https://docs.aurelia.io/~gitbook/mcp` | Search and fetch pages on demand. Best option when your tool supports MCP. |
+| Page index | `https://docs.aurelia.io/llms.txt` | A list of every page with a one-line summary. |
+| Full docs | `https://docs.aurelia.io/llms-full.txt` | The entire docs as one Markdown file (about 1.4 MB, so too large for most context windows). |
+| Single page | Add `.md` to any page URL | Paste a specific page into a chat, for example `https://docs.aurelia.io/router/getting-started.md`. |
 
-Modern AI assistants have evolved to handle larger contexts and more complex scenarios:
+The MCP server exposes two read-only tools: `searchDocumentation` and `getPage`. It needs no API key. Once it's connected, an agent can look up the current router or DI API instead of guessing.
 
-- **Codebase awareness**: Tools can now understand entire project structures and maintain context across multiple files  
-- **Framework expertise**: AI models are trained on extensive Aurelia documentation and code examples
-- **Pattern recognition**: They can identify and replicate established architectural patterns in your codebase
-- **Context-aware suggestions**: Recommendations adapt based on your project's specific configuration and conventions
-
-## Considerations for Different Experience Levels
-
-### Experienced Developers
-AI tools act as powerful accelerators for developers who understand Aurelia fundamentals. You can effectively guide AI suggestions and quickly identify when recommendations need adjustment for your specific use case.
-
-### Growing Developers  
-AI assistants can help you learn Aurelia patterns by example, but it's important to understand the generated code rather than simply copying it. Use AI suggestions as learning opportunities to explore framework concepts and best practices.
-
-### Best Practices for All Levels
-- Review generated code to ensure it follows your project's conventions
-- Test AI-generated components and services thoroughly
-- Use AI suggestions as starting points rather than final solutions
-- Leverage AI to understand complex code patterns and architectural decisions
-
-## Popular AI Development Tools
-
-The AI coding landscape has shifted significantly toward terminal-based tools in 2025, with 76% of developers now using or planning to use AI coding assistants. Here are the most widely adopted tools:
-
-### Terminal-Based AI Agents
-
-**Warp Terminal 2.0**: Advanced terminal with Agent Mode that can autonomously handle multi-step development workflows, including project setup, dependency management, and code generation.
-
-**Google Gemini CLI**: Open-source terminal AI agent with a massive 1M token context window, offering 1,000 free requests per day and strong codebase analysis capabilities.
-
-**Claude Code**: Interactive CLI from Anthropic, excelling at understanding large codebases and complex logic chains across multiple files, especially effective in monorepos.
-
-**Aider**: Command-line AI coding assistant that's consistently ranked among the top tools for terminal-based development workflows.
-
-### IDE-Integrated Tools
-
-**Cursor IDE**: Currently the most popular AI-powered IDE, offering advanced codebase analysis, multi-file editing, and context-aware suggestions.
-
-**GitHub Copilot**: Real-time code completion and chat functionality integrated into VS Code and other popular editors.
-
-**Windsurf**: Agentic development environment that can handle multi-step development tasks autonomously with advanced context understanding.
-
-## Setting Up AI Tools for Aurelia Projects
-
-Each AI tool benefits from project-specific configuration files that provide context about your Aurelia codebase, coding standards, and architectural decisions.
-
-### Configuration Files
-
-| Tool | Configuration File | Location |
-|------|-------------------|----------|
-| Claude Code | `CLAUDE.md` | Project root or hierarchical |
-| GitHub Copilot | `.github/copilot-instructions.md` | Repository root |
-| Cursor AI | `.cursorrules` (legacy) or `.cursor/rules/*.mdc` | Project root or `.cursor/rules/` |
-| Windsurf | `.windsurfrules` or `.windsurf/rules/` | Project root or workspace |
-| Warp Terminal | System prompts, MCP servers | Warp settings or project-level |
-| Gemini CLI | System prompts, MCP servers | CLI configuration |
-| Aider | `.aider.conf.yml` | Project root |
-
-## Practical Guidelines for AI-Assisted Development
-
-### Start Small and Specific
-
-Don't ask AI to "build a user management system." Instead:
-- "Create a basic custom element that displays a user's name and email"
-- "Generate a service that fetches user data with proper error handling"
-- "Write tests for this specific component method"
-
-### Always Review and Test
-
-AI-generated code often looks correct but has subtle issues:
-- **Run your tests** - AI might generate code that compiles but fails at runtime
-- **Check for security issues** - AI may suggest patterns with vulnerabilities
-- **Verify Aurelia conventions** - AI might use outdated v1 syntax or miss lifecycle requirements
-
-### Effective Configuration Strategies
-
-Provide AI tools with specific, actionable guidance about your Aurelia project:
-
-```markdown
-# Aurelia 2.x TypeScript Project
-
-## Framework Patterns
-- Use @customElement decorator with standalone components
-- Implement lifecycle hooks: binding, bound, attaching, attached, detaching, unbinding
-- Bindable properties should use explicit TypeScript interfaces
-- Services use @singleton or @transient decorators
-
-## Development Workflow  
-- Run `npm run build` after package changes, before testing
-- Tests are in packages/__tests__/ directory
-- Use @aurelia/testing package for component testing
-- Follow AAA pattern: Arrange, Act, Assert
-
-## Code Standards
-- TypeScript strict mode enabled
-- Prefer const over let, avoid var
-- Use kebab-case for custom element names
-- Use PascalCase for class names and interfaces
+{% tabs %}
+{% tab title="Claude Code" %}
+```bash
+claude mcp add --transport http aurelia-docs https://docs.aurelia.io/~gitbook/mcp
 ```
+{% endtab %}
 
-### Optimizing AI Interactions
+{% tab title="Codex" %}
+```bash
+codex mcp add aurelia-docs --url https://docs.aurelia.io/~gitbook/mcp
+```
+{% endtab %}
 
-To get the best results from AI assistants:
-- Be specific about Aurelia version (2.x) to avoid outdated patterns
-- Provide examples of existing code patterns when possible
-- Reference specific requirements like TypeScript strict mode
-- Include context about your project's architectural decisions
+{% tab title="Cursor" %}
+Add to `.cursor/mcp.json`:
 
-## Example Configuration Files
+```json
+{
+  "mcpServers": {
+    "aurelia-docs": {
+      "url": "https://docs.aurelia.io/~gitbook/mcp"
+    }
+  }
+}
+```
+{% endtab %}
 
-This repository includes example configuration files for popular AI tools:
+{% tab title="GitHub Copilot" %}
+In VS Code, run **MCP: Add Server** from the Command Palette, choose **HTTP**, and enter the URL.
 
-- [CLAUDE.md Example](developing-with-ai/claude-md-example.md) - For Claude Code
-- [GitHub Copilot Instructions](developing-with-ai/copilot-instructions-example.md) - For GitHub Copilot  
-- [Cursor Rules](developing-with-ai/cursor-rules-example.md) - For Cursor AI
-- [Windsurf Rules](developing-with-ai/windsurf-rules-example.md) - For Windsurf
-- [Warp Terminal Configuration](developing-with-ai/warp-terminal-example.md) - For Warp Terminal 2.0
-- [Gemini CLI Setup](developing-with-ai/gemini-cli-example.md) - For Google Gemini CLI
-- [Aider Configuration](developing-with-ai/aider-example.md) - For Aider
+For the Copilot cloud agent, go to the repository's **Settings → Copilot → MCP servers** and add:
 
-## Working Effectively with AI on Aurelia Projects
+```json
+{
+  "mcpServers": {
+    "aurelia-docs": {
+      "type": "http",
+      "url": "https://docs.aurelia.io/~gitbook/mcp",
+      "tools": ["searchDocumentation", "getPage"]
+    }
+  }
+}
+```
+{% endtab %}
 
-### When Generating Components
+{% tab title="Devin" %}
+Open **Customize → MCPs**, add a custom server, choose the HTTP transport, and enter `https://docs.aurelia.io/~gitbook/mcp`.
+{% endtab %}
+{% endtabs %}
 
-Be specific about what you actually need:
+## Add an AGENTS.md file
 
-**Instead of**: "Create a user profile component"  
-**Try**: "Create a custom element that displays user.name and user.email, with a bindable `user` property of type User, and implement unbinding() to clean up any subscriptions"
+[`AGENTS.md`](https://agents.md/) is a plain Markdown file in your repository root that tells coding agents how your project works. Codex, Cursor, GitHub Copilot, Devin, Zed, Jules, and many other tools read it automatically. Claude Code reads it when there is no `CLAUDE.md`, and it can import it from one when there is.
 
-### For Testing
+Write one `AGENTS.md` and let each tool read it. Keeping separate rule files per tool means they drift apart over time, and the agent ends up following whichever copy is out of date.
 
-AI can help with test structure, but verify the logic:
+Start from the [Aurelia AGENTS.md template](developing-with-ai/agents-md-template.md) and edit it to match your app. A good file:
 
-**Good prompt**: "Generate the test setup for testing this UserService.getUser() method, using @aurelia/testing patterns"
+- **Lists the exact commands** for dev, build, test, and lint. Agents run these to check their own work, so a wrong command means unchecked code.
+- **States the Aurelia version and packages.** Write "Aurelia 2" and name the router package. This one line prevents most Aurelia 1 output.
+- **Records decisions the code doesn't show.** Examples: "We use conventions, not `@customElement`" or "State lives in `@aurelia/state`, not in services."
+- **Stays short.** Agents load the whole file into every session. Claude Code recommends staying under 200 lines, Devin reads only the first 16 KiB automatically, and Codex stops at 32 KiB by default. Move detail into nested `AGENTS.md` files or skills.
 
-**Then verify**: Does the test actually test the right behavior? Are edge cases covered?
+Leave out generic advice such as "write clean code" or "use TypeScript best practices". Models already know it, and it takes space that project-specific rules need.
 
-### Debugging Limitations
+## Where agents go wrong
 
-AI can't effectively debug complex issues like:
-- Lifecycle timing problems
-- DI container configuration issues  
-- Template compilation errors
-- Cross-component communication problems
+Most bad Aurelia output comes from a short list of patterns. Put the ones that bite your team into your instruction file, and check for them in review.
 
-For these, you'll need to understand the underlying Aurelia concepts yourself.
+| Agents write | Aurelia 2 uses |
+| --- | --- |
+| `@inject(Foo)` or `@autoinject` with constructor parameters | `private foo = resolve(Foo);` |
+| `<require from="./x">` | `<import from="./x">` |
+| A `<template>` wrapper around the component's HTML | Plain HTML, no wrapper |
+| `click.delegate` | `click.trigger` (`.delegate` exists only in `@aurelia/compat-v1`) |
+| `.call` binding command | A lambda: `on-save.bind="(item) => save(item)"` |
+| `view-model.ref` | `component.ref` |
+| `@computedFrom('a', 'b')` | A plain getter, since dependencies are tracked automatically. Use `@computed` only to control tracking. |
+| `PLATFORM.moduleName('./page')` | A normal import or `() => import('./page')` |
+| `<router-view>`, `route-href`, `router.navigate()` | `<au-viewport>`, `load`, `router.load()` |
+| `activate()` and `canActivate()` route hooks | `loading()` and `canLoad()` |
+| Expecting `preventDefault()` by default | `click.trigger:prevent` when you need it |
+| React or Angular idioms such as `useState`, `className`, `*ngFor`, or `(click)` | `${}` interpolation, `class.bind`, `repeat.for`, and `click.trigger` |
 
-## Common Challenges and Solutions
+The [migration guide](migrating-to-aurelia-2/README.md) covers each of these in more detail.
 
-### Ensuring Modern Aurelia Patterns
-**Challenge**: AI might suggest outdated Aurelia v1 syntax  
-**Solution**: Explicitly specify "Aurelia 2.x" in prompts and configuration files, and include examples of current decorators and patterns
+Agents also tend to over-build. They register every resource globally, add a state library to a five-component app, or wrap a simple value converter in a service. Ask for the smallest change that works, and say so in your instruction file if it keeps happening.
 
-### Build and Test Integration  
-**Challenge**: Generated tests fail due to build requirements  
-**Solution**: Configure AI tools to understand that `npm run build` is required before testing, and include build commands in your setup instructions
+## Let the agent check its work
 
-### Component Integration Issues
-**Challenge**: AI-generated components don't integrate properly with existing architecture  
-**Solution**: Provide AI with examples of your existing components and specify your DI patterns, lifecycle usage, and binding conventions
+An agent that can build and run tests catches its own template errors. One that can't will report success on code that fails at runtime.
 
-## Team Development Guidelines
+- **Test templates, not just types.** Templates are compiled at runtime, so a bad binding expression only fails when the component renders. A misspelled or unregistered custom element fails silently: the browser renders it as an unknown HTML element. A component test with `createFixture` from `@aurelia/testing` renders the template and lets the agent assert on the output. See [testing components](testing/testing-components.md).
+- **Give it the browser.** Agents with browser access, such as Claude Code with Chrome, Cursor's browser, Copilot's Playwright MCP, or Devin's built-in browser, can open the dev server and read console errors. For UI work, that catches mistakes a type check misses.
+- **Tell it when to stop.** "Run `npm test` and `npm run build`; do not report done until both pass" in your instruction file works better than asking in each prompt.
 
-### Code Review Process
-Apply the same review standards to AI-generated code as any other contribution:
-- Verify adherence to team coding standards and Aurelia best practices
-- Ensure proper testing coverage and error handling
-- Check for security implications and performance considerations  
-- Confirm maintainability and documentation quality
+## Review what it produces
 
-### Recommended AI Usage Patterns
-**Effective applications**:
-- Component and service boilerplate generation
-- Test structure creation and test case generation
-- Documentation and code comments
-- Refactoring existing code to modern patterns
-- Exploring and understanding complex Aurelia concepts
+Review agent output the way you would review a pull request from a new teammate who has read the docs but never seen your app.
 
-**Areas requiring careful consideration**:
-- Critical business logic implementation
-- Security-sensitive operations
-- Performance-critical code paths
-- Architectural and design decisions
+- Check templates as closely as TypeScript. Type checks don't cover binding expressions.
+- Look for subscriptions, timers, and event listeners added in `attached` or `binding` without cleanup in `detaching` or `unbinding`.
+- Watch for new dependencies. Agents add packages to solve problems Aurelia already handles, such as a date library for a value converter or an event bus when `IEventAggregator` exists.
+- Be careful with router and DI changes. Lifecycle timing and container scope bugs look correct in a diff and fail only when components are reused or navigated away from.
 
-## Integration Best Practices
+## Tool setup
 
-AI tools work best when integrated thoughtfully into your development workflow:
+Each tool reads instructions from slightly different places. These pages show the setup for each one, using the shared `AGENTS.md`:
 
-1. **Start with understanding**: Ensure team members understand Aurelia fundamentals before relying heavily on AI assistance
-2. **Iterate and refine**: Use AI suggestions as starting points and refine based on your project's specific needs
-3. **Maintain context**: Keep AI tools updated with your evolving project patterns and conventions
-4. **Balance assistance with learning**: Use AI to accelerate development while continuing to build framework expertise
-
-The goal is to leverage AI capabilities to enhance productivity while maintaining code quality and team knowledge.
+- [Claude Code](developing-with-ai/claude-code.md)
+- [OpenAI Codex](developing-with-ai/codex.md)
+- [Cursor](developing-with-ai/cursor.md)
+- [GitHub Copilot](developing-with-ai/github-copilot.md)
+- [Devin](developing-with-ai/devin.md)
+- [Other AI agents](developing-with-ai/other-ai-agents.md): Gemini CLI, Zed, Aider, Junie, and others

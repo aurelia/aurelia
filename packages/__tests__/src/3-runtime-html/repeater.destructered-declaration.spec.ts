@@ -240,7 +240,7 @@ describe('3-runtime-html/repeater.destructered-declaration.spec.ts', function ()
       };
       const clientAu = new Aurelia(clientCtx.container);
       try {
-        const root = await clientAu.hydrate({ host: clientHost, component: AppElement, ssrScope });
+        await clientAu.hydrate({ host: clientHost, component: AppElement, ssrScope });
         try {
           const hydratedRow = clientHost.querySelector('.order');
           assert.strictEqual(hydratedRow, ssrRow, 'the SSR row is adopted, not cloned');
@@ -253,8 +253,7 @@ describe('3-runtime-html/repeater.destructered-declaration.spec.ts', function ()
           assert.strictEqual(clientHost.textContent, '3:Updated');
           assert.strictEqual(hydratedRow!.querySelector('span')!.dataset.id, '2', '.one-time remains frozen');
         } finally {
-          await root.deactivate();
-          root.dispose();
+          await clientAu.stop(true);
         }
       } finally {
         clientAu.dispose();

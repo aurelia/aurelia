@@ -106,6 +106,96 @@ void describe('benchmark PR comment', () => {
     assert.equal(readState(github.comments[0].body).pipelineId, pipeline.id);
   });
 
+  void it('publishes a validated report after a transient job-list 404 on a successful workflow', async () => {
+    const github = commentGithub();
+    const successfulFetch = successfulCircleFetch();
+    const waits = [];
+    let jobRequests = 0;
+    let validationCount = 0;
+    let freshnessChecks = 0;
+    const result = await reportBenchmarkRun({
+      github,
+      context: context(),
+      core: core(),
+      circleToken: 'secret',
+      pipeline,
+      comparison,
+      profile: 'full',
+      resolveCurrentComparison: async () => { freshnessChecks++; return comparison; },
+      fetchImpl: async (value, options) => {
+        if (new URL(value).pathname === `/api/v2/workflow/${workflowId}/job`) {
+          assert.equal(options.headers['Circle-Token'], 'secret');
+          if (++jobRequests === 1) return response({ message: 'not ready' }, 404);
+        }
+        return successfulFetch(value, options);
+      },
+      sleep: async milliseconds => waits.push(milliseconds),
+      loadReportModule: async () => ({
+        validateBenchmarkReport(report, expected) {
+          validationCount++;
+          assert.equal(report.schemaVersion, 1);
+          assert.deepEqual(expected, { ...comparison, profile: 'full' });
+        },
+        formatBenchmarkReportMarkdown() {
+          assert.equal(validationCount, 1);
+          return 'RECOVERED TRUSTED REPORT';
+        },
+      }),
+    });
+
+    assert.equal(result.status, 'success');
+    assert.equal(jobRequests, 2);
+    assert.equal(freshnessChecks, 2);
+    assert.deepEqual(waits, [1000]);
+    assert.match(github.comments[0].body, /RECOVERED TRUSTED REPORT/);
+  });
+
+  void it('reports a persistent job-list 403 safely without publishing unvalidated results', async () => {
+    const github = commentGithub();
+    const actions = core();
+    const warnings = [];
+    actions.warning = message => warnings.push(message);
+    const successfulFetch = successfulCircleFetch();
+    const waits = [];
+    let jobRequests = 0;
+    await assert.rejects(reportBenchmarkRun({
+      github,
+      context: context(),
+      core: actions,
+      circleToken: 'credential-secret',
+      pipeline,
+      comparison,
+      profile: 'full',
+      requestId: 100,
+      resolveCurrentComparison: async () => comparison,
+      fetchImpl: async (value, options) => {
+        if (new URL(value).pathname === `/api/v2/workflow/${workflowId}/job`) {
+          jobRequests++;
+          assert.equal(options.headers['Circle-Token'], 'credential-secret');
+          return response({ message: 'response-secret @everyone' }, 403);
+        }
+        return successfulFetch(value, options);
+      },
+      sleep: async milliseconds => waits.push(milliseconds),
+      loadReportModule: async () => { assert.fail('failed reads must not load the formatter'); },
+    }), error => {
+      assert.equal(error.code, 'circle-api-failed');
+      assert.match(error.message, /HTTP 403/);
+      assert.ok(error.message.includes(`/workflow/${workflowId}/job`));
+      assert.doesNotMatch(error.message, /credential-secret|response-secret|@everyone/);
+      return true;
+    });
+
+    assert.equal(jobRequests, 5);
+    assert.deepEqual(waits, [1000, 2000, 4000, 8000]);
+    assert.match(warnings.join('\n'), /HTTP 403/);
+    assert.doesNotMatch(warnings.join('\n'), /credential-secret|response-secret|@everyone/);
+    assert.match(github.comments[0].body, /benchmark workflow completed successfully/);
+    assert.match(github.comments[0].body, /reporter could not retrieve its results from CircleCI/);
+    assert.ok(github.comments[0].body.includes('[Reporting log](https://github.com/aurelia/aurelia/actions/runs/100)'));
+    assert.doesNotMatch(github.comments[0].body, /could not be validated|did not complete successfully|credential-secret|response-secret|@everyone/);
+  });
+
   void it('marks a completed comparison as superseded when the PR moved', async () => {
     const github = commentGithub();
     const result = await reportBenchmarkRun({
@@ -436,6 +526,133 @@ void describe('benchmark PR comment', () => {
 
     assert.equal((await client.get('workflow/id')).status, 'success');
     assert.deepEqual(waits, [2000]);
+  });
+
+  void it('backs off for missing, blank, and invalid Retry-After headers without a terminal wait', async () => {
+    const retryAfter = [undefined, ' ', 'invalid-delay', '-2', undefined];
+    const waits = [];
+    let calls = 0;
+    const client = createCircleClient({
+      circleToken: 'secret',
+      sleep: async milliseconds => waits.push(milliseconds),
+      fetchImpl: async () => {
+        const header = retryAfter[calls++];
+        return response({}, calls % 2 === 0 ? 429 : 503,
+          header === undefined ? {} : { 'retry-after': header });
+      },
+    });
+
+    await assert.rejects(client.get('workflow/id/job'), error => error.code === 'circle-api-failed');
+    assert.equal(calls, 5);
+    assert.deepEqual(waits, [1000, 2000, 4000, 8000]);
+  });
+
+  void it('honors numeric and HTTP-date Retry-After values with a one-minute cap', async () => {
+    const now = Date.UTC(2026, 9, 9, 12);
+    for (const [header, expectedWait] of [
+      ['2.5', 2500],
+      ['120', 60_000],
+      [new Date(now + 3000).toUTCString(), 3000],
+      [new Date(now + 120_000).toUTCString(), 60_000],
+    ]) {
+      const waits = [];
+      let calls = 0;
+      const client = createCircleClient({
+        circleToken: 'secret',
+        now: () => now,
+        sleep: async milliseconds => waits.push(milliseconds),
+        fetchImpl: async () => ++calls === 1
+          ? response({}, 429, { 'retry-after': header })
+          : response({ status: 'success' }),
+      });
+
+      assert.equal((await client.get('workflow/id')).status, 'success');
+      assert.equal(calls, 2);
+      assert.deepEqual(waits, [expectedWait], header);
+    }
+  });
+
+  void it('keeps paginated read retries authenticated and excludes query tokens from errors', async () => {
+    const waits = [];
+    let calls = 0;
+    const apiPath = 'workflow/id/job?page-token=query-secret';
+    const client = createCircleClient({
+      circleToken: 'credential-secret',
+      sleep: async milliseconds => waits.push(milliseconds),
+      fetchImpl: async (value, options) => {
+        calls++;
+        assert.equal(String(value), `https://circleci.com/api/v2/${apiPath}`);
+        assert.equal(options.headers['Circle-Token'], 'credential-secret');
+        return response({ message: 'response-secret' }, 401);
+      },
+    });
+
+    await assert.rejects(client.get(apiPath), error => {
+      assert.equal(error.code, 'circle-api-failed');
+      assert.match(error.message, /HTTP 401/);
+      assert.match(error.message, /CircleCI GET \/workflow\/id\/job/);
+      assert.doesNotMatch(error.message, /\?|page-token|query-secret|credential-secret|response-secret/);
+      return true;
+    });
+    assert.equal(calls, 5);
+    assert.deepEqual(waits, [1000, 2000, 4000, 8000]);
+  });
+
+  void it('retains bounded network retries without exposing fetch error details', async () => {
+    const waits = [];
+    let calls = 0;
+    const client = createCircleClient({
+      circleToken: 'credential-secret',
+      sleep: async milliseconds => waits.push(milliseconds),
+      fetchImpl: async () => {
+        calls++;
+        throw new Error('network-secret https://example.com/?credential=credential-secret');
+      },
+    });
+
+    await assert.rejects(client.get('workflow/id'), error => {
+      assert.equal(error.code, 'circle-api-failed');
+      assert.doesNotMatch(error.message, /network-secret|credential-secret|example\.com/);
+      return true;
+    });
+    assert.equal(calls, 5);
+    assert.deepEqual(waits, [1000, 2000, 4000, 8000]);
+  });
+
+  void it('retries failed JSON reads and reports persistent decode failures without exposing their content', async () => {
+    for (const failedReads of [1, 5]) {
+      const waits = [];
+      let calls = 0;
+      const client = createCircleClient({
+        circleToken: 'credential-secret',
+        sleep: async milliseconds => waits.push(milliseconds),
+        fetchImpl: async (_value, options) => {
+          calls++;
+          assert.equal(options.headers['Circle-Token'], 'credential-secret');
+          const result = response({ status: 'success' });
+          if (calls <= failedReads) {
+            result.json = async () => { throw new SyntaxError('Unexpected response-secret credential-secret'); };
+          }
+          return result;
+        },
+      });
+
+      if (failedReads === 1) {
+        assert.equal((await client.get('workflow/id/job')).status, 'success');
+        assert.equal(calls, 2);
+        assert.deepEqual(waits, [1000]);
+      } else {
+        await assert.rejects(client.get('workflow/id/job?page-token=query-secret'), error => {
+          assert.equal(error.code, 'circle-api-failed');
+          assert.match(error.message, /CircleCI GET \/workflow\/id\/job/);
+          assert.match(error.message, /HTTP 200.*invalid JSON response/);
+          assert.doesNotMatch(error.message, /response-secret|credential-secret|query-secret|page-token|Unexpected/);
+          return true;
+        });
+        assert.equal(calls, 5);
+        assert.deepEqual(waits, [1000, 2000, 4000, 8000]);
+      }
+    }
   });
 });
 

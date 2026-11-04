@@ -110,13 +110,15 @@ export class Aurelia implements IDisposable {
    */
   public hydrate<T extends object>(config: IHydrateConfig<T>): IAppRoot<T> | Promise<IAppRoot<T>> {
     const container = config.container ?? this.container.createChild();
-    const appRoot: IAppRoot<T> = new AppRoot(
+    const appRoot: IAppRoot<T> = this.next = new AppRoot(
       { host: config.host, component: config.component, ssrScope: config.ssrScope },
       container,
       this._rootProvider,
       false, // not enhance mode
     );
-    return onResolve(appRoot.activate(), () => appRoot);
+    // Hydration is an application start: going through start() keeps isRunning,
+    // host.$aurelia, au-started and a later stop() consistent with app().start().
+    return onResolve(this.start(appRoot), () => appRoot);
   }
 
   /** @internal */

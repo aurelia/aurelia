@@ -542,6 +542,92 @@ describe('router/lazy-routes.spec.ts', function () {
     await au.stop(true);
   });
 
+  it('updates the navigation model entry from the lazy component route config once loaded #2553', async function () {
+    @route({ title: 'About us', data: { icon: 'info' } })
+    @customElement({ name: 'ab-out', template: 'about' })
+    class About { }
+    @route({ title: 'Secret', nav: false })
+    @customElement({ name: 'sec-ret', template: 'secret' })
+    class Secret { }
+
+    @route({
+      routes: [
+        { path: ['', 'home'], component: Home },
+        { path: 'about', component: lazyFactory(() => Promise.resolve({ default: About })) },
+        { path: 'secret', component: lazyFactory(() => Promise.resolve({ default: Secret })) },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { host, au, container } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+    const navModel = router.routeTree.root.context.routeConfigContext.navigationModel as INavigationModel;
+    const routes = navModel.routes;
+
+    assert.deepStrictEqual(routes.map(x => x.id), ['', 'about', 'secret'], 'nav entries before loading');
+    const aboutRoute = routes[1];
+    assert.strictEqual(aboutRoute.title, null, 'about title before loading');
+
+    assert.strictEqual(await router.load('about'), true, 'router.load(\'about\')');
+    await tasksSettled();
+    assert.html.textContent(host, 'about', 'about rendered');
+    assert.strictEqual(navModel.routes, routes, 'routes array is kept (observers stay attached)');
+    assert.deepStrictEqual(routes.map(x => x.id), ['', 'about', 'secret'], 'nav entries after loading about');
+    assert.strictEqual(routes[1], aboutRoute, 'about entry is updated in place');
+    assert.strictEqual(aboutRoute.title, 'About us', 'about title after loading');
+    assert.deepStrictEqual(aboutRoute.data, { icon: 'info' }, 'about data after loading');
+    assert.strictEqual(aboutRoute.isActive, true, 'about is active');
+
+    assert.strictEqual(await router.load('secret'), true, 'router.load(\'secret\')');
+    await tasksSettled();
+    assert.html.textContent(host, 'secret', 'secret rendered');
+    assert.deepStrictEqual(routes.map(x => x.id), ['', 'about'], 'nav:false from the component removes the entry once loaded');
+
+    await au.stop(true);
+  });
+
+  it('navigates by component type when an unrelated lazy chunk fails #2553', async function () {
+    @customElement({ name: 'ad-min', template: 'admin' })
+    class Admin { }
+    @customElement({ name: 'bro-ken', template: 'broken' })
+    class Broken { }
+
+    const chunkError = new Error('failed to load chunk');
+    let brokenCalls = 0;
+
+    @route({
+      routes: [
+        { path: '', component: Home },
+        { path: 'broken', component: lazyFactory(() => { ++brokenCalls; return Promise.reject(chunkError); }) },
+        { path: 'admin', component: lazyFactory(() => Promise.resolve({ default: Admin })) },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { host, au, container } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+
+    assert.strictEqual(await router.load(Admin), true, 'router.load(Admin)');
+    await tasksSettled();
+    assert.html.textContent(host, 'admin', 'admin rendered');
+    assert.strictEqual(brokenCalls, 1, 'broken factory call count');
+
+    // the type is not found in any loaded route, so the chunk failure is what the caller sees
+    let error: unknown = null;
+    try {
+      await router.load(Broken);
+    } catch (e) {
+      error = e;
+    }
+    assert.strictEqual(error, chunkError, 'router.load(Broken) rejects with the chunk error');
+    assert.strictEqual(brokenCalls, 2, 'broken factory is retried');
+    assert.html.textContent(host, 'admin', 'admin still rendered');
+
+    await au.stop(true);
+  });
+
   it('supports synchronous component factories #2553', async function () {
     @customElement({ name: 'ab-out', template: 'about' })
     class About { }

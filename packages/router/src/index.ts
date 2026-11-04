@@ -55,6 +55,8 @@ export {
   type RouteParametersOptions,
   type INavigationModel,
   type INavigationRoute,
+  type LazyRoute,
+  type RouteTableEntry,
 } from './route-context';
 
 export {

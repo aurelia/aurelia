@@ -783,6 +783,29 @@ export class LazyRoute {
   }
 }
 
+// A failing chunk must not fail the lookup of a component type from another chunk, so failures are
+// collected and only surface when `retry` still finds no route.
+function resolveLazyRoutesThen<T>(lazies: LazyRoute[], retry: () => T | null): T | null | Promise<T | null> {
+  const errors: unknown[] = [];
+  const collect = (err: unknown) => { errors.push(err); };
+  return onResolve(
+    onResolveAll(...lazies.map(l => {
+      try {
+        const result = l._resolve();
+        return isPromise(result) ? result.then(noop, collect) : void 0;
+      } catch (err) {
+        collect(err);
+        return void 0;
+      }
+    })),
+    () => {
+      const result = retry();
+      if (result === null && errors.length > 0) throw errors[0];
+      return result;
+    },
+  );
+}
+
 // A child route's entry in the route table: a resolved `RouteConfig`, a promise resolving to one
 // (`component: import('./x')` or a routeable promise), or a not-yet-loaded lazy route.
 export type RouteTableEntry = RouteConfig | Promise<RouteConfig> | LazyRoute;
@@ -939,17 +962,22 @@ export class RouteConfigContext {
         // A factory component such as `component: () => import('./x')`: register the route's metadata only
         // and defer the factory invocation (and thus the import) until the route is first matched.
         const idx = this.childRoutes.length;
+        let navRoute: NavigationRoute | null = null;
         const lazy = new LazyRoute(
           childRoute,
           () => resolveRouteConfiguration(childRoute, true, config, null, this),
-          rdConfig => { this.childRoutes[idx] = rdConfig; },
+          rdConfig => {
+            this.childRoutes[idx] = rdConfig;
+            // the component's own `@route` (title, nav, data) is only known once its module is loaded
+            if (navRoute !== null) navModel!._updateLazyRoute(navRoute, rdConfig);
+          },
         );
         for (const path of lazy.path) {
           this._$addRoute(path, childRoute.caseSensitive ?? false, lazy);
         }
         this.childRoutes.push(lazy);
         if (hasNavModel) {
-          navModel._addRoute(lazy);
+          navRoute = navModel._addLazyRoute(lazy);
         }
         continue;
       }
@@ -1138,12 +1166,12 @@ export class RouteConfigContext {
           // attributes, `isActive`, route-id lookups) get `null` and fall back to a plain instruction,
           // instead of an error or an unexpected promise.
           if (!resolveLazyRoutes) return null;
-          // Resolve them and retry; `_onLoad` replaces each `LazyRoute` entry with the resolved `RouteConfig`,
-          // so the retry cannot loop.
-          return onResolve(
-            onResolveAll(...lazies.map(l => l._resolve())),
-            () => this._generateViewportInstruction(instruction, parentRoutePath, traverseChildren as true, resolveLazyRoutes),
-          ) as PathGenerationResult | Promise<PathGenerationResult> | null;
+          // `_onLoad` replaces each loaded `LazyRoute` entry with its `RouteConfig`; failed ones remain,
+          // so the retry must not resolve lazy routes again or it would loop.
+          return resolveLazyRoutesThen(
+            lazies,
+            () => this._generateViewportInstruction(instruction, parentRoutePath, traverseChildren as true, false),
+          );
         }
       }
       throwError = true;
@@ -1413,7 +1441,31 @@ class NavigationModel implements INavigationModel {
 
   private readonly emptyRoute: symbol = Symbol.for('au:router:empty-navigation-route');
   /** @internal */
-  public _addRoute(route: RouteTableEntry): void {
+  public _addLazyRoute(route: LazyRoute): NavigationRoute | null {
+    if (!route.nav) return null;
+    const navRoute = NavigationRoute._create(route, this._parentPaths);
+    this.routes.push(navRoute);
+    return navRoute;
+  }
+
+  /** @internal */
+  public _updateLazyRoute(navRoute: NavigationRoute, rdConfig: RouteConfig): void {
+    const routes = this.routes;
+    const index = routes.indexOf(navRoute);
+    if (index === -1) return;
+    if (rdConfig.nav && rdConfig.redirectTo === null) {
+      // update in place so that references held by views and the `isActive` state stay valid
+      navRoute._update(rdConfig);
+    } else if (this._promise !== void 0) {
+      // pending promise routes hold reserved slot indices; leave a placeholder, removed once they settle
+      routes[index] = this.emptyRoute as unknown as NavigationRoute;
+    } else {
+      routes.splice(index, 1);
+    }
+  }
+
+  /** @internal */
+  public _addRoute(route: RouteConfig | Promise<RouteConfig>): void {
     const routes = this.routes;
     if (!(route instanceof Promise)) {
       if ((route.nav ?? false) && route.redirectTo === null) {
@@ -1460,6 +1512,19 @@ class NavigationRoute implements INavigationRoute {
     public readonly data: Record<string, unknown>,
     /** @internal */ private readonly _parentPaths: string[] | null,
   ) { }
+
+  /**
+   * Applies the resolved config of a lazy route. The path is kept, as it comes from the parent config and
+   * the cached `isActive` instruction trees depend on it.
+   *
+   * @internal
+   */
+  public _update(rdConfig: RouteConfig): void {
+    const self = this as { -readonly [K in 'id' | 'title' | 'data']: NavigationRoute[K] };
+    self.id = rdConfig.id;
+    self.title = rdConfig.title;
+    self.data = rdConfig.data;
+  }
 
   /** @internal */
   public static _create(rdConfig: Pick<RouteConfig, 'id' | 'path' | 'title' | 'data'>, parentPaths: string[] | null) {

@@ -1,4 +1,5 @@
 import {
+  batch,
   getCollectionObserver,
   type Collection,
   type CollectionObserver,
@@ -55,10 +56,10 @@ describe('2-runtime/collection-length-observer.spec.ts', function () {
     });
   }
 
-  const mutationCases: readonly [name: string, createCollection: () => Collection, grow: (c: any) => void, shrink: (c: any) => void][] = [
-    ['array length', () => [1], (arr: number[]) => arr.push(2), (arr: number[]) => arr.pop()],
-    ['map size', () => new Map([[1, 1]]), (map: Map<number, number>) => map.set(2, 2), (map: Map<number, number>) => map.delete(2)],
-    ['set size', () => new Set([1]), (set: Set<number>) => set.add(2), (set: Set<number>) => set.delete(2)],
+  const mutationCases: readonly [name: string, createCollection: () => Collection, grow: (c: any, value?: number) => void, shrink: (c: any) => void][] = [
+    ['array length', () => [1], (arr: number[], value = 2) => arr.push(value), (arr: number[]) => arr.pop()],
+    ['map size', () => new Map([[1, 1]]), (map: Map<number, number>, value = 2) => map.set(value, value), (map: Map<number, number>) => map.delete(2)],
+    ['set size', () => new Set([1]), (set: Set<number>, value = 2) => set.add(value), (set: Set<number>) => set.delete(2)],
   ];
 
   for (const [name, createCollection, grow, shrink] of mutationCases) {
@@ -78,6 +79,66 @@ describe('2-runtime/collection-length-observer.spec.ts', function () {
 
       assert.deepStrictEqual(changes, [[1, 2]]);
       observer.unsubscribe(subscriber);
+    });
+
+    it(`preserves a pending ${name} change when duplicate or additional subscribers attach`, function () {
+      const collection = createCollection();
+      const observer = getCollectionObserver(collection).getLengthObserver();
+      const firstChanges: number[][] = [];
+      const secondChanges: number[][] = [];
+      const first: ISubscriber<number> = { handleChange: (value, oldValue) => firstChanges.push([value, oldValue]) };
+      const second: ISubscriber<number> = { handleChange: (value, oldValue) => secondChanges.push([value, oldValue]) };
+      observer.subscribe(first);
+
+      batch(() => {
+        grow(collection);
+        // Only a new observation cycle may replace the cached count. Another
+        // subscriber must not erase the change the first one is waiting for.
+        observer.subscribe(first);
+        observer.subscribe(second);
+        assert.deepStrictEqual(firstChanges, []);
+      });
+
+      assert.deepStrictEqual(firstChanges, [[2, 1]]);
+      assert.deepStrictEqual(secondChanges, [[2, 1]]);
+      observer.unsubscribe(first);
+      shrink(collection);
+      assert.deepStrictEqual(firstChanges, [[2, 1]]);
+      assert.deepStrictEqual(secondChanges, [[2, 1], [1, 2]]);
+      observer.unsubscribe(second);
+    });
+
+    it(`uses the resubscribed ${name} as the baseline across nested batch flushes`, function () {
+      const collection = createCollection();
+      const owner = getCollectionObserver(collection);
+      const observer = owner.getLengthObserver();
+      const changes: number[][] = [];
+      let collectionChanges = 0;
+      const collectionSubscriber = { handleCollectionChange: () => { ++collectionChanges; } };
+      const subscriber: ISubscriber<number> = { handleChange: (value, oldValue) => changes.push([value, oldValue]) };
+      // A repeat can keep observing the collection while a guarded count binding
+      // disconnects. Its pending batch must not become that binding's old value.
+      owner.subscribe(collectionSubscriber);
+      observer.subscribe(subscriber);
+      observer.unsubscribe(subscriber);
+
+      batch(() => {
+        grow(collection);
+        observer.subscribe(subscriber);
+        assert.strictEqual(observer.getValue(), 2);
+        assert.deepStrictEqual(changes, [], 'subscribing reads the current count without notifying');
+
+        batch(() => grow(collection, 3));
+        assert.deepStrictEqual(changes, [[3, 2]]);
+        assert.strictEqual(collectionChanges, 1, 'the inner flush includes earlier collection mutations');
+        shrink(collection);
+        assert.strictEqual(changes.length, 1, 'outer batching resumes after the inner flush');
+      });
+
+      assert.deepStrictEqual(changes, [[3, 2], [2, 3]]);
+      assert.strictEqual(collectionChanges, 2, 'the outer flush does not replay the inner batch');
+      observer.unsubscribe(subscriber);
+      owner.unsubscribe(collectionSubscriber);
     });
   }
 });

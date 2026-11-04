@@ -97,7 +97,7 @@ import { ITransferState } from '@aurelia/runtime-html';
 http.configure(config => config.withInterceptor(new TransferCacheInterceptor(resolve(ITransferState))));
 ```
 
-Requests carrying an `Authorization` or `Cookie` header are never recorded, so an authentication interceptor that runs earlier in the chain keeps those requests out of the cache. See [Transferring server state](../../getting-to-know-aurelia/transfer-state.md) for the server setup and the full list of rules.
+Requests carrying an `Authorization` or `Cookie` header are never recorded. The server checks the request after every request interceptor has run, so an authentication interceptor keeps its requests out of the cache wherever it sits in the chain. Register `TransferCacheInterceptor` after any interceptor that changes the request URL: the client looks up the URL as it reaches this interceptor, while the server records the final one. See [Transferring server state](../../getting-to-know-aurelia/transfer-state.md) for the server setup and the full list of rules.
 
 ## Advanced Interceptor Patterns
 

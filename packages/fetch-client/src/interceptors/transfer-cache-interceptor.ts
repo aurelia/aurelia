@@ -19,6 +19,11 @@ export interface ITransferCacheOptions {
   includeHeaders?: readonly string[];
   /** Return `false` to keep a request out of the cache. */
   filter?(request: Request): boolean;
+  /**
+   * Returns the key a request is recorded and replayed under. Defaults to the method and absolute URL.
+   * Override it when the server requests a different origin than the browser, such as an internal API host.
+   */
+  key?(request: Request): string;
 }
 
 /** A recorded response, with short keys because every entry is embedded in the server's HTML. */
@@ -58,11 +63,14 @@ export class TransferCacheInterceptor implements IFetchInterceptor {
   private readonly _headers: readonly string[];
   /** @internal */
   private readonly _filter: ((request: Request) => boolean) | undefined;
+  /** @internal */
+  private readonly _key: (request: Request) => string;
 
   public constructor(store: ITransferCacheStore, options?: ITransferCacheOptions) {
     this._store = store;
     this._headers = ['content-type', ...(options?.includeHeaders ?? [])];
     this._filter = options?.filter;
+    this._key = options?.key ?? getTransferKey;
   }
 
   public request(request: Request): Request | Response {
@@ -70,7 +78,7 @@ export class TransferCacheInterceptor implements IFetchInterceptor {
     if (store.isServer || !this._isCacheable(request)) {
       return request;
     }
-    const key = getTransferKey(request);
+    const key = this._key(request);
     const entry = store.get<ITransferredResponse>(key);
     if (entry === void 0) {
       return request;
@@ -115,7 +123,7 @@ export class TransferCacheInterceptor implements IFetchInterceptor {
     if (response.url !== '' && response.url !== request.url) {
       entry.u = response.url;
     }
-    this._store.set(getTransferKey(request), entry);
+    this._store.set(this._key(request), entry);
     return response;
   }
 

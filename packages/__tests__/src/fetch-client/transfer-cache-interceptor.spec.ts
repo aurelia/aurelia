@@ -69,6 +69,22 @@ describe('fetch-client/transfer-cache-interceptor.spec.ts', function () {
     assert.strictEqual(await replayed.text(), '');
   });
 
+  it('replays across origins with a custom key', async function () {
+    const key = (request: Request) => {
+      const { pathname, search } = new URL(request.url);
+      return `http:${request.method} ${pathname}${search}`;
+    };
+    const serverState = new TransferState(void 0, true);
+    await createClient(serverState, void 0, { key }).http.fetch('http://localhost:3000/api/products/1');
+    const clientState = new TransferState(JSON.parse(serverState.serialize()) as Record<string, unknown>);
+
+    const client = createClient(clientState, void 0, { key });
+    const replayed = await client.http.fetch(url);
+
+    assert.strictEqual(client.requests.length, 0);
+    assert.strictEqual(await replayed.text(), productJson);
+  });
+
   it('keys entries by method and URL', async function () {
     const { clientState } = await record();
     const client = createClient(clientState);

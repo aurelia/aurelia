@@ -35,6 +35,8 @@ export class ProductPage {
 - **Client, value recorded:** returns the recorded value without calling the loader, then removes it.
 - **Client, nothing recorded:** runs the loader. This is what happens in a plain single-page app, so the same component works with or without SSR.
 
+On the server, calls that ask for the same key while it is still loading share one load. A call made after the load finishes runs the loader again.
+
 Because the client reads each value once, a later visit to the page loads fresh data instead of reusing the server's copy. Include anything that identifies the data in the key, such as the product id, so two pages never share an entry by accident.
 
 `has`, `get`, `set` and `remove` are available for values you manage yourself. `get(key, fallback)` returns `fallback` when the key is missing.
@@ -53,6 +55,8 @@ container.register(Registration.instance(ITransferState, state));
 // ...render the app, then:
 const stateScript = `<script type="application/json" id="${transferStateId}">${state.serialize()}</script>`;
 ```
+
+Create the store, and anything that holds it such as an http client with `TransferCacheInterceptor`, for each request. A store or http client shared between requests would put one visitor's data in another visitor's page.
 
 `serialize()` escapes `<`, so values containing `</script>` or `<!--` cannot end the element early. Values must survive `JSON.stringify`: dates become strings, and `Map`, `Set` and class instances lose their behavior.
 
@@ -81,7 +85,7 @@ http.configure(config => config
 
 The interceptor records a response only when it is safe to share and to replay:
 
-- The request is a `GET` or `HEAD`. Responses are keyed by method and full URL, so the server and the client must request the same absolute URL.
+- The request is a `GET` or `HEAD`. Responses are keyed by method and full URL, so by default the server and the client must request the same absolute URL. Use the `key` option when they don't (see below).
 - The request has no `Authorization` or `Cookie` header.
 - The response is successful (2xx) and its `content-type` is text: `text/*` (except `text/event-stream`), JSON or XML (including `+json` and `+xml` types), JavaScript or form data. Bodies travel as text, so other types are left out. `HEAD`, 204 and 205 responses have no body and need no `content-type`.
 - The response has no `Set-Cookie` header, and its `Cache-Control` is not `no-store` or `private`.
@@ -94,5 +98,18 @@ new TransferCacheInterceptor(state, {
   filter: request => !request.url.includes('/cart'),
 });
 ```
+
+Servers often call the API through a different origin than the browser does, such as `http://localhost:3000` or an internal host. The full URLs then differ and nothing is replayed. Pass `key` to build the key from the parts both sides share:
+
+```typescript
+new TransferCacheInterceptor(state, {
+  key: request => {
+    const url = new URL(request.url);
+    return `http:${request.method} ${url.pathname}${url.search}`;
+  },
+});
+```
+
+The recorded response matches the HTML the server rendered, so headers listed in `Vary`, such as `Accept-Language`, are not part of the key. The browser's own headers apply from the next request on.
 
 Each recorded response is replayed once, with the same status, recorded headers and final URL. After that, the same request goes to the network.

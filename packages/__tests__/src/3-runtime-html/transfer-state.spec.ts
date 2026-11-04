@@ -45,6 +45,36 @@ describe('3-runtime-html/transfer-state.spec.ts', function () {
       assert.deepStrictEqual(state.get('product'), { name: 'Grinder' });
     });
 
+    it('shares one server load between concurrent calls for a key', async function () {
+      const state = new TransferState(void 0, true);
+      let loads = 0;
+      let finish!: (value: { name: string }) => void;
+      const load = () => { ++loads; return new Promise<{ name: string }>(r => finish = r); };
+
+      const first = state.getOrLoad('product', load);
+      const second = state.getOrLoad('product', load);
+      await Promise.resolve();
+      finish({ name: 'Espresso machine' });
+
+      assert.strictEqual(await first, await second);
+      assert.strictEqual(loads, 1);
+      assert.deepStrictEqual(state.get('product'), { name: 'Espresso machine' });
+    });
+
+    it('loads again on the server after a failed load', async function () {
+      const state = new TransferState(void 0, true);
+      let error: unknown;
+      try {
+        await state.getOrLoad('product', () => { throw new Error('offline'); });
+      } catch (e) {
+        error = e;
+      }
+      assert.strictEqual((error as Error)?.message, 'offline');
+      assert.strictEqual(state.has('product'), false);
+
+      assert.deepStrictEqual(await state.getOrLoad('product', () => ({ name: 'Grinder' })), { name: 'Grinder' });
+    });
+
     it('serves a recorded value once on the client, then loads', async function () {
       const state = new TransferState({ product: { name: 'Espresso machine' } });
       let loads = 0;

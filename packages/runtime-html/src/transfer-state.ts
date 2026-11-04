@@ -41,6 +41,8 @@ export const ITransferState = /*@__PURE__*/createInterface<ITransferState>('ITra
 export class TransferState implements ITransferState {
   /** @internal */
   private readonly _values: Map<string, unknown>;
+  /** @internal */
+  private _loading: Map<string, Promise<unknown>> | undefined;
 
   public constructor(
     data?: Record<string, unknown>,
@@ -67,9 +69,25 @@ export class TransferState implements ITransferState {
 
   public async getOrLoad<T>(key: string, load: () => T | Promise<T>): Promise<T> {
     if (this.isServer) {
-      const value = await load();
-      this._values.set(key, value);
-      return value;
+      // Components that ask for the same key while it loads share one load, so a render does
+      // not request the same data twice. A later call loads again to record current data.
+      const loading = (this._loading ??= new Map()).get(key) as Promise<T> | undefined;
+      if (loading !== void 0) {
+        return loading;
+      }
+      const promise = Promise.resolve().then(load).then(
+        value => {
+          this._loading!.delete(key);
+          this._values.set(key, value);
+          return value;
+        },
+        (error: unknown) => {
+          this._loading!.delete(key);
+          throw error;
+        },
+      );
+      this._loading.set(key, promise);
+      return promise;
     }
     if (this._values.has(key)) {
       const value = this._values.get(key) as T;

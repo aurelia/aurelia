@@ -10,6 +10,7 @@ import {
   ISSRContext,
   type ISSRScope,
   refs,
+  prepareSSRForSerialization,
 } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 
@@ -495,6 +496,7 @@ describe('3-runtime-html/aurelia.async-lifecycle.spec.ts', function () {
       const au = new Aurelia(ctx.container).app({ host, component: Type });
       try {
         await au.start();
+        prepareSSRForSerialization(host);
         return host.innerHTML;
       } finally {
         await au.stop(true);
@@ -652,6 +654,7 @@ describe('3-runtime-html/aurelia.async-lifecycle.spec.ts', function () {
       const serverHost = serverCtx.doc.body.appendChild(serverCtx.createElement('hydrate-app'));
       const serverAu = new Aurelia(serverCtx.container).app({ host: serverHost, component: AppElement });
       await serverAu.start();
+      prepareSSRForSerialization(serverHost);
       const ssrMarkup = serverHost.innerHTML;
       await serverAu.stop(true);
       serverAu.dispose();

@@ -15,6 +15,7 @@ import {
   type IBinding,
   IPlatform,
   ISSRContext,
+  prepareSSRForSerialization,
   Repeat,
   type ISyntheticView,
   type ISSRScope,
@@ -219,6 +220,7 @@ describe('3-runtime-html/repeater.destructered-declaration.spec.ts', function ()
       let ssrMarkup: string;
       try {
         await serverAu.start();
+        prepareSSRForSerialization(serverHost);
         ssrMarkup = serverHost.innerHTML;
       } finally {
         await serverAu.stop(true);

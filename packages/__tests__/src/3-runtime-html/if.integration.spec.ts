@@ -1545,8 +1545,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
           assertText('d');
           assert.strictEqual(clientHost.querySelector('[data-branch="d"]'), ssrBranch);
         } finally {
-          await root.deactivate();
-          root.dispose();
+          await clientAu.stop(true);
         }
       } finally {
         clientAu.dispose();

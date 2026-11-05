@@ -134,6 +134,12 @@ export class DialogDomStandard implements IDialogDom {
 
   /** @internal */
   public handleEvent(event: Event): void {
+    // Other elements, such as <input type="file">, also emit bubbling cancel events.
+    // Only a cancel targeted at this <dialog> represents a request to dismiss it.
+    if (event.target !== this.root) {
+      return;
+    }
+
     /**
      * The cancel event fires on a <dialog> element when the user instructs the browser that they wish to dismiss the
      * current open dialog. The browser fires this event when the user presses the Esc key.

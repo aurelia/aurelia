@@ -57,8 +57,8 @@ describe('3-runtime-html/ssr-round-trip.spec.ts', function () {
       markup,
       vm: root.controller.viewModel as T,
       async dispose() {
-        await root.deactivate();
-        root.dispose();
+        await au.stop(true);
+        au.dispose();
         host.remove();
       },
     };

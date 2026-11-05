@@ -482,6 +482,12 @@ A `<select>` element can serve as a single-select or multiple-select "picker" de
 
    _You can use the standard `value` attribute instead of `model`, just remember- it will coerce anything it's assigned to a string._
 
+### Initial selection
+
+The initial selection takes bound option models and `matcher` into account, even when the select's `value` binding runs before them. Aurelia refreshes the selection synchronously after the owning controller's bindings have bound. Related option views can trigger another refresh as they mount during that activation, including options supplied by an asynchronously bound child. A parent's `bound()` hook does not wait for all child options to arrive.
+
+This initialization applies to `value.bind` (two-way by default), `value.to-view`, and `value.one-time`. `value.from-view` does not request this source-to-target refresh. With `value.one-time`, these refreshes finish selection for the current binding/activation cycle; they do not add ongoing observation of arbitrary option mounts after activation. A cached view that unbinds and binds again goes through initialization again.
+
 ### Select Number
 
 ```javascript
@@ -559,7 +565,7 @@ export class App {
     { id: 2, name: 'Memory' },
   ];
 
-  productMatcher = (a, b) => a.id === b.id;
+  productMatcher = (a, b) => a === b || (a != null && b != null && a.id === b.id);
 
   selectedProduct = { id: 1, name: 'CPU' };
 }

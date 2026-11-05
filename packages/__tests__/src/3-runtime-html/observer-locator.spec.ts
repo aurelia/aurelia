@@ -4,6 +4,7 @@ import {
   CheckedObserver,
   ClassAttributeAccessor,
   DataAttributeAccessor,
+  CustomElement,
   SelectValueObserver,
   StyleAttributeAccessor,
   ValueAttributeObserver,
@@ -68,6 +69,52 @@ describe('3-runtime-html/observer-locator.spec.ts', function () {
         await tasksSettled();
         assert.strictEqual(seen.length, initialRefreshes, 'unbound targets are no longer refreshed');
       });
+    }
+  });
+
+  it('refreshes an adapter-backed custom-element bindable after its sibling bindings', function () {
+    class Field {
+      [key: PropertyKey]: unknown;
+      private currentValue = '';
+      public minimum = 0;
+      public get value(): string { return this.currentValue; }
+      public set value(value: string) { this.currentValue = value; }
+    }
+    const RefreshableField = CustomElement.define({
+      name: 'refreshable-field',
+      template: '${value}',
+      bindables: ['value', 'minimum'],
+    }, Field);
+    const seen: { observer: FieldValueObserver; value: string; minimum: number }[] = [];
+    class FieldValueObserver extends SetterObserver implements IRefreshable {
+      public constructor(public readonly field: Field) {
+        super(field, 'value');
+      }
+      public refresh(): void {
+        seen.push({ observer: this, value: this.field.value, minimum: this.field.minimum });
+      }
+    }
+    const ctx = TestContext.create();
+    ctx.observerLocator.addAdapter({
+      getObserver(object, key) {
+        return object instanceof Field && key === 'value' ? new FieldValueObserver(object) : null;
+      },
+    });
+    // Bindable observers can come from the public object adapter too. Their
+    // binding target is the view model, not the custom element's DOM host.
+    const fixture = createAppFixture(
+      '<refreshable-field value.to-view="value" minimum.bind="minimum"></refreshable-field>',
+      { value: '3', minimum: 2 },
+      [RefreshableField],
+      true,
+      ctx,
+    );
+    fixture.assertText('3');
+    assert.strictEqual(seen.length > 0, true);
+    for (const snapshot of seen) {
+      assert.strictEqual(ctx.observerLocator.getObserver(snapshot.observer.field, 'value'), snapshot.observer);
+      assert.strictEqual(snapshot.value, '3');
+      assert.strictEqual(snapshot.minimum, 2);
     }
   });
 

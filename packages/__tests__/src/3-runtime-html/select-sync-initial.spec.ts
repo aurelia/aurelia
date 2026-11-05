@@ -197,6 +197,41 @@ describe('3-runtime-html/select-sync-initial.spec.ts', function () {
     });
   }
 
+  it('selects async conditional options inside a shadow-root form', async function () {
+    let finishBinding!: () => void;
+    const AsyncOptions = CustomElement.define({
+      name: 'async-options',
+      template: '<option value="first">First</option><option value="second">Second</option>',
+    }, class {
+      public binding(): Promise<void> {
+        return new Promise(resolve => { finishBinding = resolve; });
+      }
+    });
+    const ShadowForm = CustomElement.define({
+      name: 'shadow-form',
+      shadowOptions: { mode: 'open' },
+      dependencies: [AsyncOptions],
+      template: `<select value.one-time="selected">
+        <optgroup if.bind="available" as-element="async-options"></optgroup>
+      </select>`,
+    }, class {
+      public selected = 'second';
+      public available = true;
+    });
+    const { getBy, started } = createFixture('<shadow-form></shadow-form>', {}, [ShadowForm]);
+    const shadowRoot = getBy('shadow-form').shadowRoot!;
+    const select = shadowRoot.querySelector('select')!;
+    try {
+      assert.strictEqual(select.options.length, 0, 'the child has not mounted its options yet');
+    } finally {
+      finishBinding();
+    }
+    await started;
+    // The select and its late option views share a shadow tree. Their initial
+    // selection must not depend on the surrounding application's light DOM.
+    assert.deepEqual(Array.from(select.options, option => option.selected), [false, true]);
+  });
+
   it('initializes late options in one select without overwriting user input in another', async function () {
     let finishBinding!: () => void;
     const AsyncOptions = CustomElement.define({

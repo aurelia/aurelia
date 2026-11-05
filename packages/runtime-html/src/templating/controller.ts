@@ -819,9 +819,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
             : container.get(IShadowDOMGlobalStyles);
           styles.applyTo(this.shadowRoot!);
           this.nodes!.appendTo(this.shadowRoot!);
-          if (bindingRefreshRegistrationCount > 0) {
-            requestMountedTargetRefreshes(this.shadowRoot!, this.nodes!.childNodes);
-          }
           break;
         }
         case targetLocation:
@@ -1248,15 +1245,16 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       mountTargets: [],
     };
     (this._bindingRefreshRegistrations ??= []).push(registration);
-    addBindingRefreshRegistration(registration, bindingTarget as Node);
+    // Object-backed observers refresh after binding too; only element targets
+    // participate in the DOM-mount tracking used for late child content.
+    if ((bindingTarget as Node).nodeType === 1) {
+      addBindingRefreshRegistration(registration, bindingTarget as Node);
+    }
     ++bindingRefreshRegistrationCount;
   }
 
   /** @internal */
   private _refreshBindingTargets(): void {
-    if (!this.isActive) {
-      return;
-    }
     const registrations = this._bindingRefreshRegistrations;
     if (registrations !== void 0) {
       for (let i = 0, ii = registrations.length; i < ii; ++i) {

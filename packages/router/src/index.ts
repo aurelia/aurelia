@@ -93,6 +93,7 @@ export {
   type HistoryStrategy,
   type FallbackFunction,
   type Routeable,
+  type RouteHead,
   type IRouteConfig,
   type IChildRouteConfig,
 } from './options';

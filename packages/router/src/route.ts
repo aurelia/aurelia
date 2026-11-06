@@ -8,7 +8,7 @@ import type { IRouteConfigContext, IRouteContext } from './route-context';
 import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from '@aurelia/runtime-html';
 import { IRouteViewModel } from './component-agent';
 import { ensureArrayOfStrings, ensureString } from './util';
-import type { FallbackFunction, IChildRouteConfig, IRedirectRouteConfig, IRouteConfig, Routeable, TransitionPlan, TransitionPlanOrFunc } from './options';
+import type { FallbackFunction, IChildRouteConfig, IRedirectRouteConfig, IRouteConfig, Routeable, RouteHead, TransitionPlan, TransitionPlanOrFunc } from './options';
 import { Events, getMessage } from './events';
 import { RecognizedRoute, RESIDUE } from '@aurelia/route-recognizer';
 
@@ -49,6 +49,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
     public readonly fallback: Routeable | FallbackFunction | null,
     component: Routeable | NavigationStrategy,
     public readonly nav: boolean,
+    public readonly head: RouteHead | ((node: RouteNode) => RouteHead | null) | null,
   ) {
     if (id === void 0) conventionIdConfigs.add(this);
     this._component = component;
@@ -85,6 +86,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
         Type?.fallback ?? null,
         Type as Routeable,
         Type?.nav ?? true,
+        Type?.head ?? null,
       );
     } else if (typeof configOrPath === 'object') {
       const config = configOrPath;
@@ -118,6 +120,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
         config.fallback ?? Type?.fallback ?? null,
         (config as IChildRouteConfig).component ?? Type ?? null,
         config.nav ?? Type?.nav ?? true,
+        config.head ?? Type?.head ?? null,
       );
     } else {
       expectType('string, function/class or object', '', configOrPath);
@@ -147,6 +150,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
       config.fallback ?? this.fallback ?? parentConfig?.fallback ?? null,
       this._component, // The RouteConfig is created using a definitive Type as component; do not overwrite it.
       config.nav ?? this.nav,
+      config.head ?? this.head,
     );
     return finalizeRouteConfigId(childConfig);
   }
@@ -203,6 +207,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
         (this as Writable<RouteConfig>).routes = value.routes ?? this.routes;
         (this as Writable<RouteConfig>).fallback = value.fallback ?? this.fallback;
         (this as Writable<RouteConfig>).nav = value.nav ?? this.nav;
+        (this as Writable<RouteConfig>).head = value.head ?? this.head;
       });
   }
 
@@ -221,6 +226,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
       this.fallback,
       this._component,
       this.nav,
+      this.head,
     );
     if (conventionIdConfigs.has(this)) conventionIdConfigs.add(clone);
     return finalizeRouteConfigId(clone);

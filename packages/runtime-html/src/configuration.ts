@@ -21,6 +21,7 @@ import {
   StyleBindingCommand,
   TriggerBindingCommand,
   SpreadValueBindingCommand,
+  TemplateCompilerHooks,
 } from '@aurelia/template-compiler';
 import {
   CustomAttributeRenderer,
@@ -72,9 +73,12 @@ import {
 } from './resources/template-controllers/promise';
 import { AuCompose } from './resources/custom-elements/au-compose';
 import { AuSlot } from './resources/custom-elements/au-slot';
+import { AuHeadTag, AuHeadTemplateCompilerHooks } from './resources/custom-elements/au-head';
+import { Head, IHead, IHeadOptions } from './head';
+import { AppTask } from './app-task';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize';
 import { NodeObserverLocator } from './observation/observer-locator';
-import { instanceRegistration } from './utilities-di';
+import { instanceRegistration, singletonRegistration } from './utilities-di';
 import { EventModifierRegistration } from './binding/listener-binding';
 import { RuntimeTemplateCompilerImplementation } from './compiler/template-compiler';
 
@@ -257,4 +261,49 @@ function createConfiguration(optionsProvider: ConfigurationOptionsProvider) {
 export type ConfigurationOptionsProvider = (options: IRuntimeHtmlConfigurationOptions) => void;
 interface IRuntimeHtmlConfigurationOptions {
   coercingOptions: ICoercionConfiguration;
+}
+
+/**
+ * Opt-in document head management: registers `IHead`, `<au-head>`, and lets the router
+ * route titles and route-level `head` through `IHead`.
+ *
+ * ```ts
+ * Aurelia.register(HeadConfiguration.customize({
+ *   titleTemplate: title => title ? `${title} | Acme Shop` : 'Acme Shop',
+ *   defaults: { meta: [{ property: 'og:site_name', content: 'Acme Shop' }] },
+ *   canonical: { origin: 'https://shop.example' },
+ * }));
+ * ```
+ */
+export const HeadConfiguration = /*@__PURE__*/createHeadConfiguration({});
+
+function createHeadConfiguration(options: IHeadOptions) {
+  return {
+    register(container: IContainer): IContainer {
+      return container.register(
+        instanceRegistration(IHeadOptions, options),
+        singletonRegistration(IHead, Head),
+        TemplateCompilerHooks.define(AuHeadTemplateCompilerHooks),
+        AuHeadTag,
+        AppTask.activating(IHead, head => {
+          if (head instanceof Head) {
+            head._start();
+          }
+        }),
+        AppTask.activated(IHead, head => {
+          if (head instanceof Head) {
+            head._activated();
+          }
+        }),
+        AppTask.deactivated(IHead, head => {
+          if (head instanceof Head) {
+            head._stop();
+          }
+        }),
+      );
+    },
+    customize(customOptions: IHeadOptions) {
+      return createHeadConfiguration(customOptions);
+    },
+  };
 }

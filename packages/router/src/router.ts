@@ -1,5 +1,18 @@
-import { IContainer, ILogger, DI, IDisposable, onResolve, Writable, onResolveAll, Registration, resolve, isObjectOrFunction } from '@aurelia/kernel';
-import { CustomElement, CustomElementDefinition, IPlatform } from '@aurelia/runtime-html';
+import { IContainer, ILogger, DI, IDisposable, onResolve, Writable, onResolveAll, Registration, resolve, isObjectOrFunction, optional, emptyArray } from '@aurelia/kernel';
+import {
+  CustomElement,
+  CustomElementDefinition,
+  IPlatform,
+  IHead,
+  IHeadOptions,
+  HeadPriority,
+  type IHeadSource,
+  type IHeadCanonicalOptions,
+  type HeadAttributeValue,
+  type HeadInput,
+  type HeadScriptInput,
+  type HeadTagInput,
+} from '@aurelia/runtime-html';
 
 import { createEagerInstructions, IRouteContext, RouteConfigContext, RouteContext } from './route-context';
 import { IRouterEvents, NavigationStartEvent, NavigationEndEvent, NavigationCancelEvent, ManagedState, AuNavId, RoutingTrigger, NavigationErrorEvent } from './router-events';
@@ -136,6 +149,7 @@ export class Router {
           instruction: null,
           component: CustomElement.getDefinition(ctx.routeConfigContext.config.component as RouteType),
           title: ctx.routeConfigContext.config.title,
+          head: ctx.routeConfigContext.config.head,
         }),
       );
     }
@@ -191,6 +205,8 @@ export class Router {
   /** @internal */ private readonly _logger: ILogger =  /*@__PURE__*/ resolve(ILogger).root.scopeTo('Router');
   /** @internal */ private readonly _events: IRouterEvents = resolve(IRouterEvents);
   /** @internal */ private readonly _locationMgr: ILocationManager = resolve(ILocationManager);
+  /** @internal */ private readonly _head: IHead | undefined = resolve(optional(IHead));
+  /** @internal */ private _headSource: IHeadSource | null = null;
   public readonly options: Readonly<RouterOptions> = resolve(IRouterOptions);
 
   public constructor() {
@@ -252,13 +268,17 @@ export class Router {
     });
 
     if (!this._navigated && performInitialNavigation) {
-      return this.load(this._locationMgr.getPath(), { historyStrategy: this.options.historyStrategy !== 'none' ? 'replace' : 'none' });
+      const navigation = this.load(this._locationMgr.getPath(), { historyStrategy: this.options.historyStrategy !== 'none' ? 'replace' : 'none' });
+      // keeps server-rendered head tags until the first page has had a chance to claim them
+      this._head?.waitFor(navigation);
+      return navigation;
     }
   }
 
   public stop(): void {
     this._locationMgr.stopListening();
     this._locationChangeSubscription?.dispose();
+    this._headSource?.dispose();
   }
 
   /**
@@ -673,7 +693,11 @@ export class Router {
         const newUrl = tr.finalInstructions.toUrl(true, this.options._urlParser, true);
         switch (tr.options._getHistoryStrategy(this._instructions)) {
           case 'none':
-            // do nothing
+            // With IHead the head follows every navigation, not only the ones that write history.
+            // Without it the title stays as it was, which is the behavior apps already rely on.
+            if (this._head !== void 0) {
+              this.updateTitle(tr);
+            }
             break;
           case 'push':
             this._locationMgr.pushState(toManagedState(tr.managedState, tr.id), this.updateTitle(tr), newUrl);
@@ -692,12 +716,77 @@ export class Router {
     });
   }
 
+  /**
+   * Update the document title for the given transition.
+   * When `HeadConfiguration` is registered this applies the route-level `head` too, and the returned
+   * title is the final one, which a component `<au-head>` or the title template may have changed.
+   */
   public updateTitle(tr: Transition = this.currentTr): string {
+    const head = this._head;
+    if (head !== void 0) {
+      (this._headSource ??= head.create({ priority: HeadPriority.route })).set(this._getHead(tr));
+      return this._p.document.title;
+    }
     const title = this._getTitle(tr);
     if (title.length > 0) {
       this._p.document.title = title;
     }
     return this._p.document.title;
+  }
+
+  /**
+   * The route-level head for a transition: the title, the canonical link, then every route's `head`
+   * from the root down, so a child route replaces a parent route's tag with the same key.
+   *
+   * @internal
+   */
+  private _getHead(tr: Transition): HeadInput {
+    const meta: HeadTagInput[] = [];
+    const link: HeadTagInput[] = [];
+    const script: HeadScriptInput[] = [];
+    let base: HeadTagInput | null = null;
+    let htmlAttrs: Record<string, HeadAttributeValue> | null = null;
+
+    const canonical = this._container.get(IHeadOptions).canonical;
+    if (canonical != null) {
+      link.push({ rel: 'canonical', href: this._getCanonicalUrl(tr, canonical) });
+    }
+
+    const collect = (node: RouteNode): void => {
+      const head = typeof node.head === 'function' ? node.head.call(void 0, node) : node.head;
+      if (head != null) {
+        if (head.meta != null) meta.push(...head.meta);
+        if (head.link != null) link.push(...head.link);
+        if (head.script != null) script.push(...head.script);
+        if (head.base != null) base = head.base;
+        if (head.htmlAttrs != null) htmlAttrs = { ...htmlAttrs, ...head.htmlAttrs };
+      }
+      for (const child of node.children) {
+        collect(child);
+      }
+    };
+    collect(tr.routeTree.root);
+
+    const title = this._getTitle(tr);
+    return { title: title.length > 0 ? title : null, meta, link, script, base, htmlAttrs };
+  }
+
+  /** @internal */
+  private _getCanonicalUrl(tr: Transition, canonical: IHeadCanonicalOptions): string {
+    const instructions = tr.finalInstructions;
+    const query = new URLSearchParams();
+    for (const name of canonical.keepQuery ?? emptyArray) {
+      for (const value of instructions.queryParams.getAll(name)) {
+        query.append(name, value);
+      }
+    }
+    // Same base href and hash handling as the URL the router writes to history, minus the fragment
+    // and every query parameter that wasn't allowed. The dummy origin resolves a relative server base.
+    const url = new URL(
+      this._locationMgr.addBaseHref(this.options._urlParser.stringify(instructions.toPath(), query, null, true)),
+      'http://localhost/',
+    );
+    return `${canonical.origin.replace(/\/+$/, '')}${url.pathname}${url.search}${url.hash}`;
   }
 
   /** @internal */

@@ -1,6 +1,14 @@
 import { DI, IContainer, newInstanceForScope, resolve } from '@aurelia/kernel';
 import { tasksSettled } from '@aurelia/runtime';
-import { CustomAttribute, CustomElement, IViewFactory } from '@aurelia/runtime-html';
+import {
+  CustomAttribute,
+  CustomElement,
+  IRenderLocation,
+  IViewFactory,
+  type ICustomAttributeController,
+  type IHydratedController,
+  type ISyntheticView,
+} from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/controller.scoped-resolver-dispose.spec.ts', function () {
@@ -321,4 +329,103 @@ describe('3-runtime-html/controller.scoped-resolver-dispose.spec.ts', function (
       if (!fixture.torn) await fixture.stop(true);
     }
   });
+
+  for (const ownFactory of [false, true]) {
+    it(`keeps ${ownFactory ? 'private' : 'borrowed'} factory registrations through active sibling disposal and cache reuse`, async function () {
+      const cleanupKey = DI.createInterface('shared-factory-cleanup');
+      let cleanupCount = 0;
+      const registrationDuringDispose: boolean[] = [];
+      const Probe = CustomElement.define({ name: 'factory-probe', template: 'p' }, class {
+        public readonly container: IContainer = resolve(IContainer);
+        public readonly state = resolve(IFormState);
+        public dispose(): void {
+          registrationDuringDispose.push(this.container.has(cleanupKey, true));
+        }
+      });
+      const owners: SiblingViews[] = [];
+      class SiblingViews {
+        public readonly $controller!: ICustomAttributeController<this>;
+        public readonly factory = resolve(IViewFactory);
+        public readonly location = resolve(IRenderLocation);
+        public readonly views: ISyntheticView[] = [];
+        public constructor() { owners.push(this); }
+        public attaching(initiator: IHydratedController): void {
+          this.factory.setCacheSize(1, false);
+          for (let i = 0; i < 2; ++i) {
+            const view = this.factory.create(this.$controller).setLocation(this.location);
+            this.views.push(view);
+            void view.activate(initiator, this.$controller, this.$controller.scope);
+          }
+        }
+        public detaching(initiator: IHydratedController): void {
+          for (const view of this.views) void view.deactivate(initiator, this.$controller);
+        }
+        public dispose(): void {
+          for (const view of this.views) view.dispose();
+        }
+      }
+      const SiblingViewsAttribute = CustomAttribute.define({
+        name: 'sibling-views',
+        isTemplateController: true,
+        containerStrategy: ownFactory ? 'new' : 'reuse',
+      }, SiblingViews);
+      const fixture = createFixture(
+        '<div if="value.bind: show; cache: false"><factory-probe sibling-views></factory-probe></div>',
+        class {
+          public readonly container = resolve(IContainer);
+          public readonly state = resolve(newInstanceForScope(IFormState));
+          public show = true;
+        },
+        [SiblingViewsAttribute, Probe],
+      );
+      try {
+        await fixture.started;
+        fixture.assertText('pp');
+        const owner = owners[0];
+        const factoryContainer = owner.factory.container;
+        assert.strictEqual(factoryContainer === fixture.au.root.controller.container, !ownFactory);
+        registerCleanup(factoryContainer, cleanupKey, () => { ++cleanupCount; });
+
+        // Sibling views share their factory's scope. Returning one to the cache
+        // must leave the other fully usable, regardless of who owns that scope.
+        const first = owner.views.shift()!;
+        const sibling = owner.views[0];
+        first.release();
+        await first.deactivate(first, owner.$controller);
+        assert.strictEqual(sibling.isActive, true);
+        assert.strictEqual(cleanupCount, 0);
+        assert.strictEqual(factoryContainer.has(cleanupKey, false), true);
+        const cached = owner.factory.create(owner.$controller).setLocation(owner.location);
+        assert.strictEqual(cached, first);
+        owner.views.push(cached);
+        await cached.activate(cached, owner.$controller, owner.$controller.scope);
+        fixture.assertText('pp');
+
+        await cached.deactivate(cached, owner.$controller);
+        cached.dispose();
+        owner.views.pop();
+        fixture.assertText('p');
+        assert.strictEqual(sibling.isActive, true);
+        assert.strictEqual(cleanupCount, 0);
+        const probe = CustomElement.for(fixture.getBy('factory-probe')).viewModel as InstanceType<typeof Probe>;
+        assert.strictEqual(probe.state, fixture.component.state);
+
+        fixture.component.show = false;
+        await tasksSettled();
+        fixture.assertText('');
+        // Children dispose before their factory scope is released. A borrowed
+        // factory scope still belongs to the live application, not this TC.
+        assert.deepStrictEqual(registrationDuringDispose, [true, true]);
+        assert.strictEqual(factoryContainer.has(cleanupKey, false), !ownFactory);
+        assert.strictEqual(cleanupCount, ownFactory ? 1 : 0);
+        assert.strictEqual(fixture.component.container.has(IFormState, false), true);
+
+        await fixture.stop(true);
+        assert.strictEqual(cleanupCount, 1);
+        assert.strictEqual(factoryContainer.has(cleanupKey, false), false);
+      } finally {
+        if (!fixture.torn) await fixture.stop(true);
+      }
+    });
+  }
 });

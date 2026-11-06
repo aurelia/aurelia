@@ -29,17 +29,24 @@ import type { IViewFactory } from '../../templating/view';
  * </error-boundary>
  * ```
  */
+const definition: CustomElementStaticAuDefinition = {
+  type: elementTypeName,
+  name: 'error-boundary',
+  template: null,
+  containerless: true,
+  bindables: {
+    error: { mode: fromView },
+    resetKey: true,
+  },
+};
+
 export class ErrorBoundary implements ICustomElementViewModel {
-  public static readonly $au: CustomElementStaticAuDefinition = {
-    type: elementTypeName,
-    name: 'error-boundary',
-    template: null,
-    containerless: true,
-    bindables: {
-      error: { mode: fromView },
-      resetKey: true,
-    },
-  };
+  // A getter rather than a static field: the field compiles to an assignment
+  // after the class, which keeps this opt-in element in esbuild bundles of
+  // apps that never register it.
+  public static get $au(): CustomElementStaticAuDefinition {
+    return definition;
+  }
 
   /**
    * The error the boundary most recently caught, set before the fallback slot

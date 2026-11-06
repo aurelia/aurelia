@@ -7,7 +7,22 @@ description: >-
 
 Wrap part of a template in `<error-boundary>` to contain failures inside that subtree. When a component inside the boundary throws while it's being constructed, or throws or rejects while it's being activated, the boundary tears the failed content down, renders fallback UI in its place, and lets the rest of the app keep running. Without a boundary, a component that throws during startup rejects `Aurelia.start()`; with one, startup resolves and the fallback is on screen.
 
-`<error-boundary>` is a built-in resource. It doesn't need to be registered or imported.
+## Registration
+
+`<error-boundary>` is opt-in. Register it once when the app starts:
+
+```typescript
+import Aurelia, { ErrorBoundary } from 'aurelia';
+
+Aurelia
+  .register(ErrorBoundary)
+  .app(MyApp)
+  .start();
+```
+
+Apps that never register it don't carry its code in their bundle. [`IErrorHandler`](#report-errors-with-ierrorhandler) works either way, so you can report errors without using boundaries.
+
+If a template uses `<error-boundary>` with a `fallback` slot and the element isn't registered, compilation fails with `AUR0706`. Without a `fallback` slot there's no error: the content renders with no boundary around it.
 
 ## Basic usage
 

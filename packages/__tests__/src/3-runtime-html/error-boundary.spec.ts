@@ -1,9 +1,10 @@
-import { DI, IContainer, noop, Registration, resolve } from '@aurelia/kernel';
+import { DI, IContainer, noop, Registration, resolve, type Constructable } from '@aurelia/kernel';
 import { tasksSettled } from '@aurelia/runtime';
 import {
   AppTask,
   BindingBehavior,
   CustomElement,
+  ErrorBoundary,
   IErrorHandler,
   IListenerBindingOptions,
   ValueConverter,
@@ -11,9 +12,20 @@ import {
 } from '@aurelia/runtime-html';
 import {
   assert,
-  createFixture,
+  createFixture as createTestFixture,
   TestContext,
 } from '@aurelia/testing';
+
+// <error-boundary> is opt-in, so every fixture here registers it.
+type FixtureOptions = Parameters<typeof createTestFixture> extends [unknown, unknown?, unknown[]?, ...infer R] ? R : never;
+function createFixture<T extends object>(
+  template: string | Node,
+  $class?: T | Constructable<T>,
+  registrations: unknown[] = [],
+  ...options: FixtureOptions
+) {
+  return createTestFixture(template, $class, [ErrorBoundary, ...registrations], ...options);
+}
 
 class Deferred<T = void> {
   public readonly promise: Promise<T>;
@@ -85,6 +97,20 @@ async function waitForMicrotasks(predicate: () => boolean): Promise<boolean> {
 const OkEl = CustomElement.define({ name: 'ok-el', template: 'ok' }, class OkEl { });
 
 describe('3-runtime-html/error-boundary.spec.ts', function () {
+
+  it('is opt-in: the standard configuration does not register <error-boundary>', async function () {
+    let error: unknown = null;
+    try {
+      const fixture = createTestFixture(
+        '<error-boundary>content<template au-slot="fallback">FB</template></error-boundary>',
+        class App { },
+      );
+      await fixture.started;
+    } catch (err) {
+      error = err;
+    }
+    assert.match(String((error as Error | null)?.message), /AUR0706/);
+  });
 
   describe('without a boundary', function () {
     it('A: a synchronous binding failure throws out of start()', function () {

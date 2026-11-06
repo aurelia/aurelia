@@ -55,7 +55,7 @@ Template:
 
 ### Lifecycle Hook Error Management
 
-The simplest way to contain a lifecycle failure is the built-in `<error-boundary>` element. Wrap the content you don't fully control, and Aurelia tears the failed subtree down and renders your fallback instead of rejecting `Aurelia.start()`:
+The simplest way to contain a lifecycle failure is the `<error-boundary>` element. Register `ErrorBoundary` once at startup, then wrap the content you don't fully control. Aurelia tears the failed subtree down and renders your fallback instead of rejecting `Aurelia.start()`:
 
 ```html
 <error-boundary>

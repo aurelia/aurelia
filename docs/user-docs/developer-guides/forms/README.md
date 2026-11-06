@@ -482,6 +482,8 @@ A `<select>` element can serve as a single-select or multiple-select "picker" de
 
    _You can use the standard `value` attribute instead of `model`, just remember- it will coerce anything it's assigned to a string._
 
+Initialize the bound value to preselect an option. Aurelia reconciles the initial selection after the option models and matcher have been initialized. In tests or code that reads selected options immediately after starting or rebinding a view, await `tasksSettled()` from `@aurelia/runtime` first.
+
 ### Select Number
 
 ```javascript
@@ -559,7 +561,7 @@ export class App {
     { id: 2, name: 'Memory' },
   ];
 
-  productMatcher = (a, b) => a.id === b.id;
+  productMatcher = (a, b) => a?.id === b?.id;
 
   selectedProduct = { id: 1, name: 'CPU' };
 }

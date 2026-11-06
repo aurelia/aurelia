@@ -1,5 +1,6 @@
 import {
   subscriberCollection,
+  queueTask,
   type AccessorType,
   type ICollectionObserver,
   type IObserverLocator,
@@ -78,6 +79,9 @@ export class SelectValueObserver implements INodeObserver {
   private _observing: boolean = false;
 
   /** @internal */
+  private _isQueued: boolean = false;
+
+  /** @internal */
   private readonly _observerLocator: IObserverLocator;
 
   /**
@@ -124,6 +128,18 @@ export class SelectValueObserver implements INodeObserver {
     this._hasChanges = newValue !== this._oldValue;
     this._observeArray(newValue instanceof Array ? newValue : null);
     this._flushChanges();
+    // Binding writes the select before its option models and matcher are ready.
+    // Recheck after those bindings run. Target-only bindings do not subscribe,
+    // so schedule from setValue; active two-way updates keep their immediate path.
+    if (!this._observing && !this._isQueued) {
+      this._isQueued = true;
+      queueTask(() => {
+        if (this._isQueued) {
+          this._isQueued = false;
+          this.syncOptions();
+        }
+      });
+    }
   }
 
   /** @internal */
@@ -272,6 +288,7 @@ export class SelectValueObserver implements INodeObserver {
    * @internal
    */
   public _stop(): void {
+    this._isQueued = false;
     this._nodeObserver!.disconnect();
     this._arrayObserver?.unsubscribe(this);
     this._nodeObserver

@@ -55,6 +55,8 @@ export class TransferState implements ITransferState {
     return this._values.has(key);
   }
 
+  public get<T>(key: string): T | undefined;
+  public get<T>(key: string, fallback: T): T;
   public get<T>(key: string, fallback?: T): T | undefined {
     return this._values.has(key) ? this._values.get(key) as T : fallback;
   }

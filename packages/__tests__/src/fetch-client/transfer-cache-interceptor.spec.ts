@@ -107,6 +107,15 @@ describe('fetch-client/transfer-cache-interceptor.spec.ts', function () {
     assert.notIncludes(json, 'secret');
   });
 
+  it('records a header listed twice or in another case once', async function () {
+    const { clientState } = await record(void 0, void 0, { includeHeaders: ['Content-Type', 'content-type'] });
+    const client = createClient(clientState);
+
+    const response = await client.http.fetch(url);
+    assert.strictEqual(response.headers.get('content-type'), 'application/json');
+    assert.strictEqual(client.requests.length, 0);
+  });
+
   const skipped: [string, ((request: Request) => Response)?, RequestInit?, ITransferCacheOptions?][] = [
     ['POST requests', void 0, { method: 'POST', body: '{}' }],
     ['requests with an Authorization header', void 0, { headers: { authorization: 'Bearer token' } }],

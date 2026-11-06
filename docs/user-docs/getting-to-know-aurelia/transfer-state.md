@@ -37,7 +37,7 @@ export class ProductPage {
 
 On the server, calls that ask for the same key while it is still loading share one load. A call made after the load finishes runs the loader again.
 
-Because the client reads each value once, a later visit to the page loads fresh data instead of reusing the server's copy. Include anything that identifies the data in the key, such as the product id, so two pages never share an entry by accident.
+Because the client reads each value once, a later visit to the page loads fresh data instead of reusing the server's copy. This also means only the first component that asks for a key during hydration gets the recorded value. When several components show the same data, load it once in a shared service or a parent component and pass it down. Include anything that identifies the data in the key, such as the product id, so two pages never share an entry by accident.
 
 `has`, `get`, `set` and `remove` are available for values you manage yourself. `get(key, fallback)` returns `fallback` when the key is missing.
 
@@ -73,15 +73,18 @@ Nothing to register. When nothing else has been registered, `ITransferState` res
 If your components load data through `@aurelia/fetch-client`, the `TransferCacheInterceptor` records responses on the server and replays them on the client, so you do not need to change each component:
 
 ```typescript
-import { resolve } from '@aurelia/kernel';
+import { IContainer } from '@aurelia/kernel';
 import { IHttpClient, TransferCacheInterceptor } from '@aurelia/fetch-client';
-import { ITransferState } from '@aurelia/runtime-html';
+import { AppTask, ITransferState } from '@aurelia/runtime-html';
 
-const http = resolve(IHttpClient);
-http.configure(config => config
-  .withBaseUrl('https://shop.example/api/')
-  .withInterceptor(new TransferCacheInterceptor(resolve(ITransferState))));
+export const TransferCacheTask = AppTask.creating(IContainer, container => {
+  container.get(IHttpClient).configure(config => config
+    .withBaseUrl('https://shop.example/api/')
+    .withInterceptor(new TransferCacheInterceptor(container.get(ITransferState))));
+});
 ```
+
+Register `TransferCacheTask` with the app on both the server and the client. On the server it runs in the per-request container, so it picks up that request's recording store.
 
 The interceptor records a response only when it is safe to share and to replay:
 
@@ -113,3 +116,5 @@ new TransferCacheInterceptor(state, {
 The recorded response matches the HTML the server rendered, so headers listed in `Vary`, such as `Accept-Language`, are not part of the key. The browser's own headers apply from the next request on.
 
 Each recorded response is replayed once, with the same status, recorded headers and final URL. After that, the same request goes to the network.
+
+Response interceptors run in registration order. The server records the response as it reaches `TransferCacheInterceptor`, and the client sends the replayed response through every response interceptor. An interceptor registered earlier that rewrites responses, for example by unwrapping an envelope, would therefore run twice on the replayed copy. Keep response-rewriting interceptors after `TransferCacheInterceptor`.

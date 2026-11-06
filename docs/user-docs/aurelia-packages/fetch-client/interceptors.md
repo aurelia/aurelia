@@ -90,14 +90,17 @@ function handleError(error) {
 For server-rendered apps, `TransferCacheInterceptor` records `GET` and `HEAD` responses during the server render and replays them during hydration, so the client does not request the same data twice:
 
 ```typescript
-import { resolve } from '@aurelia/kernel';
-import { TransferCacheInterceptor } from '@aurelia/fetch-client';
-import { ITransferState } from '@aurelia/runtime-html';
+import { IContainer } from '@aurelia/kernel';
+import { IHttpClient, TransferCacheInterceptor } from '@aurelia/fetch-client';
+import { AppTask, ITransferState } from '@aurelia/runtime-html';
 
-http.configure(config => config.withInterceptor(new TransferCacheInterceptor(resolve(ITransferState))));
+export const TransferCacheTask = AppTask.creating(IContainer, container => {
+  container.get(IHttpClient).configure(config => config
+    .withInterceptor(new TransferCacheInterceptor(container.get(ITransferState))));
+});
 ```
 
-Requests carrying an `Authorization` or `Cookie` header are never recorded. The server checks the request after every request interceptor has run, so an authentication interceptor keeps its requests out of the cache wherever it sits in the chain. Register `TransferCacheInterceptor` after any interceptor that changes the request URL: the client looks up the URL as it reaches this interceptor, while the server records the final one. See [Transferring server state](../../getting-to-know-aurelia/transfer-state.md) for the server setup and the full list of rules.
+Requests carrying an `Authorization` or `Cookie` header are never recorded. The server checks the request after every request interceptor has run, so an authentication interceptor keeps its requests out of the cache wherever it sits in the chain. Register `TransferCacheInterceptor` after any interceptor that changes the request URL: the client looks up the URL as it reaches this interceptor, while the server records the final one. Register it before any interceptor that rewrites responses, or the replayed copy is rewritten twice. See [Transferring server state](../../getting-to-know-aurelia/transfer-state.md) for the server setup and the full list of rules.
 
 ## Advanced Interceptor Patterns
 

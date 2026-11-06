@@ -68,7 +68,8 @@ export class TransferCacheInterceptor implements IFetchInterceptor {
 
   public constructor(store: ITransferCacheStore, options?: ITransferCacheOptions) {
     this._store = store;
-    this._headers = ['content-type', ...(options?.includeHeaders ?? [])];
+    // Header names are case-insensitive. A repeated name would be recorded twice and replayed as a combined value.
+    this._headers = [...new Set(['content-type', ...(options?.includeHeaders ?? []).map(name => name.toLowerCase())])];
     this._filter = options?.filter;
     this._key = options?.key ?? getTransferKey;
   }

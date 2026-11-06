@@ -6,6 +6,243 @@ import { assert, createFixture } from '@aurelia/testing';
 
 describe('2-runtime/ast.optional.spec.ts', function () {
 
+  describe('optional-chain continuation', function () {
+    it('renders a loading fallback and observes a loaded method receiver through replacement', async function () {
+      let formatCalls = 0;
+      class RecordModel {
+        public constructor(public label: string) {}
+
+        @computed('label')
+        public format() { ++formatCalls; return `[${this.label}]`; }
+      }
+      const { assertText, component, tearDown } = createFixture
+        .html('${record?.format() ?? "Loading"}')
+        .component({ record: null as RecordModel | null }, { strict: true })
+        .build();
+      try {
+        assertText('Loading');
+        const previous = component.record = new RecordModel('first');
+        await tasksSettled();
+        assertText('[first]');
+
+        previous.label = 'updated';
+        await tasksSettled();
+        assertText('[updated]');
+
+        component.record = null;
+        await tasksSettled();
+        assertText('Loading');
+
+        component.record = new RecordModel('replacement');
+        await tasksSettled();
+        assertText('[replacement]');
+        const callsBeforeOldModelUpdate = formatCalls;
+        previous.label = 'detached';
+        await tasksSettled();
+        assert.strictEqual(formatCalls, callsBeforeOldModelUpdate);
+        component.record.label = 'current';
+        await tasksSettled();
+        assertText('[current]');
+      } finally {
+        await tearDown();
+      }
+    });
+
+    it('continues through nested properties and reconnects after clearing a loaded model', async function () {
+      const { assertText, component, tearDown } = createFixture
+        .html('${record?.details.label ?? "Loading"}')
+        .component({ record: null as { details: { label: string } } | null }, { strict: true })
+        .build();
+      try {
+        assertText('Loading');
+        component.record = { details: { label: 'loaded' } };
+        await tasksSettled();
+        assertText('loaded');
+        component.record.details.label = 'updated';
+        await tasksSettled();
+        assertText('updated');
+        component.record = null;
+        await tasksSettled();
+        assertText('Loading');
+        component.record = { details: { label: 'replacement' } };
+        await tasksSettled();
+        assertText('replacement');
+      } finally {
+        await tearDown();
+      }
+    });
+
+    for (const strict of [false, true]) {
+      for (const [expression, key] of [
+        ['record?.[getKey()].label', 'details'],
+        ['record?.details[getKey()]', 'label'],
+      ]) {
+        it(`skips computed keys in ${expression} until the model is available (strict=${strict})`, async function () {
+          let keyCalls = 0;
+          const { assertText, component, tearDown } = createFixture
+            .html(`\${${expression} ?? "Loading"}`)
+            .component({
+              record: null as { details: { label: string } } | null,
+              getKey() { ++keyCalls; return key; },
+            }, { strict })
+            .build();
+          try {
+            assertText('Loading');
+            assert.strictEqual(keyCalls, 0);
+            component.record = { details: { label: 'loaded' } };
+            await tasksSettled();
+            assertText('loaded');
+            assert.strictEqual(keyCalls, 1);
+            component.record = null;
+            await tasksSettled();
+            assertText('Loading');
+            assert.strictEqual(keyCalls, 1);
+          } finally {
+            await tearDown();
+          }
+        });
+      }
+
+      for (const expression of ['record?.format(argument())', 'record?.[getKey()](argument())']) {
+        it(`skips call arguments and preserves the receiver in ${expression} (strict=${strict})`, async function () {
+          let keyCalls = 0;
+          let argumentCalls = 0;
+          const { assertText, component, tearDown } = createFixture
+            .html(`\${${expression} ?? "Loading"}`)
+            .component({
+              record: null as { label: string; format(suffix: string): string } | null,
+              getKey() { ++keyCalls; return 'format'; },
+              argument() { ++argumentCalls; return '!'; },
+            }, { strict })
+            .build();
+          try {
+            assertText('Loading');
+            assert.strictEqual(keyCalls, 0);
+            assert.strictEqual(argumentCalls, 0);
+            component.record = { label: 'loaded', format(suffix) { return this.label + suffix; } };
+            await tasksSettled();
+            assertText('loaded!');
+            assert.strictEqual(keyCalls, expression.includes('getKey') ? 1 : 0);
+            assert.strictEqual(argumentCalls, 1);
+          } finally {
+            await tearDown();
+          }
+        });
+      }
+    }
+
+    for (const expression of [
+      'record?.format().label',
+      'record.format?.()',
+      'record?.[key]().label',
+      '(record?.format()).label',
+      '(record?.[key]()).label',
+      '(record?.format)()',
+      '(record?.[key])?.()',
+      '(run?.()).label',
+      '($parent?.record).label',
+      '((value) => value?.details)(record)?.label',
+      '((value) => value?.details)?.(record)?.label',
+    ]) {
+      it(`retains optional-chain boundaries when unparsing ${expression}`, function () {
+        const parser = new ExpressionParser();
+        const ast = parser.parse(expression, 'IsProperty');
+        assert.deepStrictEqual(parser.parse(Unparser.unparse(ast), 'IsProperty'), ast);
+      });
+    }
+
+    it('skips independent arguments after a missing optional factory or returned callback', function () {
+      let argumentsRead = 0;
+      const scope = Scope.create({
+        formatter: null,
+        selectFormatter() { return this.formatter; },
+        argument() { ++argumentsRead; return 'value'; },
+      });
+      const parser = new ExpressionParser();
+      for (const expression of ['formatter?.()(argument())', 'selectFormatter()?.(argument())']) {
+        assert.strictEqual(astEvaluate(parser.parse(expression, 'IsProperty'), scope, { strict: true }, null), void 0);
+      }
+      assert.strictEqual(argumentsRead, 0);
+      assert.throws(
+        () => astEvaluate(parser.parse('(formatter?.())(argument())', 'IsProperty'), scope, { strict: true }, null),
+        /AUR0107/,
+      );
+      scope.bindingContext.formatter = 1;
+      assert.throws(
+        () => astEvaluate(parser.parse('selectFormatter()?.(argument())', 'IsProperty'), scope, { strict: true }, null),
+        /AUR0107/,
+      );
+    });
+
+    it('retains required receiver errors when resolving keyed and grouped method references', function () {
+      const parser = new ExpressionParser();
+      assert.throws(
+        () => astEvaluate(parser.parse('record[key]()', 'IsProperty'), Scope.create({ record: null, key: 'format' }), { strict: true }, null),
+        /AUR0115/,
+      );
+      assert.throws(
+        () => astEvaluate(parser.parse('(record?.details.format)()', 'IsProperty'), Scope.create({ record: { details: null } }), { strict: true }, null),
+        /AUR0114/,
+      );
+    });
+
+    it('keeps redundant current-scope guards canonical and meaningful parent guards grouped', function () {
+      const parser = new ExpressionParser();
+      for (const [guarded, ordinary] of [['($this?.label)', 'label'], ['($this?.load())', 'load()']]) {
+        assert.deepStrictEqual(parser.parse(guarded, 'IsProperty'), parser.parse(ordinary, 'IsProperty'));
+      }
+      const ast = parser.parse('($parent?.load()).label', 'IsProperty');
+      assert.deepStrictEqual(parser.parse(Unparser.unparse(ast), 'IsProperty'), ast);
+      assert.throws(() => astEvaluate(ast, Scope.create({}), { strict: true }, null), /AUR0114/);
+    });
+
+    // `?.` skips the rest of its chain only when that receiver is absent. A loaded
+    // model with a missing required child is still an error; grouping ends the chain.
+    for (const [expression, record] of [
+      ['record?.details.label', { details: void 0 }],
+      ['record?.format().label', { format() { return void 0; } }],
+      ['(record?.details).label', null],
+      ['(record?.format()).label', null],
+    ]) {
+      it(`retains strict errors for ${expression}`, function () {
+        const ast = new ExpressionParser().parse(expression as string, 'IsProperty');
+        assert.throws(() => astEvaluate(ast, Scope.create({ record }), { strict: true }, null), /AUR0114/);
+      });
+    }
+
+    it('skips the tail of an optional call without treating a returned undefined value as a short circuit', function () {
+      const ast = new ExpressionParser().parse('record.format?.().label', 'IsProperty');
+      assert.strictEqual(astEvaluate(ast, Scope.create({ record: { format: null } }), { strict: true }, null), void 0);
+      assert.throws(
+        () => astEvaluate(ast, Scope.create({ record: { format() { return void 0; } } }), { strict: true }, null),
+        /AUR0114/,
+      );
+    });
+
+    for (const expression of ['$parent?.record.label', '$parent?.load().label']) {
+      it(`continues ${expression} only when the optional parent exists`, function () {
+        const ast = new ExpressionParser().parse(expression, 'IsProperty');
+        assert.strictEqual(astEvaluate(ast, Scope.create({}), { strict: true }, null), void 0);
+
+        const parent = { record: { label: 'loaded' }, load() { return this.record; } };
+        const scope = Scope.fromParent(Scope.create(parent), {});
+        assert.strictEqual(astEvaluate(ast, scope, { strict: true }, null), 'loaded');
+
+        parent.record = void 0;
+        assert.throws(() => astEvaluate(ast, scope, { strict: true }, null), /AUR0114/);
+      });
+    }
+
+    for (const expression of ['(record?.format)()', '(record?.["format"])()']) {
+      it(`retains a grouped method receiver in ${expression} but requires the function`, function () {
+        const ast = new ExpressionParser().parse(expression, 'IsProperty');
+        const record = { label: 'loaded', format() { return this.label; } };
+        assert.strictEqual(astEvaluate(ast, Scope.create({ record }), { strict: true }, null), 'loaded');
+        assert.throws(() => astEvaluate(ast, Scope.create({ record: null }), { strict: true }, null), /AUR0107/);
+      });
+    }
+  });
+
   for (const mode of ['auto', 'scoped']) {
     it(`uses the local fallback when a composed view has no parent scope (${mode})`, async function () {
       class Details {

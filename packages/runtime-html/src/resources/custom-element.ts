@@ -34,7 +34,7 @@ import type {
 import type { BindableDefinition } from '../bindable';
 import type { INode } from '../dom.node';
 import type { Controller, ICustomElementViewModel, ICustomElementController } from '../templating/controller';
-import { ProcessContentHook, type IElementComponentDefinition, IInstruction } from '@aurelia/template-compiler';
+import { ProcessContentHook, type IElementComponentDefinition, IInstruction, type DeferredDependencyLoader } from '@aurelia/template-compiler';
 import type { IWatchDefinition } from '../watch';
 import { ErrorNames, createMappedError } from '../errors';
 import { dtElement, getDefinitionFromStaticAu, clearStaticAuDefinition, type IResourceKind } from './resources-shared';
@@ -236,6 +236,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     public readonly watches: IWatchDefinition[],
     public readonly strict: boolean | undefined,
     public readonly processContent: ProcessContentHook | null,
+    public readonly deferredDependencies: Record<string, DeferredDependencyLoader> | null,
   ) { }
 
   public static create(
@@ -295,7 +296,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         // casting is incorrect, but it's good enough
         fromDefinitionOrDefault('strict', def, returnUndefined as () => boolean),
         fromAnnotationOrTypeOrDefault('processContent', Type, returnNull as () => ProcessContentHook | null),
-
+        fromDefinitionOrDefault('deferredDependencies', def, returnNull),
       );
     }
 
@@ -327,6 +328,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         mergeArrays(Watch.getDefinitions(Type), Type.watches),
         fromAnnotationOrTypeOrDefault('strict', Type, returnUndefined as () => boolean),
         fromAnnotationOrTypeOrDefault('processContent', Type, returnNull as () => ProcessContentHook | null),
+        fromAnnotationOrTypeOrDefault('deferredDependencies', Type, returnNull as () => Record<string, DeferredDependencyLoader> | null),
       );
     }
 
@@ -365,6 +367,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
       mergeArrays(nameOrDef.watches, Watch.getDefinitions(Type), Type.watches),
       fromAnnotationOrDefinitionOrTypeOrDefault('strict', nameOrDef, Type, returnUndefined as () => boolean),
       fromAnnotationOrDefinitionOrTypeOrDefault('processContent', nameOrDef, Type, returnNull),
+      fromAnnotationOrDefinitionOrTypeOrDefault('deferredDependencies', nameOrDef, Type, returnNull),
     );
   }
 

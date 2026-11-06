@@ -8,6 +8,7 @@ export {
   type ICompiledElementComponentDefinition,
   type IComponentBindablePropDefinition,
   type IElementComponentDefinition,
+  type DeferredDependencyLoader,
   type ProcessContentHook,
   type IDomPlatform,
   ITemplateCompiler,

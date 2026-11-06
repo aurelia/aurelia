@@ -1,0 +1,46 @@
+<import from="./sales-chart" defer></import>
+<import from="./editor/rich-editor" defer as="notes-editor"></import>
+
+<h1>Quarterly report</h1>
+<p>
+  Every section below renders later than the page. Open the network panel of the browser dev tools
+  to see when the code of each section downloads.
+</p>
+
+<h2>Notes</h2>
+<p>The editor downloads when the pointer moves over the button, and renders when you click it.</p>
+<div defer="on: interaction; prefetch: hover">
+  <notes-editor value.bind="notes"></notes-editor>
+</div>
+<button defer-placeholder type="button">Edit notes</button>
+<p defer-loading="after: 150">Loading the editor…</p>
+
+<h2>Order lines</h2>
+<label><input type="checkbox" checked.bind="showLines"> Show the order lines</label>
+<table defer="when.bind: showLines">
+  <tr repeat.for="line of lines">
+    <td>${line.product}</td>
+    <td>${line.quantity}</td>
+  </tr>
+</table>
+
+<h2>Regions</h2>
+<label><input type="checkbox" checked.bind="failNextMapLoad"> Make the next download fail</label>
+<div defer="on: interaction; load.bind: loadMap">
+  <region-map regions.bind="regions"></region-map>
+</div>
+<button defer-placeholder type="button">Show the regions</button>
+<p defer-loading="after: 150">Loading the regions…</p>
+<div defer-error role="alert">
+  <p>Couldn't load the regions: ${$defer.error.message}</p>
+  <button type="button" click.trigger="$defer.retry()">Try again</button>
+</div>
+
+<p class="spacer">Scroll down to the sales chart. It downloads when the browser is idle, and renders when it scrolls into view.</p>
+
+<h2>Sales</h2>
+<section defer="on: viewport; prefetch: idle">
+  <sales-chart series.bind="sales"></sales-chart>
+</section>
+<div defer-placeholder class="chart-placeholder" aria-hidden="true"></div>
+<p defer-loading="after: 150; minimum: 400">Loading the chart…</p>

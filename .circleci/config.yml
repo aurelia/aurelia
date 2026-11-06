@@ -1088,6 +1088,13 @@ workflows:
             - bench_prep
 
       - tacho_benchmark:
+          name: bench_realistic_reshow
+          command: npm run bench:realistic-reshow
+          result: repeat-realistic-reshow-1000.json
+          requires:
+            - bench_prep
+
+      - tacho_benchmark:
           name: bench_dependency_rotation
           command: npm run bench:dependency-rotation
           result: binding-dependency-rotation.json
@@ -1112,6 +1119,7 @@ workflows:
             - bench_realistic_mixed
             - bench_realistic_heap_lifecycle
             - bench_realistic_refresh_loop
+            - bench_realistic_reshow
             - bench_dependency_rotation
             - bench_i18n_formatting
             - bench_template_compilation
@@ -1373,6 +1381,13 @@ workflows:
             - tacho_benchmark_prep
       - tacho_benchmark:
           <<: *filter_only_master
+          name: benchmark_realistic_reshow
+          command: npm run bench:realistic-reshow
+          result: repeat-realistic-reshow-1000.json
+          requires:
+            - tacho_benchmark_prep
+      - tacho_benchmark:
+          <<: *filter_only_master
           name: benchmark_dependency_rotation
           command: npm run bench:dependency-rotation
           result: binding-dependency-rotation.json
@@ -1397,6 +1412,7 @@ workflows:
             - benchmark_realistic_mixed
             - benchmark_realistic_heap_lifecycle
             - benchmark_realistic_refresh_loop
+            - benchmark_realistic_reshow
             - benchmark_dependency_rotation
             - benchmark_i18n_formatting
             - benchmark_template_compilation

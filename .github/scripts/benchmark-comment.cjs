@@ -55,7 +55,7 @@ async function reportBenchmarkRun({
     await core.summary.addRaw(content).write();
     return true;
   };
-  const circle = createCircleClient({ circleToken, fetchImpl, sleep });
+  const circle = createCircleClient({ circleToken, fetchImpl, sleep, now });
   let workflowUrl = pipelineUrl;
   let workflowSucceeded = false;
 
@@ -147,7 +147,8 @@ async function reportBenchmarkRun({
     core.warning(`Benchmark reporting failed: ${error instanceof Error ? error.message : String(error)}`);
     const failures = error instanceof BenchmarkReportError ? error.failures : [];
     const code = error instanceof BenchmarkReportError ? error.code : 'reporting-failed';
-    await publish(failedBody(state, workflowUrl, failures, code, workflowSucceeded))
+    const reportingUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${requestId}`;
+    await publish(failedBody(state, workflowUrl, failures, code, workflowSucceeded, reportingUrl))
       .catch(updateError => core.warning(`Unable to publish benchmark failure status: ${updateError}`));
     throw error;
   }
@@ -162,10 +163,14 @@ async function comparisonIsCurrent(resolveCurrentComparison, expected) {
   }
 }
 
-function createCircleClient({ circleToken, fetchImpl, sleep }) {
+function createCircleClient({ circleToken, fetchImpl, sleep, now = Date.now }) {
   return {
     async get(apiPath) {
       const url = `https://circleci.com/api/v2/${apiPath}`;
+      let failure;
+      // All calls here are idempotent reads. Retry the same authenticated request
+      // on HTTP failures too: a single failed metadata read after workflow success
+      // must not discard the report. Persistent failures still stop publication.
       for (let attempt = 0; attempt < 5; attempt++) {
         let response;
         try {
@@ -173,21 +178,29 @@ function createCircleClient({ circleToken, fetchImpl, sleep }) {
             headers: { 'Circle-Token': circleToken, Accept: 'application/json' },
             signal: AbortSignal.timeout(30_000),
           });
+          if (response.ok) return await response.json();
+          await response.body?.cancel();
         } catch {
-          if (attempt === 4) throw new BenchmarkReportError('circle-api-failed');
-          await sleep(Math.min(1000 * 2 ** attempt, 10_000));
-          continue;
+          // Network/body-read errors share the retry budget. Their messages may
+          // contain response data, so retain only our own diagnostic below.
         }
-        if (response.ok) return response.json();
-        if (response.status !== 429 && response.status < 500) {
-          throw new BenchmarkReportError('circle-api-failed');
-        }
-        const retryAfter = Number(response.headers.get('retry-after'));
-        await sleep(Number.isFinite(retryAfter)
-          ? Math.min(retryAfter * 1000, 60_000)
+        failure = response === undefined
+          ? 'request failed'
+          : `HTTP ${response.status}${response.ok ? ' (invalid JSON response)' : ''}`;
+        if (attempt === 4) break;
+
+        // Retry-After allows seconds or an HTTP date. Number(null/blank) is zero,
+        // which otherwise turns an absent header into an immediate retry storm.
+        const retryAfter = response?.headers.get('retry-after')?.trim();
+        const seconds = retryAfter ? Number(retryAfter) : NaN;
+        const delay = Number.isFinite(seconds) ? seconds * 1000 : Date.parse(retryAfter) - now();
+        await sleep(Number.isFinite(delay) && delay >= 0
+          ? Math.min(delay, 60_000)
           : Math.min(1000 * 2 ** attempt, 10_000));
       }
-      throw new BenchmarkReportError('circle-api-failed');
+      // Pagination tokens and response bodies are intentionally excluded.
+      throw new BenchmarkReportError('circle-api-failed', [],
+        `CircleCI GET /${apiPath.split('?')[0]}: ${failure} after 5 attempts.`);
     },
     async pages(apiPath) {
       const items = [];
@@ -407,10 +420,12 @@ function supersededBody(state, workflowUrl) {
   ].join('\n');
 }
 
-function failedBody(state, workflowUrl, failures, code, workflowSucceeded) {
+function failedBody(state, workflowUrl, failures, code, workflowSucceeded, reportingUrl) {
   const jobs = failures.length === 0 ? '' : `\n\nFailed jobs: ${failures.map(job => `\`${job}\``).join(', ')}`;
   let message = 'The benchmark reporter could not confirm the CircleCI result. See the Actions log and CircleCI workflow for details.';
-  if (workflowSucceeded) {
+  if (workflowSucceeded && code === 'circle-api-failed') {
+    message = 'The benchmark workflow completed successfully, but the reporter could not retrieve its results from CircleCI. See the reporting log for the request failure.';
+  } else if (workflowSucceeded) {
     message = 'The benchmark workflow completed successfully, but its report could not be validated or published. See the Actions log for the reporting error.';
   } else if (code === 'workflow-timeout') {
     message = 'The benchmark reporter timed out while CircleCI may still be running.';
@@ -423,6 +438,7 @@ function failedBody(state, workflowUrl, failures, code, workflowSucceeded) {
     `${message}${jobs}`,
     '',
     `[CircleCI workflow](${workflowUrl})`,
+    `[Reporting log](${reportingUrl})`,
   ].join('\n');
 }
 
@@ -448,8 +464,8 @@ async function defaultLoadReportModule() {
 }
 
 class BenchmarkReportError extends Error {
-  constructor(code, failures = []) {
-    super(`Benchmark report failed (${code}).`);
+  constructor(code, failures = [], detail = '') {
+    super(`Benchmark report failed (${code}).${detail === '' ? '' : ` ${detail}`}`);
     this.code = code;
     this.failures = failures;
   }

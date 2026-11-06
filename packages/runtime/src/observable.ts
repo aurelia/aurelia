@@ -26,6 +26,7 @@ interface ObservableDecorator {
 export const observable = /*@__PURE__*/(() => {
 
   const noValue: unknown = {};
+  const identityInitializer = <T>(value: T): T => value;
   // for
   //    class {
   //      @observable prop
@@ -95,13 +96,13 @@ export const observable = /*@__PURE__*/(() => {
     };
 
     function createFieldInitializer(context: ClassFieldDecoratorContext): FieldInitializer<TFThis, TValue> {
-      let $initialValue: TValue;
       context.addInitializer(function (this: unknown) {
-        createDescriptor(this, context.name, () => $initialValue, false);
+        // field extra initializers run right after the field is defined on this instance,
+        // so its own value is the per-instance initial value (a shared closure variable would leak across instances)
+        const initialValue = (this as IIndexable)[context.name as string];
+        createDescriptor(this, context.name, () => initialValue, false);
       });
-      return function (this: TFThis, initialValue: TValue) {
-        return $initialValue = initialValue;
-      };
+      return identityInitializer as FieldInitializer<TFThis, TValue>;
     }
     function createDescriptor(target: unknown, property: PropertyKey, initialValue: () => unknown, targetIsClass: boolean): void {
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/strict-boolean-expressions

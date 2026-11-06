@@ -477,6 +477,7 @@ export const InterpolationBindingRenderer = /*@__PURE__*/ renderer(class Interpo
   public readonly target = itInterpolation;
   public constructor() {
     InterpolationPartBinding.mix();
+    ContentBinding.mix();
   }
   public render(
     renderingCtrl: IHydratableController,
@@ -487,11 +488,37 @@ export const InterpolationBindingRenderer = /*@__PURE__*/ renderer(class Interpo
     observerLocator: IObserverLocator,
   ): void {
     const container = renderingCtrl.container;
+    const ast = ensureExpression(exprParser, instruction.from, etInterpolation);
+    if (instruction.isTextContent === true) {
+      // RCDATA cannot carry marker comments. Recreate the text targets inside
+      // the marked element; independent bindings preserve nullish conversion
+      // and per-expression behaviors such as debounce.
+      const element = target as HTMLElement;
+      const { parts, expressions } = ast;
+      element.textContent = parts[0];
+      for (let i = 0; i < expressions.length; ++i) {
+        const text = platform.document.createTextNode('');
+        element.appendChild(text);
+        if (parts[i + 1] !== '') {
+          element.appendChild(platform.document.createTextNode(parts[i + 1]));
+        }
+        renderingCtrl.addBinding(new ContentBinding(
+          renderingCtrl,
+          container,
+          observerLocator,
+          platform,
+          expressions[i],
+          text,
+          renderingCtrl.strict ?? false,
+        ));
+      }
+      return;
+    }
     const binding = new InterpolationBinding(
       renderingCtrl,
       container,
       observerLocator,
-      ensureExpression(exprParser, instruction.from, etInterpolation),
+      ast,
       getTarget(target),
       instruction.to,
       toView,
@@ -917,6 +944,10 @@ class ViewFactoryProvider implements IResolver {
     this.f = factory;
   }
 
+  public dispose(): void {
+    this.f?.container.disposeResolvers();
+  }
+
   public resolve(): IViewFactory {
     const f = this.f;
     if (f === null) {
@@ -954,9 +985,13 @@ function invokeAttribute(
   registerResolver(ctn, IRenderLocation, location == null
     ? noLocationProvider
     : new InstanceProvider(locationProviderName, location));
-  registerResolver(ctn, IViewFactory, viewFactory == null
-    ? noViewFactoryProvider
-    : new ViewFactoryProvider(viewFactory));
+  if (viewFactory == null) {
+    registerResolver(ctn, IViewFactory, noViewFactoryProvider);
+  } else {
+    // containerStrategy: 'new' gives the factory a container of its own. Synthetic views leave it alone,
+    // so it is released together with this attribute's container.
+    ctn.registerResolver(IViewFactory, new ViewFactoryProvider(viewFactory), viewFactory.container !== renderingCtrl.container);
+  }
   registerResolver(ctn, IAuSlotsInfo, auSlotsInfo == null
     ? noAuSlotProvider
     : new InstanceProvider(slotInfoProviderName, auSlotsInfo));

@@ -119,6 +119,9 @@ export class CollectionSizeObserver implements ICollectionSubscriber {
 
 interface CollectionLengthObserverImpl extends ISubscriberCollection, ICollectionSubscriber {
   owner: ICollectionObserver<CollectionKind>;
+  /** @internal */
+  _value: number;
+  getValue(): number;
 }
 
 function implementLengthObserver(klass: Constructable<ISubscriberCollection>) {
@@ -130,6 +133,8 @@ function implementLengthObserver(klass: Constructable<ISubscriberCollection>) {
 
 function subscribe(this: CollectionLengthObserverImpl, subscriber: ISubscriber): void {
   if (this.subs.add(subscriber) && this.subs.count === 1) {
+    // the collection may have changed while detached from the owner, leaving the cached count stale
+    this._value = this.getValue();
     this.owner.subscribe(this);
   }
 }

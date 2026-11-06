@@ -305,7 +305,7 @@ export class ViewportInstructionTree {
       for (let i = 0; i < len; i++) {
         const instruction = instructionOrInstructions[i];
         promises[i] = onResolve(
-          hasContext ? context.routeConfigContext._generateViewportInstruction(instruction, parentRoutePath, traverseChildren as true) : null,
+          hasContext ? context.routeConfigContext._generateViewportInstruction(instruction, parentRoutePath, traverseChildren as true, traverseChildren === true) : null,
           eagerVi => {
             if (eagerVi !== null) {
               children[i] = eagerVi.vi;
@@ -331,7 +331,8 @@ export class ViewportInstructionTree {
             ? { ...instructionOrInstructions, params: instructionOrInstructions.params ?? emptyObject }
             : { component: instructionOrInstructions, params: emptyObject },
           parentRoutePath,
-          traverseChildren as true
+          traverseChildren as true,
+          traverseChildren === true
         )
         : null,
       eagerVi => {

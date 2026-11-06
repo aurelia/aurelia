@@ -3,6 +3,7 @@ import { RESIDUE } from '@aurelia/route-recognizer';
 import { batch } from '@aurelia/runtime';
 import { IRouter } from './router';
 import { IRouterEvents } from './router-events';
+import { LazyRoute } from './route-context';
 
 import type { Params, ViewportInstruction } from './instructions';
 import type { RouteConfig } from './route';
@@ -53,8 +54,10 @@ export class ParameterInformation {
     Object.assign(params, route?.params ?? instruction.params);
     Reflect.deleteProperty(params, RESIDUE);
 
+    const handler = route?.endpoint.route.handler;
     return new ParameterInformation(
-      route?.endpoint.route.handler as RouteConfig ?? null,
+      // the handler is already resolved at this point (navigation-end); the LazyRoute check is defensive
+      handler instanceof LazyRoute ? handler._config : handler as RouteConfig ?? null,
       instruction.viewport,
       params,
       instruction.children.map((ci) => this.create(ci)),

@@ -25,7 +25,7 @@ The router accepts the following configuration options through `RouterConfigurat
 | `buildTitle` | `(transition: Transition) => string \| null` | `null` | Customises final document title generation. Return `null` to skip document title updates. |
 | `restorePreviousRouteTreeOnError` | boolean | `true` | Restores the previous route tree if a navigation throws, preventing partial states. |
 | `treatQueryAsParameters` | boolean | `false` (deprecated) | Treats query parameters as route parameters. Avoid new usage; scheduled for removal in the next major release. |
-| `useEagerLoading` | boolean | `false` | When `true`, eagerly loads all route configurations upfront when the application starts. |
+| `useEagerLoading` | boolean | `false` | When `true`, every child route configuration is resolved at startup to build the full routing table, including component factories such as `component: () => import('./x')`. By default, factories run on first match. |
 
 > Pass a partial options object—the router merges your values with the defaults so you only specify what changes. Configure options before the router starts (for example, via `AppTask`) so navigations consistently use the same settings.
 
@@ -603,6 +603,8 @@ When the `treatQueryAsParameters` property in the router configuration is set to
 ## Use eager loading for route configurations
 
 When the `useEagerLoading` property in the router configuration is set to `true`, the router will eagerly load all route configurations upfront when the application starts. The default value is `false`.
+
+This also applies to component factories such as `component: () => import('./x')`. By default the factory runs the first time the route is matched; with `useEagerLoading: true` every factory is invoked at startup, and a failing import fails the startup.
 
 Consider the following scenario. A parent route with paths `[ 'parent', 'parent/:id' ]` configures a child route with path `['child']`. Given this scenario, if when a user tries to navigate to the path `/parent/child`, the router might 'recognize' the `child` segment as a value for the `:id` parameter of the parent route, instead of recognizing it as the child route. This problem is the artifact of how the route-recognizer works under the lazy-loading scenario. The recognizer tries to match the path hungrily, without having any information about the child routes.
 

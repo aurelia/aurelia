@@ -33,6 +33,10 @@ interface INavigationRoute {
 
 The navigation model contains a view-friendly subset of each route's configuration (`id`, `path`, `title`, and `data`) plus an `isActive` flag. Redirect-only routes are excluded.
 
+{% hint style="info" %}
+Routes with a factory component, such as `component: () => import('./x')`, appear in the navigation model without loading the module. Until the route is first visited, the entry is built from the `id`, `path`, `title`, `nav`, and `data` declared in the parent route config. Once the module loads, the entry is updated from the component's own `@route`, so a `title` declared there appears and `nav: false` removes the entry. Declare menu metadata in the parent route config to have it from the start. `INavigationModel#resolve()` does not load lazy routes.
+{% endhint %}
+
 This section provides example of how to use navigation model while discussing different aspects of it.
 
 ## Create a navigation menu using a navigation model

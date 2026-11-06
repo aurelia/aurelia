@@ -146,11 +146,11 @@ export const enum ErrorNames {
   hydration_node_count_mismatch = 823,
   hydration_view_count_mismatch = 824,
 
-  defer_branch_without_defer = 825,
-  defer_trigger_target_missing = 826,
-  defer_invalid_trigger = 827,
-  defer_invalid_load = 828,
-  defer_load_failed = 829,
+  defer_branch_without_defer = 831,
+  defer_trigger_target_missing = 832,
+  defer_invalid_trigger = 833,
+  defer_invalid_load = 834,
+  defer_load_failed = 835,
 }
 _END_CONST_ENUM();
 

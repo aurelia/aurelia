@@ -819,7 +819,7 @@ describe('3-runtime-html/defer.spec.ts', function () {
       } catch (e) {
         error = e as Error;
       }
-      assert.match(error?.message, /AUR0827: Unknown \[defer\] trigger "scroll" in <app>/);
+      assert.match(error?.message, /AUR0833: Unknown \[defer\] trigger "scroll" in <app>/);
     });
 
     it('names the owning element in errors of a block projected into an au-slot', function () {
@@ -830,7 +830,7 @@ describe('3-runtime-html/defer.spec.ts', function () {
       } catch (e) {
         error = e as Error;
       }
-      assert.match(error?.message, /AUR0827: Unknown \[defer\] trigger "scroll" in <app>/);
+      assert.match(error?.message, /AUR0833: Unknown \[defer\] trigger "scroll" in <app>/);
     });
 
     it('throws when an element trigger has no element to watch', function () {
@@ -840,7 +840,7 @@ describe('3-runtime-html/defer.spec.ts', function () {
       } catch (e) {
         error = e as Error;
       }
-      assert.match(error?.message, /AUR0826: The "viewport" trigger of \[defer\] in <app>/);
+      assert.match(error?.message, /AUR0832: The "viewport" trigger of \[defer\] in <app>/);
     });
   });
 
@@ -1333,7 +1333,7 @@ describe('3-runtime-html/defer.spec.ts', function () {
       assert.strictEqual(errors.length, 1);
       // the report says which block failed, and keeps the original error as its cause
       const error = errors[0] as Error;
-      assert.match(error.message, /AUR0829: \[defer\] in <app> failed to load its dependencies: offline/);
+      assert.match(error.message, /AUR0835: \[defer\] in <app> failed to load its dependencies: offline/);
       assert.strictEqual((error.cause as Error).message, 'offline');
       // a placeholder or loading branch left up would suggest the content is still coming
       assert.strictEqual(text(appHost!), '');
@@ -1394,7 +1394,7 @@ describe('3-runtime-html/defer.spec.ts', function () {
       );
       await wait(0);
 
-      assert.match(text(appHost), /AUR0828: The "load" of \[defer\] in <app> must be a function.*Received: a promise/);
+      assert.match(text(appHost), /AUR0834: The "load" of \[defer\] in <app> must be a function.*Received: a promise/);
     });
 
     it('warns in development when a loader registers nothing', async function () {
@@ -1465,7 +1465,7 @@ describe('3-runtime-html/defer.spec.ts', function () {
       } catch (e) {
         error = e as Error;
       }
-      assert.match(error?.message, /AUR0825/);
+      assert.match(error?.message, /AUR0831/);
     });
 
     it('explains that a template controller before defer hides it from the branches', function () {
@@ -1475,7 +1475,7 @@ describe('3-runtime-html/defer.spec.ts', function () {
       } catch (e) {
         error = e as Error;
       }
-      assert.match(error?.message, /AUR0825: .*such as \[if\], wraps it/);
+      assert.match(error?.message, /AUR0831: .*such as \[if\], wraps it/);
     });
 
     it('keeps the error until a retry settles', async function () {

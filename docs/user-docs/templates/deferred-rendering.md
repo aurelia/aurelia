@@ -78,7 +78,7 @@ The render location of a template controller is a comment, which can't be observ
 </section>
 ```
 
-With neither a placeholder element nor a `target`, these triggers throw [AUR0826](../developer-guides/error-messages/runtime-html/aur0826.md).
+With neither a placeholder element nor a `target`, these triggers throw [AUR0832](../developer-guides/error-messages/runtime-html/aur0832.md).
 
 {% hint style="info" %}
 Every `defer` block in an app shares one `IntersectionObserver` per root margin, and one idle callback. A feed or dashboard with many blocks doesn't create an observer for each one.
@@ -194,14 +194,14 @@ A block with nothing to load goes straight from the placeholder to the content, 
 
 `defer-error` also shows when the loaded content fails to compile, for example with [AUR0724](../developer-guides/error-messages/0088-to-0723/aur0724.md). Since invalid content is a mistake in the app rather than a failure users can recover from, a compile error is also reported to the console.
 
-When loading fails and there's no `defer-error` branch, the block renders nothing and reports [AUR0829](../developer-guides/error-messages/runtime-html/aur0829.md) to the console through Aurelia's task queue, once per failed load. It's never silently dropped. A failed load is also forgotten, so a later attempt calls the loaders again. That includes a block that was detached while its load failed: it loads again once it's attached.
+When loading fails and there's no `defer-error` branch, the block renders nothing and reports [AUR0835](../developer-guides/error-messages/runtime-html/aur0835.md) to the console through Aurelia's task queue, once per failed load. It's never silently dropped. A failed load is also forgotten, so a later attempt calls the loaders again. That includes a block that was detached while its load failed: it loads again once it's attached.
 
 ## Debugging
 
-- **Which block failed.** Errors from `defer` name the element whose template contains the block, for example `[defer] in <report-page> failed to load its dependencies`. A failed load is reported as [AUR0829](../developer-guides/error-messages/runtime-html/aur0829.md), with the loader's own error as its `cause`, which the browser console shows below it.
+- **Which block failed.** Errors from `defer` name the element whose template contains the block, for example `[defer] in <report-page> failed to load its dependencies`. A failed load is reported as [AUR0835](../developer-guides/error-messages/runtime-html/aur0835.md), with the loader's own error as its `cause`, which the browser console shows below it.
 - **What a block is doing.** `$defer.state` in a branch, or the `state` of the `Defer` view model in the dev tools, says whether the block is waiting for a trigger, loading, rendered, or failed.
 - **What was loaded.** Each loader shows up as its own request in the network panel when its trigger or prefetch fires. In development, a module that a block loads but that exports no element, attribute or registry logs a `[DEV:aurelia]` warning, since the block would render the element as unknown. So does a loader that resolves to nothing.
-- **Mistakes caught early.** A `load` that isn't a function, such as `load.bind: import('./chart')`, fails with [AUR0828](../developer-guides/error-messages/runtime-html/aur0828.md). An unknown trigger throws [AUR0827](../developer-guides/error-messages/runtime-html/aur0827.md), and an element trigger with nothing to watch throws [AUR0826](../developer-guides/error-messages/runtime-html/aur0826.md).
+- **Mistakes caught early.** A `load` that isn't a function, such as `load.bind: import('./chart')`, fails with [AUR0834](../developer-guides/error-messages/runtime-html/aur0834.md). An unknown trigger throws [AUR0833](../developer-guides/error-messages/runtime-html/aur0833.md), and an element trigger with nothing to watch throws [AUR0832](../developer-guides/error-messages/runtime-html/aur0832.md).
 - **Type checking.** With the conventions plugin's experimental template type checking, `$defer` is typed inside the branches and is an error elsewhere, and the bound options of `defer`, such as `when.bind` and `load.bind`, are checked against the view model.
 
 ## Rendering on the server

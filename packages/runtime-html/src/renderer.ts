@@ -915,6 +915,10 @@ class ViewFactoryProvider implements IResolver {
     this.f = factory;
   }
 
+  public dispose(): void {
+    this.f?.container.disposeResolvers();
+  }
+
   public resolve(): IViewFactory {
     const f = this.f;
     if (f === null) {
@@ -952,9 +956,13 @@ function invokeAttribute(
   registerResolver(ctn, IRenderLocation, location == null
     ? noLocationProvider
     : new InstanceProvider(locationProviderName, location));
-  registerResolver(ctn, IViewFactory, viewFactory == null
-    ? noViewFactoryProvider
-    : new ViewFactoryProvider(viewFactory));
+  if (viewFactory == null) {
+    registerResolver(ctn, IViewFactory, noViewFactoryProvider);
+  } else {
+    // containerStrategy: 'new' gives the factory a container of its own. Synthetic views leave it alone,
+    // so it is released together with this attribute's container.
+    ctn.registerResolver(IViewFactory, new ViewFactoryProvider(viewFactory), viewFactory.container !== renderingCtrl.container);
+  }
   registerResolver(ctn, IAuSlotsInfo, auSlotsInfo == null
     ? noAuSlotProvider
     : new InstanceProvider(slotInfoProviderName, auSlotsInfo));

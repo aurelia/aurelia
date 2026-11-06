@@ -1,6 +1,6 @@
 import { DI, IContainer, newInstanceForScope, resolve } from '@aurelia/kernel';
 import { tasksSettled } from '@aurelia/runtime';
-import { CustomAttribute, CustomElement } from '@aurelia/runtime-html';
+import { CustomAttribute, CustomElement, IViewFactory } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/controller.scoped-resolver-dispose.spec.ts', function () {
@@ -231,6 +231,92 @@ describe('3-runtime-html/controller.scoped-resolver-dispose.spec.ts', function (
 
       await fixture.stop(true);
       assert.strictEqual(owner.container.has(IFormState, false), false);
+    } finally {
+      if (!fixture.torn) await fixture.stop(true);
+    }
+  });
+
+  function registerCleanup(container: IContainer, key: ReturnType<typeof DI.createInterface>, onDispose: () => void): void {
+    container.registerResolver(key, { $isResolver: true, resolve: () => null, dispose: onDispose }, true);
+  }
+
+  it('releases the private container of an au-slot view when the slot is disposed', async function () {
+    const cleanupKey = DI.createInterface('au-slot-cleanup');
+    let cleanupCount = 0;
+    const probes: { container: IContainer }[] = [];
+    const Probe = CustomElement.define({ name: 'slot-probe', template: 'p' }, class {
+      public readonly container: IContainer = resolve(IContainer);
+      public constructor() { probes.push(this); }
+    });
+    const Card = CustomElement.define({ name: 'slot-card', template: '<au-slot></au-slot>' }, class {
+      public readonly container: IContainer = resolve(IContainer);
+    });
+    const fixture = createFixture(
+      '<slot-card if="value.bind: show; cache: false"><slot-probe></slot-probe></slot-card>',
+      class App { public show = true; },
+      [Card, Probe],
+    );
+    try {
+      await fixture.started;
+      assert.strictEqual(probes.length, 1);
+      const card = CustomElement.for(fixture.getBy('slot-card')).viewModel as { container: IContainer };
+      const slotContainer = probes[0].container.parent!;
+      assert.notStrictEqual(slotContainer, card.container, 'the projection renders in a container owned by the slot');
+      registerCleanup(slotContainer, cleanupKey, () => { ++cleanupCount; });
+
+      fixture.component.show = false;
+      await tasksSettled();
+
+      assert.deepStrictEqual(
+        { registered: slotContainer.has(cleanupKey, false), cleanupCount },
+        { registered: false, cleanupCount: 1 },
+      );
+    } finally {
+      if (!fixture.torn) await fixture.stop(true);
+    }
+  });
+
+  it('keeps a containerStrategy: new factory container across view disposal and releases it with the template controller', async function () {
+    const cleanupKey = DI.createInterface('tc-cleanup');
+    let cleanupCount = 0;
+    const instances: OwnViews[] = [];
+    class OwnViews {
+      public readonly factory: IViewFactory = resolve(IViewFactory);
+      public readonly container: IContainer = resolve(IContainer);
+      public constructor() { instances.push(this); }
+    }
+    const OwnViewsAttribute = CustomAttribute.define({
+      name: 'own-views',
+      isTemplateController: true,
+      containerStrategy: 'new',
+    }, OwnViews);
+    const fixture = createFixture(
+      '<div if="value.bind: show; cache: false"><span own-views>x</span></div>',
+      class App { public show = true; },
+      [OwnViewsAttribute],
+    );
+    try {
+      await fixture.started;
+      assert.strictEqual(instances.length, 1);
+      const { factory, container } = instances[0];
+      const factoryContainer = factory.container;
+      assert.notStrictEqual(factoryContainer, container.parent, 'the factory has a container of its own');
+      registerCleanup(factoryContainer, cleanupKey, () => { ++cleanupCount; });
+
+      // Views from this factory share its container, so disposing one must not release it.
+      factory.create().dispose();
+      assert.deepStrictEqual(
+        { registered: factoryContainer.has(cleanupKey, false), cleanupCount },
+        { registered: true, cleanupCount: 0 },
+      );
+
+      fixture.component.show = false;
+      await tasksSettled();
+
+      assert.deepStrictEqual(
+        { registered: factoryContainer.has(cleanupKey, false), cleanupCount },
+        { registered: false, cleanupCount: 1 },
+      );
     } finally {
       if (!fixture.torn) await fixture.stop(true);
     }

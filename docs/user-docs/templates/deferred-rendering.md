@@ -208,6 +208,8 @@ When loading fails and there's no `defer-error` branch, the block renders nothin
 
 During server-side rendering the triggers don't run, so the server renders the placeholder. When the app hydrates, the block adopts the server's placeholder instead of rendering a new one, and renders its content once its trigger fires in the browser.
 
+Precompiled definitions, such as those that `hydrateSSRDefinition()` reads, don't support `defer` blocks yet. Their format marks every template as already compiled and has no place for a block's `<import defer>` loaders, so a block's content would never compile. Compile templates that contain `defer` blocks at runtime for now.
+
 ## Things to watch out for
 
 - **`<script defer>`** keeps its meaning. The compiler never treats `defer` on a `<script>` as this template controller, and `defer.bind` on a `<script>` binds its native `defer` property.

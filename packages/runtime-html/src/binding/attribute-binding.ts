@@ -18,6 +18,7 @@ import { oneTime, toView } from './interfaces-bindings';
 import type { INode } from '../dom.node';
 import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
 import { safeString } from '../utilities';
+import { reportTaskError } from '../templating/error-handling';
 import { ForOfStatement, IsBindingBehavior } from '@aurelia/expression-parser';
 
 // the 2 interfaces implemented come from mixin
@@ -58,7 +59,7 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
   public readonly oL: IObserverLocator;
 
   /** @internal */
-  private readonly _controller: IBindingController;
+  public readonly _controller: IBindingController;
 
   /** @internal */
   public readonly l: IServiceLocator;
@@ -146,16 +147,21 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
     this._isQueued = true;
 
     queueTask(() => {
-      this._isQueued = false;
-      if (!this.isBound) return;
+      try {
+        this._isQueued = false;
+        if (!this.isBound) return;
 
-      this.obs.version++;
-      const newValue = astEvaluate(this.ast, this._scope!, this, (this.mode & toView) > 0 ? this : null);
-      this.obs.clear();
+        this.obs.version++;
+        const newValue = astEvaluate(this.ast, this._scope!, this, (this.mode & toView) > 0 ? this : null);
+        this.obs.clear();
 
-      if (newValue !== this._value) {
-        this._value = newValue;
-        this.updateTarget(newValue);
+        if (newValue !== this._value) {
+          this._value = newValue;
+          this.updateTarget(newValue);
+        }
+      } catch (err) {
+        reportTaskError(this.l, this._controller, err);
+        throw err;
       }
     });
   }

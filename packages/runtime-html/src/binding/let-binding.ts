@@ -60,7 +60,7 @@ export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber 
 
   public strict: boolean;
   /** @internal */
-  private readonly _controller: IBindingController;
+  public readonly _controller: IBindingController;
 
   public constructor(
     controller: IBindingController,

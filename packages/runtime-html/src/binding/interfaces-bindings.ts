@@ -17,6 +17,13 @@ export interface IBinding {
   get: IServiceLocator['get'];
   useScope?(scope: Scope): void;
   limit?(opts: IRateLimitOptions): IDisposable;
+  /**
+   * The controller the binding was rendered for. Work a binding queues on its
+   * own (rate-limited calls) reports its failures against it.
+   *
+   * @internal
+   */
+  readonly _controller?: IBindingController | null;
 }
 
 export interface IRateLimitOptions {

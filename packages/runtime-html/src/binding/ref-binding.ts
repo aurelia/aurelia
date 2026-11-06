@@ -14,7 +14,7 @@ import {
 } from '@aurelia/runtime';
 import { createPrototypeMixer, mixinAstEvaluator, mixingBindingLimited, mixinUseScope } from './binding-utils';
 import { type IsBindingBehavior } from '@aurelia/expression-parser';
-import { IBinding } from './interfaces-bindings';
+import { IBinding, type IBindingController } from './interfaces-bindings';
 
 export interface RefBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator { }
 export class RefBinding implements IBinding, ISubscriber, ICollectionSubscriber {
@@ -33,14 +33,19 @@ export class RefBinding implements IBinding, ISubscriber, ICollectionSubscriber 
   /** @internal */
   public l: IServiceLocator;
 
+  /** @internal */
+  public readonly _controller: IBindingController | null;
+
   public constructor(
     locator: IServiceLocator,
     public oL: IObserverLocator,
     public ast: IsBindingBehavior,
     public target: object,
     public strict: boolean,
+    controller: IBindingController | null = null,
   ) {
     this.l = locator;
+    this._controller = controller;
   }
 
   public updateSource() {

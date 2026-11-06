@@ -440,6 +440,9 @@ export class ErrorBoundary implements ICustomElementViewModel {
   public dispose(): void {
     this._view?.dispose();
     this._view = void 0;
+    // Both slot factories share a container created for this boundary alone,
+    // and synthetic views leave their factory's container to its owner.
+    (this._contentFactory ?? this._fallbackFactory)?.container.disposeResolvers();
   }
 
   public accept(visitor: ControllerVisitor): void | true {

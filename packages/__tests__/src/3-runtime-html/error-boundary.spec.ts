@@ -1,4 +1,4 @@
-import { noop, Registration } from '@aurelia/kernel';
+import { DI, IContainer, noop, Registration, resolve } from '@aurelia/kernel';
 import { tasksSettled } from '@aurelia/runtime';
 import {
   AppTask,
@@ -670,6 +670,47 @@ describe('3-runtime-html/error-boundary.spec.ts', function () {
       assert.strictEqual(constructed, 2, 'a fresh instance was created');
       assert.html.textContent(fixture.appHost, 'fresh content');
       await fixture.stop(true);
+    });
+
+    it('keeps its slot container through failover and reset, and releases it when disposed', async function () {
+      const cleanupKey = DI.createInterface('error-boundary-cleanup');
+      let cleanupCount = 0;
+      let fail = true;
+      const containers: IContainer[] = [];
+      const Boom = CustomElement.define({ name: 'boom', template: 'content' }, class Boom {
+        public constructor() { containers.push(resolve(IContainer)); }
+        public binding(): void { if (fail) { throw new Error('boom'); } }
+      });
+      const fixture = createFixture(
+        `<error-boundary if="value.bind: show; cache: false">
+          <boom></boom>
+          <template au-slot="fallback">FB <button click.trigger="$host.reset()">retry</button></template>
+        </error-boundary>`,
+        class App { public show = true; },
+        [Boom],
+      );
+      try {
+        await fixture.started;
+        assert.html.textContent(fixture.appHost, 'FB retry');
+        const slotContainer = containers[0].parent!;
+        slotContainer.registerResolver(cleanupKey, { $isResolver: true, resolve: () => null, dispose: () => { ++cleanupCount; } }, true);
+
+        fail = false;
+        fixture.appHost.querySelector('button')!.click();
+        await tasksSettled();
+        assert.html.textContent(fixture.appHost, 'content');
+        assert.strictEqual(containers[1].parent, slotContainer, 'the rebuilt content renders in the same container');
+        assert.strictEqual(cleanupCount, 0, 'disposing the failed and fallback views leaves the container alone');
+
+        fixture.component.show = false;
+        await tasksSettled();
+        assert.deepStrictEqual(
+          { registered: slotContainer.has(cleanupKey, false), cleanupCount },
+          { registered: false, cleanupCount: 1 },
+        );
+      } finally {
+        if (!fixture.torn) await fixture.stop(true);
+      }
     });
 
     it('reset() can fail again and re-shows the fallback', async function () {

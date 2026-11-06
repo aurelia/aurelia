@@ -62,7 +62,7 @@ export class Portal implements ICustomAttributeViewModel {
    *
    * @internal
    */
-  private _pending: void | Promise<void> = void 0;
+  private _pending: Promise<void> | undefined = void 0;
   /** Whether a step is running synchronously, outside of `_pending`. @internal */
   private _running: boolean = false;
   /** Starts the changes a synchronous callback queued behind the running step. @internal */
@@ -118,11 +118,14 @@ export class Portal implements ICustomAttributeViewModel {
     if (this._running) {
       // a synchronous callback of the running step made this change. Applying it now would let the
       // step carry on with the old placement afterwards, so it waits until the step is done
-      this._pending ??= new Promise<void>(r => { this._release = r; });
+      if (this._pending === void 0) {
+        this._pending = new Promise<void>(r => { this._release = r; });
+      }
     }
-    let ret: void | Promise<void>;
-    if (this._pending !== void 0) {
-      ret = this._pending.then(fn);
+    let ret: void | Promise<void> = void 0;
+    const current = this._pending;
+    if (current !== void 0) {
+      ret = current.then(fn);
     } else {
       this._running = true;
       try {
@@ -132,7 +135,9 @@ export class Portal implements ICustomAttributeViewModel {
         const release = this._release;
         if (release !== null) {
           this._release = null;
-          const queued: Promise<void> = this._pending;
+          // A release exists only while its pending gate is installed. The gate is cleared in a
+          // later promise reaction, so it cannot be absent during this synchronous finally block.
+          const queued = this._pending!;
           // start the queued changes once the step settles, even if it failed, and keep the queue
           // busy until they're done. `queued` never rejects, so a failure is passed on after it
           ret = isPromise(ret)

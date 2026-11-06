@@ -145,6 +145,18 @@ export interface IAccessor<TValue = unknown> {
 }
 
 /**
+ * Optional synchronous refresh for a property binding's target accessor or observer.
+ * In one-time, to-view, and two-way modes, runtime-html calls this after the binding owner's
+ * bindings have bound. Element targets may refresh again as related DOM content mounts during that activation.
+ * Registrations retire at the owner's attached boundary and can be created again on rebind.
+ * Calls preserve the receiver, take no arguments, and do not await returned promises.
+ * Implementations should safely reapply current target state on repeated calls.
+ */
+export interface IRefreshable {
+  refresh(): void;
+}
+
+/**
  * An interface describing a standard contract of an observer in Aurelia binding & observation system
  */
 export interface IObserver<TValue = unknown> extends IAccessor<TValue>, ISubscribable {

@@ -12,6 +12,7 @@ import {
   type IObserver,
   type IObserverLocator,
   type IObserverLocatorBasedConnectable,
+  type IRefreshable,
   queueTask,
 } from '@aurelia/runtime';
 import { BindingTargetSubscriber, IFlushQueue, createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
@@ -161,6 +162,10 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
     }
 
     this.isBound = true;
+
+    if (($mode & (toView | oneTime)) > 0 && isRefreshable(targetObserver)) {
+      this._controller.requestRefresh?.(targetObserver, this.target);
+    }
   }
 
   public unbind(): void {
@@ -199,4 +204,8 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
     }
     this._targetSubscriber = subscriber;
   }
+}
+
+function isRefreshable(target: unknown): target is IRefreshable {
+  return typeof (target as Partial<IRefreshable>).refresh === 'function';
 }

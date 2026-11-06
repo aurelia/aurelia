@@ -9,6 +9,7 @@ import {
   ICustomElementViewModel,
   IHydratedController,
   ISSRContext,
+  prepareSSRForSerialization,
   type ISSRScope,
   ValueConverter,
   customAttribute,
@@ -1478,6 +1479,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       let ssrMarkup: string;
       try {
         await serverAu.start();
+        prepareSSRForSerialization(serverHost);
         ssrMarkup = serverHost.innerHTML;
       } finally {
         await serverAu.stop(true);
@@ -1543,8 +1545,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
           assertText('d');
           assert.strictEqual(clientHost.querySelector('[data-branch="d"]'), ssrBranch);
         } finally {
-          await root.deactivate();
-          root.dispose();
+          await clientAu.stop(true);
         }
       } finally {
         clientAu.dispose();

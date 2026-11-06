@@ -1,0 +1,48 @@
+<script type="module">
+import {
+  assertRealisticOpenEvent,
+  assertRealisticRows,
+} from '../utils/assert-render.js';
+import { createRealisticRecords } from '../utils/realistic-data.js';
+import { loadVariant } from '../utils/load-variant.js';
+import { publishMeasurement } from '../utils/publish-measurement.js';
+const { CustomElement, startReshow, tasksSettled } = await loadVariant('app-repeat-realistic');
+
+const host = document.body.appendChild(document.createElement('div'));
+const items = createRealisticRecords(1000);
+const au = startReshow(host, items);
+const app = au.root.controller.viewModel;
+const setShown = async show => {
+  app.show = show;
+  await tasksSettled();
+  if ((host.querySelector('.task-list') !== null) !== show) {
+    throw new Error(`Reshow benchmark list did not become ${show ? 'visible' : 'hidden'}.`);
+  }
+};
+
+// Warm both directions of the cached `if` before the representative interaction.
+for (let cycle = 0; cycle < 2; ++cycle) {
+  await setShown(false);
+  await setShown(true);
+}
+await setShown(false);
+
+performance.mark('realistic-reshow-start');
+app.show = true;
+await tasksSettled();
+performance.mark('realistic-reshow-end');
+
+const usedJSHeapSizeBytes = performance.memory.usedJSHeapSize;
+// Row identity across the toggle is a framework choice, not part of this contract: older revisions
+// rebuild every row, newer ones reuse rows for unchanged items. Both must render the same list.
+const list = host.querySelector('.task-list');
+if (list === null) throw new Error('Reshow benchmark did not show the list.');
+const after = assertRealisticRows(list, items, CustomElement);
+assertRealisticOpenEvent(after.hosts[0], after.viewModels[items[0].id]);
+publishMeasurement(
+  'realistic-reshow-1000',
+  'realistic-reshow-start',
+  'realistic-reshow-end',
+  usedJSHeapSizeBytes,
+);
+</script>

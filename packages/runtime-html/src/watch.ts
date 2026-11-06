@@ -1,6 +1,4 @@
-import { emptyArray, isFunction } from '@aurelia/kernel';
-import { getAttributeDefinition, isAttributeType } from './resources/custom-attribute';
-import { getElementDefinition, isElementType } from './resources/custom-element';
+import { emptyArray, getPrototypeChain, isFunction } from '@aurelia/kernel';
 import { objectFreeze, safeString } from './utilities';
 
 import type { Constructable } from '@aurelia/kernel';
@@ -113,39 +111,10 @@ export function watch<T extends object = object, TV extends AnyMethod = AnyMetho
       options.flush,
     );
 
-    if (isClassDecorator) {
-      addDefinition(target as Constructable);
-    } else {
-      // instance method decorator initializer is called for each instance
-      let added = false;
-      context.addInitializer(function (this: T) {
-        if (!added) {
-          added = true;
-          addDefinition(this.constructor as Constructable);
-        }
-      });
-    }
-
-    function addDefinition(type: Constructable) {
-      Watch.add(type, watchDef as IWatchDefinition);
-
-      // if the code looks like this:
-      // @watch(...)
-      // @customAttribute(...)
-      // class Abc {}
-      //
-      // then @watch is called after @customAttribute
-      // which means the attribute definition won't have the watch definition
-      //
-      // temporarily works around this order sensitivity by manually add the watch def
-      // manual
-      if (isAttributeType(type)) {
-        getAttributeDefinition(type).watches.push(watchDef as IWatchDefinition);
-      }
-      if (isElementType(type)) {
-        getElementDefinition(type).watches.push(watchDef as IWatchDefinition);
-      }
-    }
+    // context.metadata belongs to the class that declares the decorator, even for a method decorator,
+    // so recording against it now (rather than against this.constructor of the first instance) keeps
+    // the watch on its declaring class, where subclasses can inherit it without writing into it.
+    addWatch(context.metadata, watchDef as IWatchDefinition);
   };
 }
 
@@ -157,21 +126,48 @@ class WatchDefinition<T extends object> implements IWatchDefinition<T> {
   ) {}
 }
 
-export const Watch = /*@__PURE__*/(() => {
-  const watches = new WeakMap<Constructable, IWatchDefinition[]>();
-  return objectFreeze({
-    add(Type: Constructable, definition: IWatchDefinition): void {
-      let defs = watches.get(Type);
-      if (defs == null) {
-        watches.set(Type, defs = []);
+// Keyed by constructor for Watch.add, and by the declaring class's own decorator metadata object for @watch.
+const watches = /*@__PURE__*/new WeakMap<object, IWatchDefinition[]>();
+
+const addWatch = (owner: object, definition: IWatchDefinition): void => {
+  let defs = watches.get(owner);
+  if (defs == null) {
+    watches.set(owner, defs = []);
+  }
+  defs.push(definition);
+};
+
+export const Watch = /*@__PURE__*/objectFreeze({
+  add(Type: Constructable, definition: IWatchDefinition): void {
+    addWatch(Type, definition);
+  },
+  /**
+   * Returns the watch definitions declared on the type and on its base classes, base class first.
+   */
+  getDefinitions(Type: Constructable): IWatchDefinition[] {
+    const prototypeChain = getPrototypeChain(Type);
+    let defs: IWatchDefinition[] | undefined;
+    let Class: Constructable;
+    let own: IWatchDefinition[] | undefined;
+    let i = prototypeChain.length;
+    while (--i >= 0) {
+      Class = prototypeChain[i];
+      own = watches.get(Class);
+      if (own !== void 0) {
+        (defs ??= []).push(...own);
       }
-      defs.push(definition);
-    },
-    getDefinitions(Type: Constructable): IWatchDefinition[] {
-      return watches.get(Type) ?? emptyArray;
+      // Only an own metadata object counts: a class without one reads its parent's through the
+      // constructor's prototype chain, and that parent is already visited separately.
+      if (Object.prototype.hasOwnProperty.call(Class, Symbol.metadata)) {
+        own = watches.get((Class as { [Symbol.metadata]: object })[Symbol.metadata]);
+        if (own !== void 0) {
+          (defs ??= []).push(...own);
+        }
+      }
     }
-  });
-})();
+    return defs ?? emptyArray;
+  }
+});
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-unsafe-member-access */
 function testWatchDeco() {

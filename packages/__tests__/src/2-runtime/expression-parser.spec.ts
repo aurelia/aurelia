@@ -6,6 +6,7 @@ import {
   TaggedTemplateExpression,
   IsLeftHandSide,
   IsAssign,
+  ExpressionParser,
   parseExpression,
   IsBindingBehavior,
   ArrowFunction,
@@ -43,6 +44,7 @@ import {
 } from '@aurelia/expression-parser';
 import {
   assert,
+  createSpy,
 } from '@aurelia/testing';
 import {
   latin1IdentifierPartChars,
@@ -1631,6 +1633,87 @@ describe('2-runtime/expression-parser.spec.ts', function () {
     for (const [input, expected] of InterpolationList) {
       it(input, function () {
         assert.deepStrictEqual(parseExpression(input, 'Interpolation' as any), expected);
+        const parser = new ExpressionParser();
+        const result = parser.parse(input, 'Interpolation');
+        assert.deepStrictEqual(result, expected, 'uncached interpolation');
+        assert.strictEqual(parser.parse(input, 'Interpolation'), result, 'cached interpolation');
+      });
+    }
+  });
+
+  describe('ExpressionParser interpolation fast path', function () {
+    const staticInputs = [
+      '',
+      'plain text',
+      '$',
+      'price: $5',
+      '{a}',
+      '$ {a}',
+      '$\\{a}',
+      '\\',
+      '\\n\\t',
+      '\\u0024{a}',
+      '\u0000',
+      '\uD800',
+      'caf\u00E9 \u4E16\u754C \u{1F642}',
+      '__proto__',
+      'constructor',
+      'M10 20L30 40C50 60 70 80 90 100Z '.repeat(350),
+    ];
+
+    it('does not enter the full parser for static cache misses (#2495)', function () {
+      const parser = new ExpressionParser();
+      const spy = createSpy(parser as any, '$parse', true);
+      try {
+        for (const input of staticInputs) {
+          assert.strictEqual(parser.parse(input, 'Interpolation'), null, JSON.stringify(input));
+        }
+        assert.strictEqual(spy.calls.length, 0, 'static strings bypass the full parser');
+      } finally {
+        spy.restore();
+      }
+    });
+
+    it('retains negative cache entries for static strings', function () {
+      const parser = new ExpressionParser();
+      for (const input of staticInputs) {
+        assert.strictEqual(parser.parse(input, 'Interpolation'), null);
+        assert.strictEqual((parser as any)._interpolationLookup[input], null, 'cached null, not a cache miss');
+        assert.strictEqual(parser.parse(input, 'Interpolation'), null);
+      }
+    });
+
+    for (const input of [
+      '${a}',
+      'before ${a} after',
+      '\\${a}',
+      '\\${',
+      '\\\\${a}',
+      '\\${a} ${b}',
+      '\u{1F642} ${a} \uD800',
+      '${"${nested}"}',
+      '${`${a}`}',
+      '${a',
+    ]) {
+      it(`parses possible delimiters once and reuses the result: ${JSON.stringify(input)}`, function () {
+        const parser = new ExpressionParser();
+        const spy = createSpy(parser as any, '$parse', true);
+        try {
+          const result = parser.parse(input, 'Interpolation');
+          assert.deepStrictEqual(result, parseExpression(input, 'Interpolation'));
+          assert.strictEqual(parser.parse(input, 'Interpolation'), result);
+          assert.strictEqual(spy.calls.length, 1, 'only the cache miss enters the full parser');
+        } finally {
+          spy.restore();
+        }
+      });
+    }
+
+    for (const input of ['${', '${}', '${a +}', '${a)', '${"unterminated}']) {
+      it(`does not hide malformed interpolations: ${JSON.stringify(input)}`, function () {
+        const parser = new ExpressionParser();
+        assert.throws(() => parser.parse(input, 'Interpolation'), /^Error: AUR/);
+        assert.throws(() => parser.parse(input, 'Interpolation'), /^Error: AUR/);
       });
     }
   });

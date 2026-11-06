@@ -1,8 +1,8 @@
 import { createFixture, assert } from '@aurelia/testing';
 import { DefaultVirtualizationConfiguration, VirtualRepeat, VIRTUAL_REPEAT_NEAR_BOTTOM, VIRTUAL_REPEAT_NEAR_TOP, type IVirtualRepeatNearBottomEvent, type IVirtualRepeatNearTopEvent } from '@aurelia/ui-virtualization';
 import { isNode } from '../util.js';
-import { runTasks, tasksSettled } from '@aurelia/runtime';
-import { LifecycleHooks, ValueConverter } from '@aurelia/runtime-html';
+import { IObserverLocator, type ISubscriberCollection, runTasks, tasksSettled } from '@aurelia/runtime';
+import { CustomElement, If, LifecycleHooks, ValueConverter } from '@aurelia/runtime-html';
 
 describe('ui-virtualization/virtual-repeat.spec.ts', function () {
   if (isNode()) {
@@ -567,6 +567,331 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
       assert.strictEqual(attachedCallCount, 1, 'attached() should only be called once even with async assignment');
 
       await tearDown();
+    });
+  });
+
+  describe('GH #2550 - row views are deactivated with the repeat', function () {
+    type Item = { idx: number; name: string };
+
+    function createRowTracking() {
+      const calls = { attached: 0, detaching: 0, unbinding: 0, evaluated: 0, disposed: 0 };
+      const disposedRows = new Set<object>();
+      const Row = CustomElement.define({
+        name: 'row-el',
+        template: '${item.name | track}',
+        bindables: ['item'],
+      }, class {
+        public attached(): void { ++calls.attached; }
+        public detaching(): void { ++calls.detaching; }
+        public unbinding(): void { ++calls.unbinding; }
+        public dispose(): void {
+          ++calls.disposed;
+          disposedRows.add(this);
+        }
+      });
+      const Track = ValueConverter.define('track', class {
+        public toView(value: unknown) {
+          ++calls.evaluated;
+          return value;
+        }
+      });
+      return { calls, disposedRows, deps: [...virtualRepeatDeps, Row, Track] };
+    }
+
+    const listTemplate = createScrollerTemplate(
+      '<div virtual-repeat.for="x of store.items" style="height: 50px"><row-el item.bind="x"></row-el></div>'
+    );
+
+    function renderedItems(): Item[] {
+      return virtualRepeats[0].getViews().map(view => view.scope.bindingContext.x as Item);
+    }
+
+    function subscriberCount(observerLocator: IObserverLocator, items: readonly Item[]): number {
+      return items.reduce(
+        (count, item) => count + (observerLocator.getObserver(item, 'name') as unknown as ISubscriberCollection).subs.count,
+        0,
+      );
+    }
+
+    for (const cache of [true, false]) {
+      it(`deactivates rows when an if hides the list and activates them again when shown (cache: ${cache})`, async function () {
+        const { calls, deps } = createRowTracking();
+        const store = { items: createItems() };
+        const { component, appHost, container, stop } = createFixture(
+          `<div if="value.bind: show; cache: ${cache}">${listTemplate}</div>`,
+          class App { show = true; store = store; },
+          deps,
+        );
+        const observerLocator = container.get(IObserverLocator);
+
+        try {
+          const shown = renderedItems();
+          assert.strictEqual(shown.length, 24);
+          assert.strictEqual(calls.attached, 24);
+          assert.strictEqual(subscriberCount(observerLocator, shown), 24);
+
+          component.show = false;
+          await tasksSettled();
+
+          assert.strictEqual(calls.detaching, 24, 'every row is detached');
+          assert.strictEqual(calls.unbinding, 24, 'every row is unbound');
+          assert.strictEqual(subscriberCount(observerLocator, shown), 0, 'hidden rows no longer observe their items');
+          assert.strictEqual(appHost.querySelectorAll('row-el').length, 0);
+
+          const evaluated = calls.evaluated;
+          store.items[0].name = 'changed-0';
+          store.items[1].name = 'changed-1';
+          runTasks();
+          assert.strictEqual(calls.evaluated, evaluated, 'hidden rows are not re-evaluated');
+
+          component.show = true;
+          await tasksSettled();
+
+          const rows = appHost.querySelectorAll('row-el');
+          assert.strictEqual(rows.length, 24, 'each item is rendered once');
+          assert.strictEqual(rows[0].textContent, 'changed-0');
+          assert.strictEqual(rows[1].textContent, 'changed-1');
+          assert.strictEqual(calls.attached, 48, 'rows are attached again');
+          assert.strictEqual(subscriberCount(observerLocator, shown), 24);
+        } finally {
+          await stop(true);
+        }
+      });
+    }
+
+    it('renders the current collection when it changes while an if hides the list', async function () {
+      const { calls, deps } = createRowTracking();
+      const store = { items: createItems() };
+      const { component, appHost, stop } = createFixture(
+        `<div if.bind="show">${listTemplate}</div>`,
+        class App { show = true; store = store; },
+        deps,
+      );
+
+      try {
+        component.show = false;
+        await tasksSettled();
+        store.items = createItems(5);
+        component.show = true;
+        await tasksSettled();
+
+        let rows = appHost.querySelectorAll('row-el');
+        assert.deepStrictEqual(Array.from(rows, row => row.textContent), ['item-0', 'item-1', 'item-2', 'item-3', 'item-4']);
+        assert.strictEqual(calls.attached - calls.detaching, 5, 'only the rendered rows are active');
+
+        component.show = false;
+        await tasksSettled();
+        store.items = [];
+        component.show = true;
+        await tasksSettled();
+        assert.strictEqual(appHost.querySelectorAll('row-el').length, 0);
+
+        store.items = createItems();
+        await tasksSettled();
+        rows = appHost.querySelectorAll('row-el');
+        assert.strictEqual(rows.length, 24);
+        assert.strictEqual(rows[0].textContent, 'item-0');
+        assert.strictEqual(calls.attached - calls.detaching, 24);
+      } finally {
+        await stop(true);
+      }
+    });
+
+    it('deactivates rows when the app stops', async function () {
+      const { calls, deps } = createRowTracking();
+      const store = { items: createItems() };
+      const { container, stop } = createFixture(
+        listTemplate,
+        class App { store = store; },
+        deps,
+      );
+      const observerLocator = container.get(IObserverLocator);
+      const shown = renderedItems();
+
+      await stop(true);
+
+      assert.strictEqual(calls.detaching, 24);
+      assert.strictEqual(calls.unbinding, 24);
+      assert.strictEqual(subscriberCount(observerLocator, shown), 0);
+
+      const evaluated = calls.evaluated;
+      store.items[0].name = 'changed-0';
+      runTasks();
+      assert.strictEqual(calls.evaluated, evaluated, 'rows of a stopped app are not re-evaluated');
+    });
+
+    for (const boundary of ['if', 'app'] as const) {
+      it(`${boundary} teardown waits for async row detaching and unbinding`, async function () {
+        let finishDetaching!: () => void;
+        let finishUnbinding!: () => void;
+        const detaching = new Promise<void>(resolve => { finishDetaching = resolve; });
+        const unbinding = new Promise<void>(resolve => { finishUnbinding = resolve; });
+        const calls = { detaching: 0, unbinding: 0 };
+        let owningIf!: If;
+        const CaptureIf = LifecycleHooks.define({}, class {
+          public created(vm: unknown): void {
+            if (vm instanceof If) owningIf = vm;
+          }
+        });
+        const Row = CustomElement.define({
+          name: 'row-el',
+          template: '${item.name}',
+          bindables: ['item'],
+        }, class {
+          public detaching(): Promise<void> {
+            ++calls.detaching;
+            return detaching;
+          }
+          public unbinding(): Promise<void> {
+            ++calls.unbinding;
+            return unbinding;
+          }
+        });
+        const { component, au, appHost, container, stop } = createFixture(
+          boundary === 'if' ? `<div if.bind="show">${listTemplate}</div>` : listTemplate,
+          class App { show = true; store = { items: createItems() }; },
+          [...virtualRepeatDeps, Row, CaptureIf],
+        );
+        const shown = renderedItems();
+        let settled = false;
+        let completion: Promise<void> | undefined;
+
+        try {
+          // The row controllers are not normal children. Their initiator must
+          // nevertheless keep the owning transition open through both phases.
+          if (boundary === 'if') {
+            component.show = false;
+            runTasks();
+            // tasksSettled only drains scheduled work; the if owns this
+            // lifecycle promise rather than registering it with the scheduler.
+            completion = Promise.resolve((owningIf as unknown as { pending: void | Promise<void> }).pending);
+          } else {
+            completion = Promise.resolve(au.stop());
+          }
+          completion = completion.then(() => { settled = true; });
+          assert.strictEqual(calls.detaching, 24);
+          // Keep each gate closed for a task turn so an early completion has
+          // time to reach its promise callbacks before we check it.
+          await new Promise<void>(resolve => setTimeout(resolve, 0));
+          assert.strictEqual(settled, false, 'owner waits for row detaching');
+          assert.strictEqual(calls.unbinding, 0);
+          assert.strictEqual(appHost.querySelectorAll('row-el').length, 24);
+
+          finishDetaching();
+          await new Promise<void>(resolve => setTimeout(resolve, 0));
+          assert.strictEqual(calls.unbinding, 24);
+          assert.strictEqual(settled, false, 'owner waits for row unbinding');
+
+          finishUnbinding();
+          await completion;
+          assert.strictEqual(appHost.querySelectorAll('row-el').length, 0);
+          assert.strictEqual(subscriberCount(container.get(IObserverLocator), shown), 0);
+        } finally {
+          finishDetaching();
+          finishUnbinding();
+          try {
+            await completion;
+          } finally {
+            await stop(true);
+          }
+        }
+      });
+    }
+
+    it('app restart reuses detached rows and final disposal reaches them once', async function () {
+      const { calls, disposedRows, deps } = createRowTracking();
+      const store = { items: createItems() };
+      const { au, appHost, container, stop } = createFixture(
+        listTemplate,
+        class App { store = store; },
+        deps,
+      );
+      const repeat = virtualRepeats[0];
+      const views = repeat.getViews().slice();
+      const observerLocator = container.get(IObserverLocator);
+      const shown = renderedItems();
+
+      try {
+        await au.stop();
+        assert.strictEqual(calls.disposed, 0, 'stop retains row controllers');
+        assert.strictEqual(subscriberCount(observerLocator, shown), 0);
+        store.items[0].name = 'updated while stopped';
+
+        await au.start();
+        await tasksSettled();
+        assert.strictEqual(virtualRepeats[0], repeat);
+        assert.strictEqual(repeat.getViews().length, views.length);
+        views.forEach((view, i) => assert.strictEqual(repeat.getViews()[i], view));
+        assert.strictEqual(appHost.querySelector('row-el')!.textContent, 'updated while stopped');
+        assert.strictEqual(calls.attached, 48);
+        assert.strictEqual(subscriberCount(observerLocator, shown), 24);
+      } finally {
+        await stop(true);
+      }
+      assert.strictEqual(calls.disposed, 24);
+      assert.strictEqual(disposedRows.size, 24, 'each row is disposed exactly once');
+      assert.strictEqual(repeat.getViews().length, 0);
+    });
+
+    it('a non-cached if disposes rows once per removed list', async function () {
+      const { calls, disposedRows, deps } = createRowTracking();
+      const { component, stop } = createFixture(
+        `<div if="value.bind: show; cache: false">${listTemplate}</div>`,
+        class App { show = true; store = { items: createItems() }; },
+        deps,
+      );
+      try {
+        component.show = false;
+        await tasksSettled();
+        assert.strictEqual(calls.disposed, 24);
+        assert.strictEqual(disposedRows.size, 24);
+        assert.strictEqual(virtualRepeats[0].getViews().length, 0);
+        component.show = true;
+        await tasksSettled();
+        assert.strictEqual(calls.attached, 48);
+        assert.strictEqual(calls.disposed, 24);
+      } finally {
+        await stop(true);
+      }
+      assert.strictEqual(calls.disposed, 48);
+      assert.strictEqual(disposedRows.size, 48, 'both lists dispose each row exactly once');
+    });
+
+    it('deactivates rows when an ancestor component is removed', async function () {
+      const { calls, deps } = createRowTracking();
+      const store = { items: createItems() };
+      const ListHost = CustomElement.define({
+        name: 'list-host',
+        template: listTemplate,
+        bindables: ['store'],
+      });
+      const { component, appHost, container, stop } = createFixture(
+        '<list-host if.bind="show" store.bind="store"></list-host>',
+        class App { show = true; store = store; },
+        [...deps, ListHost],
+      );
+      const observerLocator = container.get(IObserverLocator);
+
+      try {
+        const shown = renderedItems();
+        assert.strictEqual(appHost.querySelectorAll('row-el').length, 24);
+
+        component.show = false;
+        await tasksSettled();
+
+        assert.strictEqual(calls.detaching, 24);
+        assert.strictEqual(calls.unbinding, 24);
+        assert.strictEqual(subscriberCount(observerLocator, shown), 0);
+        assert.strictEqual(appHost.querySelectorAll('list-host').length, 0);
+
+        component.show = true;
+        await tasksSettled();
+
+        assert.strictEqual(appHost.querySelectorAll('row-el').length, 24);
+        assert.strictEqual(calls.attached, 48);
+      } finally {
+        await stop(true);
+      }
     });
   });
 

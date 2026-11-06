@@ -149,9 +149,11 @@ void describe('explicit revision reports', () => {
 void describe('benchmark report profiles', () => {
   void it('places the representative workload in every intended profile', () => {
     assert.equal(expectedResultFiles('smoke').filter(file => file.startsWith('repeat-realistic-')).length, 1);
-    assert.equal(expectedResultFiles('full').filter(file => file.startsWith('repeat-realistic-')).length, 5);
+    assert.equal(expectedResultFiles('full').filter(file => file.startsWith('repeat-realistic-')).length, 6);
     assert.equal(expectedResultFiles('smoke').includes('repeat-realistic-heap-lifecycle-500.json'), false);
     assert.equal(expectedResultFiles('smoke').includes('repeat-realistic-refresh-loop-20x1000.json'), false);
+    assert.equal(expectedResultFiles('smoke').includes('repeat-realistic-reshow-1000.json'), false);
+    assert.equal(expectedResultFiles('full').includes('repeat-realistic-reshow-1000.json'), true);
     assert.equal(expectedResultFiles('smoke').includes('binding-dependency-rotation.json'), false);
     assert.equal(expectedResultFiles('full').includes('binding-dependency-rotation.json'), true);
     assert.deepEqual(expectedResultFiles('master'), expectedResultFiles('full'));
@@ -162,7 +164,7 @@ void describe('benchmark report profiles', () => {
     const report = createBenchmarkReport(inputs);
     const afterGc = report.measurements.filter(measurement => measurement.metric.kind === 'used-js-heap-after-gc');
 
-    assert.equal(report.measurements.length, 31);
+    assert.equal(report.measurements.length, 33);
     assert.deepEqual(afterGc.map(measurement => measurement.metric.state), ['live-list', 'post-teardown']);
     assert.deepEqual(afterGc.map(measurement => measurement.metric.unit), ['byte', 'byte']);
     assert.deepEqual(afterGc.map(measurement => measurement.difference.assessment), ['lower', 'lower']);
@@ -291,7 +293,7 @@ void describe('focused benchmark reports', () => {
       }
       const complete = createBenchmarkReport(inputs);
       if (profile === 'full') assert.equal(validateBenchmarkReport(complete, complete.comparison), complete);
-      assert.equal(complete.measurements.length, 31);
+      assert.equal(complete.measurements.length, 33);
     }
   });
 
@@ -396,6 +398,7 @@ function fullInputs() {
       'realistic-mixed-1000',
     ),
     timingConfigInput('repeat-realistic-refresh-loop-20x1000.json', 'app-repeat-realistic/refresh-loop.json'),
+    timingConfigInput('repeat-realistic-reshow-1000.json', 'app-repeat-realistic/reshow.json'),
     timingConfigInput('binding-dependency-rotation.json', 'app-repeat-realistic/dependency-rotation.json'),
     timingConfigInput('i18n-formatting-refresh-1000.json', 'app-i18n-formatting/refresh.json'),
     timingConfigInput('template-compilation.json', 'app-template-compilation/compilation.json'),

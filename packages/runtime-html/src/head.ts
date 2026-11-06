@@ -518,7 +518,8 @@ export class Head implements IHead {
               if (key === 'meta:charset') {
                 ref = head.firstChild;
               } else if (key === 'base') {
-                ref = head.querySelector('meta[charset]')?.nextSibling ?? head.firstChild;
+                const charset = head.querySelector('meta[charset]');
+                ref = charset === null ? head.firstChild : charset.nextSibling;
               }
               head.insertBefore(next, ref);
             }

@@ -256,4 +256,16 @@ describe('router/head.spec.ts', function () {
       for (const el of server) el.remove();
     }
   });
+
+  it('rejects a route head that is not an object or function', function () {
+    assert.throws(
+      () => {
+        @route({ path: 'x', head: 'nope' as unknown as object })
+        @customElement({ name: 'invalid-head', template: '' })
+        class InvalidHead { }
+        void InvalidHead;
+      },
+      /Invalid route config property: "\.head"\. Expected object or function/,
+    );
+  });
 });

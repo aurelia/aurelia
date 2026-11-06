@@ -9,6 +9,7 @@ import {
   type IHeadOptions,
   ISSRContext,
   type ISSRScope,
+  ShortHandBindingSyntax,
 } from '@aurelia/runtime-html';
 import { assert, createFixture, TestContext } from '@aurelia/testing';
 
@@ -20,6 +21,7 @@ describe('3-runtime-html/head.spec.ts', function () {
     return {
       component: fixture.component as ReturnType<typeof createFixture>['component'] & Record<string, any>,
       appHost: fixture.appHost,
+      au: fixture.au,
       stop: fixture.stop,
       doc,
       head: fixture.container.get(IHead),
@@ -271,6 +273,83 @@ describe('3-runtime-html/head.spec.ts', function () {
       await stop(true);
     });
 
+    it('puts <base> after an existing <meta charset>', async function () {
+      const { head, doc, stop } = await startHead();
+      const charset = head.create();
+      const base = head.create();
+      charset.set({ meta: [{ charset: 'utf-8' }] });
+      base.set({ base: { href: '/app/' } });
+
+      const meta = doc.head.querySelector('meta[charset]');
+      assert.strictEqual(meta.nextElementSibling.localName, 'base');
+
+      base.dispose();
+      charset.dispose();
+      await stop(true);
+    });
+
+    it('keys meta tags by http-equiv regardless of case, and by media', async function () {
+      const { head, all, one, stop } = await startHead();
+      const a = head.create();
+      const b = head.create();
+
+      a.set({ meta: [
+        { 'http-equiv': 'Content-Security-Policy', content: 'a' },
+        { name: 'theme-color', content: '#fff', media: '(prefers-color-scheme: light)' },
+      ] });
+      b.set({ meta: [
+        { 'http-equiv': 'content-security-policy', content: 'b' },
+        { name: 'theme-color', content: '#000', media: '(prefers-color-scheme: dark)' },
+      ] });
+
+      assert.strictEqual(one('meta[http-equiv][data-au-head]').getAttribute('content'), 'b');
+      assert.deepStrictEqual(all('meta[name="theme-color"]').map(x => x.getAttribute('content')).sort(), ['#000', '#fff']);
+
+      b.dispose();
+      assert.strictEqual(one('meta[http-equiv][data-au-head]').getAttribute('content'), 'a');
+      a.dispose();
+      await stop(true);
+    });
+
+    it('never merges tags without an identifying attribute', async function () {
+      const { head, all, stop } = await startHead();
+      const a = head.create();
+      const b = head.create();
+
+      a.set({ meta: [{ content: 'a' }] });
+      b.set({ meta: [{ content: 'b' }] });
+      assert.deepStrictEqual(all('meta[data-au-head]').map(x => x.getAttribute('content')), ['a', 'b']);
+
+      a.dispose();
+      b.dispose();
+      assert.strictEqual(all('meta[data-au-head]').length, 0);
+      await stop(true);
+    });
+
+    it('keys links that have no rel or no href', async function () {
+      const { head, one, stop } = await startHead();
+      const a = head.create();
+      const b = head.create();
+
+      a.set({ link: [{ href: '/a.css', title: 'a' }, { rel: 'Icon', title: 'a' }] });
+      b.set({ link: [{ href: '/a.css', title: 'b' }, { rel: 'icon', title: 'b' }] });
+      assert.strictEqual(one('link[href="/a.css"]').getAttribute('title'), 'b');
+      assert.strictEqual(one('link[rel="icon"][data-au-head]').getAttribute('title'), 'b');
+
+      b.dispose();
+      a.dispose();
+      await stop(true);
+    });
+
+    it('renders an empty script for a json value without a JSON form', async function () {
+      const { head, one, stop } = await startHead();
+      const source = head.create();
+      source.set({ script: [{ type: 'application/ld+json', key: 'k', json: () => 1 }] });
+      assert.strictEqual(one('script[data-au-head="k"]').textContent, '');
+      source.dispose();
+      await stop(true);
+    });
+
     it('applies defaults while the app runs', async function () {
       const { one, all, doc, stop } = await startHead('', {}, {
         defaults: { title: 'Default', meta: [{ property: 'og:site_name', content: 'Shop' }] },
@@ -460,6 +539,59 @@ describe('3-runtime-html/head.spec.ts', function () {
       );
     });
 
+    it('renders plain scripts and the :json shorthand', async function () {
+      const { component, one, stop } = await startHead(
+        `<au-head>
+          <script src="https://cdn.example/widget.js" async></script>
+          <script type="application/ld+json" key="product" :json="product"></script>
+        </au-head>`,
+        { product: { name: 'Kettle' } },
+        {},
+        [...ShortHandBindingSyntax],
+      );
+      const widget = one('script[src="https://cdn.example/widget.js"]');
+      assert.strictEqual(widget.getAttribute('data-au-head'), '');
+      assert.strictEqual(widget.hasAttribute('async'), true);
+      assert.deepStrictEqual(JSON.parse(one('script[data-au-head="product"]').textContent), { name: 'Kettle' });
+
+      component.product = { name: 'Toaster' };
+      await tasksSettled();
+      assert.deepStrictEqual(JSON.parse(one('script[data-au-head="product"]').textContent), { name: 'Toaster' });
+      await stop(true);
+    });
+
+    it('moves <let> out with the tags', async function () {
+      const { component, doc, stop } = await startHead(
+        '<au-head><let full-title="${name} | Shop"></let><title>${fullTitle}</title></au-head>',
+        { name: 'Kettle' },
+      );
+      assert.strictEqual(doc.title, 'Kettle | Shop');
+
+      component.name = 'Toaster';
+      await tasksSettled();
+      assert.strictEqual(doc.title, 'Toaster | Shop');
+      await stop(true);
+    });
+
+    it('does not wrap a tag that already has au-head-tag', async function () {
+      const { one, stop } = await startHead('<au-head><meta au-head-tag name="description" content="once"></au-head>');
+      assert.strictEqual(one('meta[name="description"]').getAttribute('content'), 'once');
+      await stop(true);
+    });
+
+    it('lets controller visitors stop inside a tag view', async function () {
+      const { au, stop } = await startHead('<au-head><meta name="description" content="x"></au-head>');
+      let visited = 0;
+      const found = au.root.controller.accept(controller => {
+        ++visited;
+        return controller.vmKind === 'synthetic' ? true : void 0;
+      });
+      assert.strictEqual(found, true);
+      // the root, the au-head-tag attribute, then its view
+      assert.strictEqual(visited, 3);
+      await stop(true);
+    });
+
     it('keeps SSR markers out of the head', async function () {
       const { doc, head, stop } = await startHead(
         '<au-head><title>${name}</title><meta name="description" content.bind="name"></au-head>',
@@ -518,6 +650,22 @@ describe('3-runtime-html/head.spec.ts', function () {
         description.remove();
         ogImage.remove();
         jsonLd.remove();
+      }
+    });
+
+    it('leaves a server-rendered <title> to the title handling', async function () {
+      const ctx = TestContext.create();
+      const doc = ctx.doc;
+      const title = serverTag(doc, '<title data-au-head="">Server</title>');
+
+      try {
+        const fixture = createFixture('', {}, [HeadConfiguration], true, ctx);
+        await fixture.started;
+        await nextTurn();
+        assert.strictEqual(title.parentNode, doc.head, 'a server <title> is not removed as an unclaimed tag');
+        await fixture.stop(true);
+      } finally {
+        title.remove();
       }
     });
 

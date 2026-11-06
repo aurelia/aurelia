@@ -137,7 +137,7 @@ export class StyleAttributeAccessor implements IAccessor {
       const styleTuples = this._getStyleTuples(currentValue);
 
       let style: string;
-      let version = this.version;
+      const version = this.version;
 
       this._oldValue = currentValue;
 
@@ -160,12 +160,14 @@ export class StyleAttributeAccessor implements IAccessor {
         return;
       }
 
-      version -= 1;
       for (style in styles) {
-        if (!hasOwnProperty.call(styles, style) || styles[style] !== version) {
+        if (!hasOwnProperty.call(styles, style) || styles[style] === version) {
           continue;
         }
         this.obj.style.removeProperty(style);
+        // Forget removed styles so dynamically named properties do not accumulate
+        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+        delete styles[style];
       }
     }
   }

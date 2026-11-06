@@ -476,6 +476,7 @@ export const InterpolationBindingRenderer = /*@__PURE__*/ renderer(class Interpo
   public readonly target = itInterpolation;
   public constructor() {
     InterpolationPartBinding.mix();
+    ContentBinding.mix();
   }
   public render(
     renderingCtrl: IHydratableController,
@@ -486,11 +487,37 @@ export const InterpolationBindingRenderer = /*@__PURE__*/ renderer(class Interpo
     observerLocator: IObserverLocator,
   ): void {
     const container = renderingCtrl.container;
+    const ast = ensureExpression(exprParser, instruction.from, etInterpolation);
+    if (instruction.isTextContent === true) {
+      // RCDATA cannot carry marker comments. Recreate the text targets inside
+      // the marked element; independent bindings preserve nullish conversion
+      // and per-expression behaviors such as debounce.
+      const element = target as HTMLElement;
+      const { parts, expressions } = ast;
+      element.textContent = parts[0];
+      for (let i = 0; i < expressions.length; ++i) {
+        const text = platform.document.createTextNode('');
+        element.appendChild(text);
+        if (parts[i + 1] !== '') {
+          element.appendChild(platform.document.createTextNode(parts[i + 1]));
+        }
+        renderingCtrl.addBinding(new ContentBinding(
+          renderingCtrl,
+          container,
+          observerLocator,
+          platform,
+          expressions[i],
+          text,
+          renderingCtrl.strict ?? false,
+        ));
+      }
+      return;
+    }
     const binding = new InterpolationBinding(
       renderingCtrl,
       container,
       observerLocator,
-      ensureExpression(exprParser, instruction.from, etInterpolation),
+      ast,
       getTarget(target),
       instruction.to,
       toView,

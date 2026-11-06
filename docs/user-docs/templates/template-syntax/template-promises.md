@@ -98,6 +98,8 @@ await tasksSettled();
 
 Promise branches participate in the lifecycle of their owning view. When that view is removed, Aurelia waits for branch activation or removal already underway before finishing teardown.
 
+A Promise does not have to settle before its view is removed. If it settles after `Aurelia.stop()`, after navigating away, or while a cached `if` hides it, Aurelia ignores the result for that removed view. When a cached view is shown again with the same Promise, it renders the `then` or `catch` branch for the settled result.
+
 ## Promise Binding with Functions and Parameters
 
 You can directly bind a function call to `promise.bind`. Aurelia is smart enough to re-invoke the function only when its parameters change, treating function calls in templates as pure operations.

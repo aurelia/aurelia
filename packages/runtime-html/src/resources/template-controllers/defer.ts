@@ -134,6 +134,11 @@ export class Defer implements ICustomAttributeViewModel {
   /** @internal */ private _loadingShownAt: number = -1;
   /** @internal */ private _loaded: boolean = false;
   /** @internal */ private _loadPromise: Promise<void> | null = null;
+  /**
+   * What the loaders resolved to, registered when the content first renders.
+   * @internal
+   */
+  private _modules: unknown[] | null = null;
   /** @internal */ private _contentFactory: IViewFactory | undefined = void 0;
   /** @internal */ private _branchScope: Scope | undefined = void 0;
   /**
@@ -225,6 +230,7 @@ export class Defer implements ICustomAttributeViewModel {
     }
     this._views.length = 0;
     this._view = void 0;
+    this._modules = null;
   }
 
   public accept(visitor: ControllerVisitor): void | true {
@@ -404,6 +410,20 @@ export class Defer implements ICustomAttributeViewModel {
   /** @internal */
   private _complete(): void {
     try {
+      const modules = this._modules;
+      if (modules !== null) {
+        // Registered only now, not when loading finishes, so a block removed after a prefetch, or while it loads,
+        // leaves nothing behind. Only a block that loads code gets a container of its own, the content view
+        // disposes its scoped registrations with the block.
+        const factory = this._factory;
+        const container = factory.container.createChild({ inheritParentResources: true });
+        for (const value of modules) {
+          registerModule(container, this._moduleLoader, value, this);
+        }
+        this._contentFactory = this._rendering.getViewFactory(factory.def, container);
+        // Cleared once registered, so a retry after a failed registration starts again in a fresh container
+        this._modules = null;
+      }
       // Creating the content view compiles it the first time, which throws for invalid content,
       // such as a deferred element the loaded module doesn't define
       this._views[State.complete] ??= (this._contentFactory ?? this._factory).create(this.$controller).setLocation(this._location);
@@ -436,7 +456,8 @@ export class Defer implements ICustomAttributeViewModel {
   }
 
   /**
-   * Loads the dependencies of the content once, into a container of its own.
+   * Loads the dependencies of the content once. They're registered into a container of their own
+   * when the content renders.
    * A failed load is forgotten, so the next attempt calls the loaders again.
    * @internal
    */
@@ -465,13 +486,7 @@ export class Defer implements ICustomAttributeViewModel {
       return (loader as DeferredDependencyLoader)();
     }))
       .then(results => {
-        // Only a block that loads code gets a container of its own, others compile against the surrounding one
-        const factory = this._factory;
-        const container = factory.container.createChild({ inheritParentResources: true });
-        for (const result of results) {
-          registerModule(container, this._moduleLoader, result, this);
-        }
-        this._contentFactory = this._rendering.getViewFactory(factory.def, container);
+        this._modules = results;
         this._loaded = true;
         this._loadPromise = null;
       })

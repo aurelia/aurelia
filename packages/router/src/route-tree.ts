@@ -365,7 +365,8 @@ export class RouteTree {
       this.fragment,
       this.root._clone(),
     );
-    clone.root._setTree(this);
+    // Contextual navigations must read the new transition's options and query.
+    clone.root._setTree(clone);
     return clone;
   }
 
@@ -818,6 +819,6 @@ function appendNode(
   return onResolve(childNode, $childNode => {
     log.trace(`appendNode($childNode:%s)`, $childNode);
     node._appendChild($childNode);
-    return $childNode.context.vpa._scheduleUpdate(node._tree.options, $childNode);
+    return $childNode.context.vpa._scheduleUpdate(node._tree.options.transitionPlan, $childNode);
   });
 }

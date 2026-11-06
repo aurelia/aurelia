@@ -1,10 +1,10 @@
 ---
-description: Declare, read, and validate route parameters in Aurelia's router, including required, optional, wildcard, and constrained segments.
+description: Read values from route paths and queries, validate them, and pass them to another route.
 ---
 
 # Route Parameters Guide
 
-Route parameters let you map dynamic pieces of a URL to runtime data. This guide covers how to declare each parameter style, consume values inside components, and coordinate parent/child segments.
+Route parameters carry values from a URL into a component. For example, a route with path `users/:id` receives `'42'` as its `id` when someone visits `/users/42`.
 
 ## 1. Declare parameterized paths
 
@@ -56,7 +56,7 @@ For asynchronous preparation, use `loading` and throw to fail the navigation (or
 
 ## 2. Access parent and child parameters together
 
-Nested routes often need both parent and child IDs (for example `/companies/10/projects/17`). Resolve `IRouteContext` and use `getRouteParameters` to aggregate values.
+Nested routes often need both parent and child IDs (for example `/companies/10/projects/17`). Resolve `IRouteContext` and call `getRouteParameters` to read them together.
 
 ```typescript
 import { IRouteContext } from '@aurelia/router';
@@ -73,7 +73,7 @@ export class ProjectDetail {
 }
 ```
 
-Callers can opt in to query parameters too:
+To include query parameters, set `includeQueryParams`:
 
 ```typescript
 this.routeContext.getRouteParameters({ includeQueryParams: true });
@@ -81,7 +81,7 @@ this.routeContext.getRouteParameters({ includeQueryParams: true });
 
 ## 3. Work with query parameters alongside path params
 
-Even though query parameters are not part of the path definition, you can treat them as a cohesive set.
+To update filters in the query string, copy the current query and set the fields that changed:
 
 ```typescript
 import { IRouter, ICurrentRoute } from '@aurelia/router';
@@ -92,14 +92,14 @@ export class FilterPanel {
   private readonly current = resolve(ICurrentRoute);
 
   apply(filters: Record<string, string>) {
-    return this.router.load(this.current.path, {
-      queryParams: filters,
-    });
+    const query = new URLSearchParams(this.current.query);
+    for (const [key, value] of Object.entries(filters)) query.set(key, value);
+    return this.router.navigate(`?${query}`);
   }
 }
 ```
 
-Use `ICurrentRoute` to observe query changes reactively (see [Router state management](./router-state-management.md#managed-history-entries-au-nav-id-and-managedstate)).
+This preserves query fields that are not replaced by `filters`. To update the page after navigation, observe `ICurrentRoute.query`. If `loading()` fetches the page's data, pass `transitionPlan: 'invoke-lifecycles'` for that navigation; query changes alone do not rerun the hook on an unchanged page. See [application URL navigation](application-url-navigation.md#refresh-a-page-when-its-query-changes).
 
 ## 4. Generate links with parameters
 
@@ -145,7 +145,7 @@ For stricter validation, pair regex-constrained paths with `canLoad` type checks
 
 ## 6. Test parameterized routes
 
-Unit tests can render a component, navigate to a parameterized path, and assert how parameters flow through the lifecycle.
+Test a parameterized route by navigating to it and checking what the component renders:
 
 ```typescript
 import { customElement } from '@aurelia/runtime-html';
@@ -187,19 +187,19 @@ You can also mock `IRouteContext` or `ICurrentRoute` to simulate specific parame
 
 ### Bookmarkable search filters
 
-Goal: encode search term, page number, and filter chips in the URL so users can share the view.
+Keep search filters in the URL so users can bookmark or share the current view.
 
 1. Define the base route `/search` and keep filters in the query string (`?q=aurelia&page=2&tag=forms`).
-2. Use `ICurrentRoute.query` to read the current filters in `attached()` and hydrate your form.
-3. When filters change, call `router.load(this.current.path, { queryParams: newFilters })` to update the URL without reloading the whole app.
+2. Use the incoming `RouteNode.queryParams` in `loading()` to prepare a newly routed page, or react to successful query changes for both initial entry and later navigation. `ICurrentRoute` is updated at navigation end; a newly created page's `attached()` can still see the previous location.
+3. When filters change, copy the query fields to preserve into `URLSearchParams` and call `router.navigate('?' + query.toString())`. If `loading()` owns the data refresh, pass the per-navigation lifecycle override described above.
 
 Checklist:
 - Refreshing `/search?q=router&page=3` shows the same filter state.
-- `router.load` uses `historyStrategy: 'replace'` when only filters change to avoid polluting history (configure via navigation options if needed).
+- Choose `historyStrategy: 'replace'` for changes that should replace the current history entry, or keep `push` when Back should revisit earlier filter choices. Verify the page also reacts to browser-driven query changes.
 
 ### Parent + child identifiers
 
-Goal: address `/companies/:companyId/projects/:projectId` and display both IDs in deeply nested children.
+A deeply nested component at `/companies/:companyId/projects/:projectId` can read both IDs:
 
 1. Parent route declares `companies/:companyId` and renders a `<au-viewport>` for projects.
 2. Child route declares `projects/:projectId`.
@@ -211,7 +211,7 @@ Checklist:
 
 ### Redirect invalid params
 
-Goal: keep `/reports/:date` constrained to valid ISO dates.
+Accept valid ISO dates at `/reports/:date` and redirect invalid ones:
 
 1. Constrain the route with `:date{{^\\d{4}-\\d{2}-\\d{2}$}}` to block obviously bad paths.
 2. Inside `canLoad`, parse the date and return `'reports/today'` if invalid.

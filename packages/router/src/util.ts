@@ -6,6 +6,16 @@ import { BindingMode } from '@aurelia/runtime-html';
 export type UnwrapPromise<T> = T extends Promise<infer R> ? R : T;
 
 /** @internal */
+export function isNavigationClick(event: MouseEvent, el: Element, windowName: string): boolean {
+  if (event.defaultPrevented || event.button !== 0 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return false;
+  if (el.nodeName !== 'A') return true;
+  // Read the target at activation time: bindings can change it after hydration.
+  // Non-anchor load commands do not have browser download/window semantics.
+  const target = el.getAttribute('target');
+  return !el.hasAttribute('download') && (target === null || target === '' || target === '_self' || target === windowName);
+}
+
+/** @internal */
 export class Batch {
   public _done: boolean = false;
   public readonly _head: Batch;

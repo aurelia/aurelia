@@ -75,6 +75,14 @@ export class RouterOptions {
      * The default value is `false`.
      */
     public readonly useEagerLoading: boolean,
+    /**
+     * Keep the current document path and query when publishing hash routes.
+     * This lets an application hosted at a specific HTML document keep that
+     * document when a link is opened in another tab or the page is reloaded.
+     * Applies only with `useUrlFragmentHash`. The default is `false`, retaining
+     * the existing publication behavior based on `basePath` or the base href.
+     */
+    public readonly preserveHashDocument: boolean = false,
   ) {
     this._urlParser = useUrlFragmentHash ? fragmentUrlParser : pathUrlParser;
   }
@@ -89,7 +97,8 @@ export class RouterOptions {
       input.activeClass ?? null,
       input.restorePreviousRouteTreeOnError ?? true,
       input.treatQueryAsParameters ?? false,
-      input.useEagerLoading ?? false
+      input.useEagerLoading ?? false,
+      input.preserveHashDocument ?? false,
     );
   }
 
@@ -106,6 +115,8 @@ export class RouterOptions {
 }
 
 export interface INavigationOptions extends Partial<NavigationOptions> { }
+/** Navigation effects for an application URL; its reference supplies the path, query and fragment. */
+export interface INavigationBehaviorOptions extends Pick<INavigationOptions, 'historyStrategy' | 'title' | 'titleSeparator' | 'state' | 'transitionPlan'> { }
 export class NavigationOptions implements INavigationOptions {
   private constructor(
     /**

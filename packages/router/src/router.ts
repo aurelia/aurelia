@@ -1,18 +1,20 @@
 import { IContainer, ILogger, DI, IDisposable, onResolve, Writable, onResolveAll, Registration, resolve, isObjectOrFunction } from '@aurelia/kernel';
 import { CustomElement, CustomElementDefinition, IPlatform } from '@aurelia/runtime-html';
 
-import { createEagerInstructions, IRouteContext, RouteConfigContext, RouteContext } from './route-context';
+import { IRouteContext, RouteConfigContext, RouteContext } from './route-context';
 import { IRouterEvents, NavigationStartEvent, NavigationEndEvent, NavigationCancelEvent, ManagedState, AuNavId, RoutingTrigger, NavigationErrorEvent } from './router-events';
-import { ILocationManager } from './location-manager';
+import { ILocationManager, normalizePath } from './location-manager';
 import { RouteConfig, RouteType } from './route';
 import { IRouteViewModel } from './component-agent';
 import { RouteTree, RouteNode, createAndAppendNodes } from './route-tree';
 import { IViewportInstruction, NavigationInstruction, RouteContextLike, ViewportInstructionTree, ViewportInstruction } from './instructions';
 import { Batch, mergeDistinct, UnwrapPromise } from './util';
 import { type ViewportAgent } from './viewport-agent';
-import { INavigationOptions, NavigationOptions, type RouterOptions, IRouterOptions } from './options';
+import { INavigationOptions, INavigationBehaviorOptions, NavigationOptions, type RouterOptions, IRouterOptions } from './options';
 import { Events, debug, error, getMessage, trace } from './events';
 import { queueAsyncTask } from '@aurelia/runtime';
+import { RouteExpression } from './route-expression';
+import { fragmentUrlParser, pathUrlParser } from './url-parser';
 
 /** @internal */
 export const emptyQuery = Object.freeze(new URLSearchParams());
@@ -218,6 +220,9 @@ export class Router {
 
   public start(performInitialNavigation: boolean): void | Promise<boolean> {
     (this as Writable<Router>)._hasTitleBuilder = typeof this.options.buildTitle === 'function';
+    // Retain the existing codec boundary for applications that replaced the
+    // internal parser. Built-in parsers can use the adapter's extracted path.
+    const hasBuiltInParser = this.options._urlParser === (this.options.useUrlFragmentHash ? fragmentUrlParser : pathUrlParser);
 
     this._locationMgr.startListening();
     this._locationChangeSubscription = this._events.subscribe('au:router:location-change', e => {
@@ -241,7 +246,9 @@ export class Router {
         const isBack = auNavId <= this._lastLocationChangeStateId || this._lastLocationChangeStateId === 0;
         this._lastLocationChangeStateId = auNavId;
         const options = NavigationOptions.create(routerOptions, { historyStrategy: 'replace', isBack });
-        const instructions = ViewportInstructionTree.create(e.url, routerOptions, options, this._ctx, null);
+        const instructions = e._routePath === void 0 || !hasBuiltInParser
+          ? ViewportInstructionTree.create(e.url, routerOptions, options, this._ctx, null)
+          : this._createUrlInstructions(e._routePath, options);
         // The promise will be stored in the transition. However, unlike `load()`, `start()` does not return this promise in any way.
         // The router merely guarantees that it will be awaited (or canceled) before the next transition, so a race condition is impossible either way.
         // However, it is possible to get floating promises lingering during non-awaited unit tests, which could have unpredictable side-effects.
@@ -252,8 +259,66 @@ export class Router {
     });
 
     if (!this._navigated && performInitialNavigation) {
-      return this.load(this._locationMgr.getPath(), { historyStrategy: this.options.historyStrategy !== 'none' ? 'replace' : 'none' });
+      const options = { historyStrategy: this.options.historyStrategy !== 'none' ? 'replace' : 'none' } as const;
+      const path = this._locationMgr._getRoutePath?.();
+      // Older/custom location managers retain their original string intake.
+      // Built-in adapters identify a path whose deployment base is already gone.
+      if (path === void 0) return this.load(this._locationMgr.getPath(), options);
+      const instructions = hasBuiltInParser
+        ? this._createUrlInstructions(path, options)
+        // A custom hash codec owns the serialized route envelope. Parse it
+        // once, just as for location events, without public load rebasing it.
+        : ViewportInstructionTree.create(this.options.useUrlFragmentHash ? this._locationMgr.getPath() : path, this.options, options, this._ctx, null);
+      return this._enqueue(instructions, 'api', null, null);
     }
+  }
+
+  /** Navigate relative to the last successful application URL, independently of route contexts. */
+  public navigate(reference: string, options?: INavigationBehaviorOptions): Promise<boolean> {
+    return this._enqueue(this._createUrlInstructions(this._resolveUrlReference(reference), options ?? {}), 'api', null, null);
+  }
+
+  /** Resolve an application URL reference to a browser-ready href without navigating. */
+  public createHref(reference: string): string {
+    return this._createHrefFromPath(this._resolveUrlReference(reference));
+  }
+
+  /** @internal */
+  public _createHrefFromPath(path: string): string {
+    // URL links already captured their application path for the click. Share
+    // publication without resolving that target against the current URL again.
+    const url = pathUrlParser.parse(path);
+    // Browser-facing hrefs use the configured codec, just like a successful
+    // navigation. Reference resolution itself stays in application-URL space.
+    return this._locationMgr.addBaseHref(this.options._urlParser.stringify(url.path.slice(1), url.query, url.fragment, true));
+  }
+
+  /** @internal */
+  public _resolveUrlReference(reference: string): string {
+    // Use the committed route tree, not the browser location: pending or
+    // history-disabled navigation must not silently change the reference base.
+    const origin = 'https://aurelia.invalid';
+    let url: URL | undefined;
+    // URL parsing ignores leading C0 whitespace, including before a scheme.
+    // eslint-disable-next-line no-control-regex
+    if (typeof reference === 'string' && !/^[\u0000-\u0020]*(?:[a-z][a-z\d+.-]*:|[/\\]{2})/i.test(reference)) {
+      const current = this._instructions.toUrl(true, pathUrlParser, true);
+      try {
+        url = new URL(reference, `${origin}/${current.replace(/^\//, '')}`);
+      } catch { /* Report invalid syntax through the same mapped diagnostic below. */ }
+    }
+    if (url?.origin !== origin) throw new Error(getMessage(Events.rtrInvalidUrlReference, reference));
+    return `${url.pathname}${url.search}${url.hash}`;
+  }
+
+  /** @internal */
+  private _createUrlInstructions(path: string, options: INavigationOptions): ViewportInstructionTree {
+    // This is an application address, not a document URL or an authored
+    // contextual instruction. Both native intake and navigate use this seam;
+    // recognition retains the existing URL grammar and route-ID precedence.
+    return RouteExpression.parse(pathUrlParser.parse(normalizePath(path))).toInstructionTree(
+      NavigationOptions.create(this.options, { ...options, context: this._ctx }),
+    );
   }
 
   public stop(): void {
@@ -409,16 +474,15 @@ export class Router {
   }
 
   /**
-   * Generate a path from the provided instructions.
+   * Generate a path relative to the context selected by the instruction prefixes.
+   * A leading `../` selects a parent context and is consumed; replay the result
+   * from that context. Use `IRouteContext.generateRootedPath` for root-router replay.
    *
    * @param instructionOrInstructions - The navigation instruction(s) to generate the path for.
    * @param context - The context to use for relative navigation. If not provided, the root context is used.
    */
-  public generatePath(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], context?: RouteContextLike): string | Promise<string> {
-    return onResolve(
-      this.createViewportInstructions(createEagerInstructions(instructionOrInstructions), { context: context ?? this._ctx }, null, true),
-      vit => vit.toUrl(true, this.options._urlParser, (vit.options.context as IRouteContext).isRoot),
-    );
+  public generatePath(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], context?: RouteContextLike): string | Promise<string> {
+    return (context == null ? this._ctx : this._resolveContext(context)).generateRelativePath(instructionOrInstructions);
   }
 
   public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null): ViewportInstructionTree;
@@ -427,7 +491,12 @@ export class Router {
     if (instructionOrInstructions instanceof ViewportInstructionTree) return instructionOrInstructions;
 
     let context: IRouteContext | null = (options?.context ?? null) as IRouteContext | null;
-    if (context !== null) context = (options as Writable<INavigationOptions>).context = this._resolveContext(context);
+    if (context !== null) {
+      context = this._resolveContext(context);
+      // Keep the caller's view model/element reference intact. ContextRouter
+      // already supplies a resolved context, so that common path needs no copy.
+      if (context !== options!.context) options = { ...options, context };
+    }
     return (context ?? this._$ctx)!.createViewportInstructions(instructionOrInstructions, options, parentRoutePath, traverseChildren as true);
   }
 
@@ -448,15 +517,12 @@ export class Router {
     trigger: RoutingTrigger,
     state: ManagedState | null,
     failedTr: Transition | null,
-  ): boolean | Promise<boolean> {
+  ): Promise<boolean> {
     const lastTr = this.currentTr;
     const logger = this._logger;
 
-    if (trigger !== 'api' && lastTr.trigger === 'api' && lastTr.instructions.equals(instructions)) {
-      // User-triggered navigation that results in `replaceState` with the same URL. The API call already triggered the navigation; event is ignored.
-      if (__DEV__) debug(logger, Events.rtrIgnoringIdenticalNav, trigger);
-      return true;
-    }
+    // History writes do not emit location events. A real Back/Forward visit
+    // remains meaningful when only its query, fragment or state has changed.
 
     let resolve: Exclude<Transition['resolve'], null> = (void 0)!; // Need this initializer because TS doesn't know the promise executor will run synchronously
     let reject: Exclude<Transition['reject'], null> = (void 0)!;
@@ -477,10 +543,16 @@ export class Router {
     // This is an intentional overwrite: if a new transition is scheduled while the currently scheduled transition hasn't even started yet,
     // then the currently scheduled transition is effectively canceled/ignored.
     // This is consistent with the runtime's controller behavior, where if you rapidly call async activate -> deactivate -> activate (for example), then the deactivate is canceled.
+    const id = ++this._navigationId;
+    // Carry explicit application state with the transition, including a guard
+    // redirect that continues this request. Native visits retain their state.
+    const managedState = instructions.options.state === null
+      ? state
+      : toManagedState({ ...state, ...instructions.options.state }, id);
     const nextTr = this._nextTr = Transition._create({
-      id: ++this._navigationId,
+      id,
       trigger,
-      managedState: state,
+      managedState,
       prevInstructions: lastTr.finalInstructions,
       finalInstructions: instructions,
       instructionsChanged: !lastTr.finalInstructions.equals(instructions),
@@ -820,7 +892,9 @@ function updateNode(
   (node as Writable<RouteNode>).fragment = vit.fragment;
 
   if (!node.context.routeConfigContext.isRoot) {
-    node.context.vpa._scheduleUpdate(node._tree.options, node);
+    // These existing nodes are outside the contextual navigation's targets.
+    // Retain their viewports; only newly compiled nodes use its plan override.
+    node.context.vpa._scheduleUpdate(null, node);
   }
   if (node.context === ctx) {
     // Do an in-place update (remove children and re-add them by compiling the instructions into nodes)

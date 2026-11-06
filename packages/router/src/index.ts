@@ -87,6 +87,7 @@ export {
 
 export {
   IRouterOptions,
+  type INavigationBehaviorOptions,
   type INavigationOptions,
   RouterOptions,
   NavigationOptions,
@@ -131,3 +132,7 @@ export {
 export {
   IContextRouter,
 } from './context-router';
+
+export {
+  UrlCustomAttribute,
+} from './resources/url';

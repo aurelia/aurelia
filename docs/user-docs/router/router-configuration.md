@@ -1,38 +1,10 @@
 ---
-description: Learn about configuring the Router.
+description: Configure how the router works with browser URLs, links, and history.
 ---
 
 # Router configuration
 
-{% hint style="info" %}
-**Bundler note:** These examples import '.html' files as raw strings (showing '?raw' for Vite/esbuild). Configure your bundler as described in [Importing external HTML templates with bundlers](../components/components.md#importing-external-html-templates-with-bundlers) so the imports resolve to strings on Webpack, Parcel, etc.
-{% endhint %}
-
-The router allows you to configure how it interprets and handles routing in your Aurelia applications. The `customize` method on the `RouterConfiguration` object can be used to configure router settings.
-
-## Complete Configuration Reference
-
-The router accepts the following configuration options through `RouterConfiguration.customize()` (all map directly to `RouterOptions` except for `basePath`):
-
-| Option | Type | Default | Description |
-| --- | --- | --- | --- |
-| `useUrlFragmentHash` | boolean | `false` | When `true`, uses hash (`#/path`) URLs instead of pushState. Leave `false` for clean URLs. |
-| `useHref` | boolean | `true` | Enables the router to intercept standard `href` links. Set to `false` if you only want to route via the `load` attribute. |
-| `historyStrategy` | `'push' \| 'replace' \| 'none' \| (instructions) => HistoryStrategy` | `'push'` | Controls how each navigation interacts with `history`. Provide a function to choose per navigation. |
-| `basePath` | `string \| null` | `null` | Overrides the base segment used to resolve relative routes. Defaults to `document.baseURI`. |
-| `activeClass` | `string \| null` | `null` | CSS class applied by the `load` attribute when a link is active. |
-| `useNavigationModel` | boolean | `true` | Generates the navigation model so you can build menus from `IRouteContext.routeConfigContext.navigationModel`. |
-| `buildTitle` | `(transition: Transition) => string \| null` | `null` | Customises final document title generation. Return `null` to skip document title updates. |
-| `restorePreviousRouteTreeOnError` | boolean | `true` | Restores the previous route tree if a navigation throws, preventing partial states. |
-| `treatQueryAsParameters` | boolean | `false` (deprecated) | Treats query parameters as route parameters. Avoid new usage; scheduled for removal in the next major release. |
-| `useEagerLoading` | boolean | `false` | When `true`, eagerly loads all route configurations upfront when the application starts. |
-
-> Pass a partial options object—the router merges your values with the defaults so you only specify what changes. Configure options before the router starts (for example, via `AppTask`) so navigations consistently use the same settings.
-
-## Choose between hash and pushState routing using `useUrlFragmentHash`
-
-If you do not provide any configuration value, the default is pushState routing.
-If you prefer hash-based routing to be used, you can enable this like so:
+Configure the router at application startup with `RouterConfiguration.customize()`. These options determine how routes appear in the browser and how the router handles links and history. Declare the routes themselves separately in route configuration.
 
 ```typescript
 import Aurelia from 'aurelia';
@@ -40,215 +12,130 @@ import { RouterConfiguration } from '@aurelia/router';
 import { MyApp } from './my-app';
 
 Aurelia
-  .register(RouterConfiguration.customize({ useUrlFragmentHash: true }))
+  .register(RouterConfiguration.customize({
+    activeClass: 'active-route',
+  }))
   .app(MyApp)
   .start();
 ```
 
-By calling the `customize` method, you can supply a configuration object containing the property `useUrlFragmentHash` and supplying a boolean value. If you supply `true` this will enable hash mode. The default is `false`.
+## Configuration options
 
-If you are working with pushState routing, you will need a `<base>` element with `href` attribute (for more information, refer [MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base)) in the head of your document. The scaffolded application from the CLI includes this in the `index.html` file, but if you're starting from scratch or building within an existing application you need to be aware of this.
+Pass only the values you want to change. `basePath` configures the location manager; the remaining options appear on `RouterOptions`.
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `useUrlFragmentHash` | `boolean` | `false` | Put routes after the URL's hash (`#/path`). |
+| `preserveHashDocument` | `boolean` | `false` | In hash mode, retain the current document's pathname and query when publishing routes and links. |
+| `useHref` | `boolean` | `true` | Intercept eligible clicks on router-managed `href` links. Disabling it leaves href rewriting enabled. |
+| `historyStrategy` | `'push' \| 'replace' \| 'none' \| (instructions) => HistoryStrategy` | `'push'` | Choose how successful navigation updates browser history. |
+| `basePath` | `string \| null` | `null` | Override the deployment path inferred from `document.baseURI`. |
+| `activeClass` | `string \| null` | `null` | CSS class applied by `load` to an active link. |
+| `useNavigationModel` | `boolean` | `true` | Generate the navigation model for route-driven menus. |
+| `buildTitle` | `(transition: Transition) => string \| null` | `null` | Build the document title; returning `null` leaves it unchanged. |
+| `restorePreviousRouteTreeOnError` | `boolean` | `true` | Attempt to restore the previous route tree after a navigation error. |
+| `treatQueryAsParameters` | `boolean` | `false` | Deprecated: include query values in route parameters. |
+| `useEagerLoading` | `boolean` | `false` | Load route configurations upfront for recognition across the complete route hierarchy. |
+
+## Choose between hash and pushState routing using `useUrlFragmentHash`
+
+History mode is the default. A route such as `reports` appears in the browser path, for example `https://example.com/app/reports`. Set the application's deployment base and configure the server to return the application document for route URLs, including direct visits and reloads.
 
 ```html
+<!-- index.html: the application is deployed under /app/ -->
 <head>
-  <base href="/">
+  <base href="/app/">
 </head>
 ```
 
-{% hint style="info" %}
-PushState requires server-side support. This configuration is different depending on your server setup. For example, if you are using Webpack DevServer, you'll want to set the `devServer.historyApiFallback` option to `true`. If you are using ASP.NET Core, you'll want to call `routes.MapSpaFallbackRoute` in your startup code. See your preferred server technology's documentation for more information on how to allow 404s to be handled on the client with push state.
-{% endhint %}
+With hash routing, the route appears after `#`, for example `https://example.com/app/#/reports`. The server receives the document path, so individual client routes do not require a server fallback rule:
+
+```typescript
+RouterConfiguration.customize({
+  useUrlFragmentHash: true,
+});
+```
+
+Both modes use the same route configuration and navigation APIs. An application URL reference such as `/reports` excludes the deployment prefix and the outer `#/` marker; the router adds those when it publishes a browser URL.
 
 ## Configuring `basePath`
 
-Configuring a base path is useful in many real-life scenarios.
-One such example is when you are hosting multiple smaller application under a single hosting service.
-In this case, you probably want the URLs to look like `https://example.com/app1/view42` or `https://example.com/app2/view21`.
-In such cases, it is useful to specify a different [`base#href`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base) value for every app.
+`basePath` identifies where the application is deployed. It does not select a routing context or make a relative application URL resolve from a particular component.
 
-```html
-<!-- app1/index.html -->
-<head>
-  <base href="/app1">
-</head>
-
-<!-- app2/index.html -->
-<head>
-  <base href="/app2">
-</head>
-```
-
-Run the following example to understand how the value defined in `base#href` is affecting the URLs.
-
-{% embed url="https://stackblitz.com/edit/router-lite-base-href?embed=1&file=src/my-app.html" %}
-
-When you open the example in a new browser tab, you can note that the URL in the address bar looks the `HOSTING_PREFIX/app/home` or `HOSTING_PREFIX/app/about`.
-This is also true for the `href` values in the `a` tags.
-This happens because `<base href="/app">` is used in the `index.ejs` (producing the index.html).
-In this case, the `router` is picking up the `baseURI` information and performing the routing accordingly.
-
-This needs bit more work when you are supporting multi-tenancy for your app.
-In this case, you might want the URLs look like `https://example.com/tenant-foo/app1/view42` or `https://example.com/tenant-bar/app2/view21`.
-You cannot set the `document.baseURI` every time you start the app for a different tenant, as that value is static and readonly, read from the `base#href` value.
-
-With `router` you can support this by setting the `basePath` value differently for each tenant, while customizing the router configuration, at bootstrapping phase.
-Following is an example that implements the aforementioned URL convention.
-To better understand, open the the example in a new tab and check the URL in address bar when you switch tenants as well as the links in the `a` tags.
-
-{% embed url="https://stackblitz.com/edit/router-lite-base-path?ctl=1&embed=1&file=src/main.ts" %}
-
-The actual configuration takes place in the `main.ts` while customizing the router configuration in the following lines of code.
+For an application hosted under `/portal/`, either use `<base href="/portal/">` or explicitly configure:
 
 ```typescript
-  // this can either be '/', '/app[/+]', or '/TENANT_NAME/app[/+]'
-  let basePath = location.pathname;
-  const tenant =
-    (!basePath.startsWith('/app') && basePath != '/'
-      ? basePath.split('/')[1]
-      : null) ?? 'none';
-  if (tenant === 'none') {
-    basePath = '/app';
-  }
-  const host = document.querySelector<HTMLElement>('app');
-  const au = new Aurelia();
-  au.register(
-    StandardConfiguration,
-    RouterConfiguration.customize({
-      basePath,
-    }),
-    Registration.instance(ITenant, tenant) // <-- this is just to inject the tenant name in the `my-app.ts`
-  );
+RouterConfiguration.customize({
+  basePath: '/portal',
+});
 ```
 
-There are also the following links, included in the `my-app.html`, to simulate tenant switch/selection.
+The browser link for application route `/reports` then points to `/portal/reports` in history mode or `/portal/#/reports` in hash mode. Declare routes and call `navigate()` with application paths such as `/reports`; the router adds `/portal` when it writes a browser URL.
 
-{% tabs %}
-{% tab title="my-app.html" %}
-```html
-tenant: ${tenant}
-<nav>
-  <a href="${baseUrl}/foo/app" external>Switch to tenant foo</a>
-  <a href="${baseUrl}/bar/app" external>Switch to tenant bar</a>
-</nav>
-<nav>
-  <a load="home">Home</a>
-  <a load="about">About</a>
-</nav>
+For tenant-specific deployments, supply the deployment path from the host's startup configuration:
 
-<au-viewport></au-viewport>
-
-```
-{% endtab %}
-{% tab title="my-app.ts" %}
 ```typescript
-import { customElement } from '@aurelia/runtime-html';
-import { route } from '@aurelia/router';
-import template from './my-app.html?raw';
-import { Home } from './home';
-import { About } from './about';
-import { DI } from '@aurelia/kernel';
-import { resolve } from '@aurelia/kernel';
+// A deployment path supplied by the host, such as '/tenant-foo/portal'.
+const deploymentPath = hostConfig.applicationBasePath;
 
-export const ITenant = DI.createInterface<string>('tenant');
-
-@route({
-  routes: [
-    {
-      path: ['', 'home'],
-      component: Home,
-      title: 'Home',
-    },
-    {
-      path: 'about',
-      component: About,
-      title: 'About',
-    },
-  ],
-})
-@customElement({ name: 'my-app', template })
-export class MyApp {
-  private baseUrl = location.origin;
-  private readonly tenant: string = resolve(ITenant);
-}
+RouterConfiguration.customize({
+  basePath: deploymentPath,
+});
 ```
-{% endtab %}
-{% endtabs %}
 
-Note the `a` tags with [`external` attribute](./navigating.md#bypassing-the-href-custom-attribute).
-Note that when you switch to a tenant, the links in the `a` tags also now includes the tenant name; for example when we switch to tenant 'foo' the 'Home' link is changed to `/foo/app/home` from `/app/home`.
+Use the deployment path supplied by your host. The current `location.pathname` can include a deep route, so copying it as the base would give different results on reload. `basePath` changes router URLs; it does not change the browser's base for scripts, stylesheets, or other assets.
+
+## Preserve a specific document in hash mode
+
+An application may run from a document such as `/tools/shell.html?tenant=acme`. If its links must reopen that same document, enable `preserveHashDocument`:
+
+```typescript
+RouterConfiguration.customize({
+  useUrlFragmentHash: true,
+  preserveHashDocument: true,
+});
+```
+
+Navigating to `/reports?page=2` then publishes:
+
+```text
+https://example.com/tools/shell.html?tenant=acme#/reports?page=2
+```
+
+The document query (`tenant=acme`) belongs to the host; the route query (`page=2`) belongs to the application. The router preserves the document's pathname and query and replaces its hash. This policy applies to initial navigation, history updates, and links generated by `load`, router-managed `href`, `url`, and `createHref()`.
+
+An entry without a hash starts the application's default route. The document filename and query are not treated as route instructions. Keep the same configuration when the document opens in a new tab or reloads.
+
+The option defaults to `false` and has an effect only with `useUrlFragmentHash: true`. With it disabled, hash URLs continue to use the configured deployment base. The option does not change server-side rendering: browser fragments are not sent in normal HTTP requests.
 
 ## Provide a custom location manager
 
-If your host does not behave like a normal browser history stack (for example, a native WebView, an Electron shell, or a sandbox that proxies URLs), override the router’s location manager. The router always resolves `ILocationManager` from DI and ships with a browser-based implementation. Register your own class that implements the same public surface (`startListening`, `stopListening`, `handleEvent`, `pushState`, `replaceState`, `getPath`, `addBaseHref`, `removeBaseHref`) before the router starts:
+An environment that owns navigation outside normal browser history can register an `ILocationManager` implementation after `RouterConfiguration`, before starting Aurelia:
 
 ```typescript
 import Aurelia from 'aurelia';
-import { RouterConfiguration, ILocationManager } from '@aurelia/router';
 import { Registration } from '@aurelia/kernel';
+import { ILocationManager, RouterConfiguration } from '@aurelia/router';
+import { HostLocationManager } from './host-location-manager';
+import { MyApp } from './my-app';
 
-class WebViewLocationManager implements ILocationManager {
-  constructor(private readonly host = window) {}
-
-  startListening() {/* connect to native host */}
-  stopListening() {/* disconnect */}
-  handleEvent() {/* publish au:router:location-change */}
-  pushState(state: unknown, title: string, url: string) {
-    this.host.history.pushState(state, title, `/app/${url}`);
-  }
-  replaceState(state: unknown, title: string, url: string) {
-    this.host.history.replaceState(state, title, `/app/${url}`);
-  }
-  getPath() {
-    return this.host.location.pathname.replace('/app/', '');
-  }
-  addBaseHref(path: string) { return `/app/${path}`; }
-  removeBaseHref(path: string) { return path.replace('/app/', ''); }
-}
-
-Aurelia.register(
-  RouterConfiguration.customize(),
-  Registration.singleton(ILocationManager, WebViewLocationManager),
-);
+Aurelia
+  .register(
+    RouterConfiguration,
+    Registration.singleton(ILocationManager, HostLocationManager),
+  )
+  .app(MyApp)
+  .start();
 ```
 
-Because `RouterConfiguration` registers `BrowserLocationManager` as a singleton, registering your custom implementation afterward replaces it everywhere. Match the method contracts from the linked file so the router keeps receiving normalized URLs and can keep raising `au:router:location-change`.
+`HostLocationManager` must implement the [location-manager interface](./api-reference.md#ilocationmanager): listen for location changes, publish `LocationChangeEvent` through `IRouterEvents`, read the current route, publish history entries, and add or remove the deployment base. These operations must agree on the URL form. An adapter that only writes URLs will not support direct entry or Back/Forward navigation correctly.
 
-## Swap the URL parser
-
-`RouterOptions` stores an `_urlParser` instance that is derived from `useUrlFragmentHash`. Advanced apps can replace that parser before any navigation happens. The `_urlParser` field is marked `readonly`, so use `Writable<T>` from `@aurelia/kernel` when mutating:
-
-```typescript
-import Aurelia from 'aurelia';
-import { RouterConfiguration, RouterOptions, IRouterOptions, type IUrlParser } from '@aurelia/router';
-import { AppTask } from '@aurelia/runtime-html';
-import type { Writable } from '@aurelia/kernel';
-
-const createSignedParser = (baseParser: IUrlParser): IUrlParser => ({
-  parse(value) {
-    const raw = value.replace(/;sig=.*$/, '');
-    return baseParser.parse(raw);
-  },
-  stringify(path, query, fragment, isRooted) {
-    const base = baseParser.stringify(path, query, fragment, isRooted);
-    return `${base};sig=${sessionStorage.getItem('signature') ?? ''}`;
-  },
-});
-
-Aurelia.register(
-  RouterConfiguration.customize(),
-  AppTask.creating(IRouterOptions, (options: RouterOptions) => {
-    (options as Writable<RouterOptions>)._urlParser = createSignedParser(options._urlParser);
-  }),
-);
-```
-
-Every call to `ViewportInstruction.toUrl`, `router.load`, or `router.generatePath` now runs through your parser while still using the same API surface as the built-in implementation.
+Use the built-in location manager for ordinary browser deployments and configure it with the options above. `RouterOptions._urlParser` is internal; changing it is unsupported, including through a type cast.
 
 ## Customizing title
 
-A `buildTitle` function can be used to customize the [default behavior of building the title](./configuring-routes.md#setting-the-title).
-When configured, `buildTitle` owns document title generation for every navigation. Route configuration titles, assigned route-node titles, and navigation options are still available on the `Transition`, but the builder decides how to use them.
-For this example, we assume that we have the configured the routes as follows:
+Supply a `buildTitle` function to customize the [document title](./configuring-routes.md#setting-the-title) for every navigation. The function receives a `Transition` with access to route configuration titles, assigned route-node titles, and navigation options. It decides how to combine them.
+For example, give the root and a child route their own titles:
 
 ```typescript
 import { route, IRouteViewModel } from '@aurelia/router';
@@ -265,8 +152,7 @@ import { route, IRouteViewModel } from '@aurelia/router';
 export class MyApp implements IRouteViewModel {}
 ```
 
-With this route configuration in place, when we navigate to `/home`, the default-built title will be `Home | Aurelia`.
-We can use the following `buildTitle` function to use ` - ` as the separator when users navigate to `/` or `/home` route.
+With this configuration, navigating to `/home` produces the default title `Home | Aurelia`. The following `buildTitle` function uses ` - ` as the separator for `/` and `/home`:
 
 ```typescript
 // main.ts
@@ -282,16 +168,13 @@ au.register(
 );
 ```
 
-Check out the following live example. You might need to open the demo in a new tab to observe the title changes.
+Open the example in a new tab to see the document title change.
 
 {% embed url="https://stackblitz.com/edit/router-lite-buildtitle?ctl=1&embed=1&file=src/main.ts" %}
 
 **Translating the title**
 
-When localizing your app, you would also like to translate the title.
-Note that the router does not facilitate the translation by itself.
-However, there are enough hooks that can be leveraged to translate the title.
-To this end, we would use the [`data` property](./configuring-routes.md#advanced-route-configuration-options) in the route configuration to store the i18n key.
+To translate document titles, store an i18n key in the route's [`data` property](./configuring-routes.md#advanced-route-configuration-options), then read it in `buildTitle`.
 
 ```typescript
 import type { IRouteViewModel, Routeable } from '@aurelia/router';
@@ -310,10 +193,9 @@ export class MyApp implements IRouteViewModel {
 }
 ```
 
-As `data` is an object of type `Record<string, unknown>`, you are free to chose the property names inside the `data` object.
-Here we are using the `i18n` property to store the i18n key for individual routes.
+`data` accepts application-defined fields. Here, `i18n` stores the translation key for each route.
 
-In the next step we make use of the `buildTitle` customization as well as a `AppTask` hook to subscribe to the locale change event.
+Use `buildTitle` to translate the key, and call `router.updateTitle()` when the locale changes:
 
 ```typescript
 import { I18N, Signals } from '@aurelia/i18n';
@@ -349,8 +231,7 @@ import { AppTask, Aurelia } from '@aurelia/runtime-html';
 })().catch(console.error);
 ```
 
-This customization in conjunction with the previously shown routing configuration will cause the title to be `Aurelia - Startseite` when user is navigated to `/` or `/home` route and the current locale is `de`.
-Here we are assuming that the i18n resource for the `de` locale contains the following.
+With the `de` locale active, the title for `/` and `/home` becomes `Aurelia - Startseite`. This assumes the locale contains the following translations:
 
 ```json
 {
@@ -360,29 +241,25 @@ Here we are assuming that the i18n resource for the `de` locale contains the fol
 }
 ```
 
-The following example demonstrate the title translation.
+Try changing the locale in this example:
 
 {% embed url="https://stackblitz.com/edit/router-lite-translate-title?ctl=1&embed=1&file=src/main.ts" %}
 
 ## Enable or disable the usage of the `href` custom attribute using `useHref`
 
-By default, the router will allow you to use both `href` as well as `load` for specifying routes.
-Where this can get you into trouble is external links, `mailto:` links and other types of links that do not route.
-A simple example looks like this:
+By default, the router handles ordinary clicks on route links written with `href` or `load`. Absolute URLs and protocol links such as `mailto:` already keep native browser behavior:
 
 ```html
-<a href="mailto:myemail@gmail.com">Email Me</a>
+<a href="mailto:support@example.com">Email support</a>
 ```
 
-This seemingly innocent and common scenario by default will trigger the router and will cause an error.
-
-You have two options when it comes to working with external links. You can specify the link as external using the [`external` attribute](./navigating.md#bypassing-the-href-custom-attribute).
+For a document-relative link that should bypass routing, use the [`external` attribute](./navigating.md#bypassing-the-href-custom-attribute):
 
 ```html
-<a href="mailto:myemail@gmail.com" external>Email Me</a>
+<a href="/downloads/guide.pdf" external>Download the guide</a>
 ```
 
-Or, you can set `useHref` to `false` (default is `true`) and only ever use the `load` attribute for routes.
+Set `useHref` to `false` to disable click interception by the router's `href` attribute. The attribute still resolves routing instructions and writes the resulting URL; use `external` when the authored value should be handled entirely by the browser. The `load` attribute and explicitly registered [`url` attribute](./application-url-navigation.md#declarative-links) continue to handle their own links.
 
 ```typescript
 import Aurelia from 'aurelia';
@@ -398,20 +275,15 @@ Aurelia
 
 ## Configure browser history strategy
 
-Using the `historyStrategy` configuration option it can be instructed, how the router should interact with the browser history object.
-This configuration option can take the following values: `push`, `replace`, and `none`.
+Choose whether a successful navigation creates a history entry, replaces the current entry, or leaves history unchanged. This controls what users can return to with Back and Forward.
 
 ### `push`
 
-This is the default strategy.
-In this mode, the router will interact with Browser history to `push` a new navigation state each time a new navigation is performed.
-This enables the end users to use the back and forward buttons of the browser to navigate back and forth in an application using the router.
-
-Check out the following example to see this in action.
+`push` is the default. It creates an entry for navigation so users can return to earlier application locations with Back.
 
 {% embed url="https://stackblitz.com/edit/router-lite-historystrategy-push?ctl=1&embed=1&file=src/main.ts" %}
 
-The main configuration can be found in the `main.ts`.
+Configure the strategy in `main.ts`:
 
 ```typescript
 import { RouterConfiguration } from '@aurelia/router';
@@ -424,7 +296,7 @@ import { MyApp as component } from './my-app';
   au.register(
     StandardConfiguration,
     RouterConfiguration.customize({
-      historyStrategy: 'push', // default value can can be omitted
+      historyStrategy: 'push', // The default; can be omitted.
     })
   );
   au.app({ host, component });
@@ -432,7 +304,7 @@ import { MyApp as component } from './my-app';
 })().catch(console.error);
 ```
 
-To demonstrate the `push` behavior, there is a small piece of code in the `my-app.ts` that listens to router events to create informative text (the `history` property in the class) from the browser history object that is used in the view to display the information.
+In `my-app.ts`, a router event subscription updates the `history` text displayed in the view:
 
 ```typescript
 import { resolve } from '@aurelia/kernel';
@@ -440,7 +312,7 @@ import { IHistory } from '@aurelia/runtime-html';
 import { IRouterEvents } from '@aurelia/router';
 
 export class MyApp {
-  private history: string;
+  private history = '';
   public constructor() {
     let i = 0;
     const history = resolve(IHistory);
@@ -451,27 +323,21 @@ export class MyApp {
 }
 ```
 
-As you click the `Home` and `About` links in the example, you can see that the new states are being pushed to the history, and thereby increasing the length of the history.
+Click between `Home` and `About` to add history entries and watch the history length increase.
 
 ### `replace`
 
-This can be used to replace the current state in the history.
-Check out the following example to see this in action.
-Note that the following example is identical with the previous example, with the difference of using the `replace`-value as the history strategy.
+`replace` updates the current entry. Use it when the new location should take the place of the previous one, such as correcting an initial address or updating a filter without adding every intermediate value to history.
 
 {% embed url="https://stackblitz.com/edit/router-lite-historystrategy-replace?ctl=1&embed=1&file=src/main.ts" %}
 
-As you interact with this example, you can see that new states are replacing old states, and therefore, unlike the previous example, you don't observe any change in the length of the history.
-
 ### `none`
 
-Use this if you don't want the router to interact with the history at all.
-Check out the following example to see this in action.
-Note that the following example is identical with the previous example, with the difference of using the `none`-value as the history strategy.
+`none` changes the active route without publishing it to browser history.
 
 {% embed url="https://stackblitz.com/edit/router-lite-historystrategy-none?ctl=1&embed=1&file=src/main.ts" %}
 
-As you interact with this example, you can see that there is absolutely no change in the history information, indicating non-interaction with the history object.
+The route still changes, but the address bar and history entry do not. The completed route becomes the base for subsequent `navigate()` and `createHref()` calls, so that base can differ from the URL visible in the address bar.
 
 ### Override configured history strategy
 
@@ -479,13 +345,12 @@ You can use the [navigation options](./navigating.md#using-navigation-options) t
 
 ### Return a dynamic history strategy
 
-`RouterOptions.historyStrategy` is declared as `ValueOrFunc<HistoryStrategy>`, so you can supply a function whenever you call `RouterConfiguration.customize`. That callback receives the `ViewportInstructionTree` for the pending transition, allowing you to branch on route metadata:
+Set `historyStrategy` to a function when it depends on the destination. The function receives the transition's `ViewportInstructionTree`:
 
 ```typescript
 import {
   RouterConfiguration,
   type HistoryStrategy,
-  type ViewportInstructionTree,
   type ViewportInstruction,
 } from '@aurelia/router';
 
@@ -498,22 +363,18 @@ const touchesViewport = (instruction: ViewportInstruction, name: string): boolea
 };
 
 RouterConfiguration.customize({
-  historyStrategy(instructions: ViewportInstructionTree): HistoryStrategy {
+  historyStrategy(instructions): HistoryStrategy {
     const updatesSettingsPanel = instructions.children.some(child => touchesViewport(child, 'settings'));
     return updatesSettingsPanel ? 'replace' : 'push';
   },
 });
 ```
 
-The router invokes your function right before it pushes or replaces browser history inside `router.load`, so every navigation—declarative or programmatic—follows the same rule.
+The router evaluates this function when publishing a completed navigation. It applies to both contextual and application-URL navigation unless that navigation supplies its own history strategy.
 
 ## Configure active class
 
-Using the `activeClass` option you can add a class name to the router configuration.
-This class name is used by the [`load` custom attribute](./navigating.md#using-the-load-custom-attribute) when the associated instruction is active.
-The default value for this option is `null`, which also means that the `load` custom attribute won't add any class proactively.
-Note that the router does not define any CSS class out-of-the-box.
-If you want to use this feature, make sure that you defines the class as well in your stylesheet.
+Set `activeClass` to apply a CSS class to active [`load` links](./navigating.md#using-the-load-custom-attribute). The default is `null`, so no class is added. Define the class in your stylesheet:
 
 ```typescript
 // main.ts
@@ -539,7 +400,7 @@ RouterConfiguration.customize({
 
 ## Disable navigation model generation
 
-If you're not using the navigation model feature for building menus, you can disable it to improve performance:
+Disable the navigation model if your menus do not use it:
 
 ```typescript
 RouterConfiguration.customize({
@@ -547,54 +408,29 @@ RouterConfiguration.customize({
 })
 ```
 
-This prevents the router from generating navigation model data, which can be useful in applications with many routes where you don't need the navigation model functionality.
+The router then skips generating that data.
 
 ## Error recovery configuration
 
-The `restorePreviousRouteTreeOnError` option controls what happens when navigation fails:
+With `restorePreviousRouteTreeOnError: true` (the default), the router attempts to restore the previous route tree after a transition throws. Your application must handle any effects of the failed transition, such as a completed network request or data changed by a lifecycle hook.
 
 ```typescript
-// Default behavior - restore previous route on error (recommended)
 RouterConfiguration.customize({
-  restorePreviousRouteTreeOnError: true
-})
-
-// Strict mode - leave application in error state
-RouterConfiguration.customize({
-  restorePreviousRouteTreeOnError: false
-})
-```
-
-With the default `true` setting, if navigation fails (due to guards returning false, component loading errors, etc.), the router will restore the previous working route. Setting this to `false` provides stricter error handling but requires your application to handle error states properly.
-
-## Observing navigation state while configuring the router
-
-Beyond setting up routes, hash/push mode, or titles, you can optionally observe the active route and track query parameters. One way is to inject `ICurrentRoute` in any of your components. Another is to watch router events:
-
-```typescript
-import { RouterConfiguration, IRouter, IRouterEvents, NavigationEndEvent, ICurrentRoute } from '@aurelia/router';
-import { DI } from '@aurelia/kernel';
-
-const container = DI.createContainer();
-container.register(
-  RouterConfiguration.customize({ useHref: false }) // for example
-);
-
-const routerEvents = container.get(IRouterEvents);
-const currentRoute = container.get(ICurrentRoute);
-const router = container.get(IRouter);
-
-routerEvents.subscribe('au:router:navigation-end', (evt: NavigationEndEvent) => {
-  console.log('Navigation ended on:', evt.finalInstructions.toUrl(true, router.options._urlParser, true));
-  console.log('Active route object:', currentRoute.path);
+  restorePreviousRouteTreeOnError: true,
 });
 ```
 
-This can help debug or log your router's runtime state. See the [ICurrentRoute docs](./configuring-routes.md#retrieving-the-current-route-and-query-parameters) for an example usage.
+A guard returning `false` cancels navigation. Setting this option to `false` disables automatic restoration after errors; error reporting works with either setting. See [error handling](./error-handling.md) for cancellation and recovery behavior.
+
+## Observing navigation state while configuring the router
+
+Resolve `ICurrentRoute` from the running application's container to read the completed route, or `IRouterEvents` to subscribe to navigation events. A separate container created for logging would not observe that application's router.
+
+See [current route](./current-route.md#observe-completed-navigation) for a subscription with a matching cleanup hook, and [router events](./router-events.md) for attempts, cancellations, and errors.
 
 ## Treat query parameters as path parameters
 
-When the `treatQueryAsParameters` property in the router configuration is set to `true`, the router will treat query parameters as path parameters. The default value is `false`.
+Set `treatQueryAsParameters: true` to include query parameters with path parameters. The default is `false`.
 
 {% hint style="warning" %}
 `treatQueryAsParameters` is deprecated and will be removed in the next major version.
@@ -602,11 +438,11 @@ When the `treatQueryAsParameters` property in the router configuration is set to
 
 ## Use eager loading for route configurations
 
-When the `useEagerLoading` property in the router configuration is set to `true`, the router will eagerly load all route configurations upfront when the application starts. The default value is `false`.
+Set `useEagerLoading: true` to load all route configurations at application startup. The default is `false`.
 
-Consider the following scenario. A parent route with paths `[ 'parent', 'parent/:id' ]` configures a child route with path `['child']`. Given this scenario, if when a user tries to navigate to the path `/parent/child`, the router might 'recognize' the `child` segment as a value for the `:id` parameter of the parent route, instead of recognizing it as the child route. This problem is the artifact of how the route-recognizer works under the lazy-loading scenario. The recognizer tries to match the path hungrily, without having any information about the child routes.
+For example, a parent with paths `[ 'parent', 'parent/:id' ]` has a child route with path `['child']`. When recognizing `/parent/child` lazily, the router may match `child` as the parent's `:id` value before it knows about the child route.
 
-To avoid this problem, you can set the `useEagerLoading` property to `true` in the router configuration. Under this configuration, the router will make all the route information available to the route-recognizer when the application starts, thereby avoiding the aforementioned problem.
+Eager loading gives the recognizer the complete route hierarchy before navigation, so it can match the child route:
 
 ```typescript
 RouterConfiguration.customize({
@@ -614,7 +450,7 @@ RouterConfiguration.customize({
 })
 ```
 
-For the above mentioned paths-constellation, under eager-loading the router will essentially create the following routing table.
+For these paths, eager loading produces the following routing table:
 
 | Path                 | Components                                                            |
 |----------------------|-----------------------------------------------------------------------|
@@ -624,7 +460,7 @@ For the above mentioned paths-constellation, under eager-loading the router will
 | `parent/:id/child`   | [ParentComponent with the (required) `:id` parameter, ChildComponent] |
 
 
-As all the routing paths contribute to create a single routing table, the usage of empty paths are discouraged under eager-loading. For example, if instead of `child`, the child route was configured with an empty path `''`, then the routing table would have contained two identical paths `parent` and `parent/:id`, which is not allowed. To this end, apply the following pattern, when using eager-loading.
+All paths share one routing table, so avoid empty child paths with eager loading. A child path of `''` in this example would duplicate the parent's `parent` and `parent/:id` entries, which is not allowed. Use a named child path:
 
 ```diff
   @route({
@@ -638,164 +474,41 @@ As all the routing paths contribute to create a single routing table, the usage 
   export class RoutedComponent {}
 ```
 
-## Advanced Configuration Scenarios
+## Single-page application embedded in an existing site
 
-### Combining Multiple Options
-
-Most real-world applications will need to combine multiple configuration options:
+When an application shares a document with a traditional site, first decide who owns the document URL. For an application that owns the hash while the host owns the pathname and query, use:
 
 ```typescript
-// Production-ready configuration
 RouterConfiguration.customize({
-  useUrlFragmentHash: false,           // Use clean URLs
-  historyStrategy: 'push',             // Standard browser navigation
-  activeClass: 'active',               // Highlight active nav items
-  useNavigationModel: true,            // Enable navigation model for menus
-  restorePreviousRouteTreeOnError: true, // Graceful error recovery
-  buildTitle: (transition) => {
-    // Custom title building with SEO considerations
-    const routeTitle = transition.routeTree.root.getTitle(' - ');
-    return routeTitle ? `${routeTitle} | My App` : 'My App';
-  }
-})
-```
-
-### Environment-Specific Configuration
-
-You might want different configurations for different environments:
-
-```typescript
-// environment-based configuration
-const isDevelopment = process.env.NODE_ENV === 'development';
-const isProduction = process.env.NODE_ENV === 'production';
-
-RouterConfiguration.customize({
-  useUrlFragmentHash: isDevelopment,            // Hash routing in dev for simplicity
-  historyStrategy: isDevelopment ? 'replace' : 'push', // Keep history noise low in dev, full history in prod
-  restorePreviousRouteTreeOnError: !isDevelopment, // Let errors surface in dev, recover in prod
-  buildTitle: isProduction
-    ? (tr) => buildSEOTitle(tr)                 // SEO-optimised titles in production
-    : (tr) => `[DEV] ${tr.routeTree.root.getTitle(' / ') ?? 'Unknown route'}`,
+  useUrlFragmentHash: true,
+  preserveHashDocument: true,
+  activeClass: 'spa-active',
 });
 ```
 
-### Micro-frontend Configuration
+Keep host links native with `external`, and use `load` or explicitly registered `url` for application navigation:
 
-When building micro-frontends, you might need specific base path configurations:
-
-```typescript
-// Determine base path from current location
-const currentPath = window.location.pathname;
-const microFrontendName = currentPath.split('/')[1]; // e.g., 'admin', 'customer', 'reports'
-
-RouterConfiguration.customize({
-  basePath: `/${microFrontendName}`,
-  useUrlFragmentHash: false,
-  historyStrategy: 'push',
-  buildTitle: (transition) => {
-    const appName = microFrontendName.charAt(0).toUpperCase() + microFrontendName.slice(1);
-    const routeTitle = transition.routeTree.root.getTitle(' - ');
-    return routeTitle ? `${routeTitle} - ${appName}` : appName;
-  }
-})
+```html
+<a href="/account" external>Site account</a>
+<a load="reports">Application reports</a>
 ```
 
-### Single-Page Application Embedded in Existing Site
+The host and application still share one hash and browser history stack. `preserveHashDocument` keeps the hosting document's pathname and query; `historyStrategy: 'replace'` updates the shared history's current entry. Choose the history strategy together with the host's Back/Forward behavior.
 
-When your Aurelia app is embedded within a larger traditional website:
-
-```typescript
-RouterConfiguration.customize({
-  basePath: '/spa',                     // App lives under /spa path
-  useUrlFragmentHash: true,             // Hash routing to avoid conflicts
-  historyStrategy: 'replace',           // Don't interfere with main site navigation
-  useHref: false,                       // Only use load attribute to avoid conflicts
-  activeClass: 'spa-active',            // Namespaced CSS class
-})
-```
-
-## Common Configuration Patterns
-
-### Mobile-Optimized Configuration
-
-```typescript
-RouterConfiguration.customize({
-  historyStrategy: 'replace',           // Reduce memory usage on mobile
-  useNavigationModel: false,            // Disable if using custom mobile navigation
-  restorePreviousRouteTreeOnError: true, // Important for unreliable mobile networks
-})
-```
-
-### Debug-Friendly Development Configuration
-
-```typescript
-RouterConfiguration.customize({
-  useUrlFragmentHash: true,             // Easier to debug without server setup
-  restorePreviousRouteTreeOnError: false, // See errors clearly in development
-  buildTitle: (transition) => {
-    // Detailed debugging information in title
-    const route = transition.routeTree.root.children[0];
-    return `[${route?.component?.name || 'Unknown'}] ${route?.getTitle(' / ') || 'No Title'}`;
-  }
-})
-```
+Setting `useHref: false` disables click interception by the `href` custom attribute but still lets it rewrite route links. Use `external` whenever the browser should receive the authored href unchanged.
 
 ## Router lifecycle (advanced)
 
-The router exposes `start(performInitialNavigation: boolean)` and `stop()`, but when you register `RouterConfiguration` the router is started and stopped automatically via `AppTask`.
+`RouterConfiguration` starts the router after application activation and stops it during deactivation. Most applications do not need to call `start()` or `stop()` themselves.
 
-- Use `router.stop()` if you temporarily need to suspend routing (for example, while showing a modal flow that should ignore browser back/forward).
-- If you call `router.stop()`, call `router.start(false)` to resume listening without triggering another initial navigation.
-- Delaying the *very first* navigation requires a custom router configuration, because `RouterConfiguration` always starts the router during app activation.
+For a host that manages this lifecycle explicitly, `stop()` removes location-event listening, and `start(false)` resumes listening without performing another initial navigation. Stopping location listening does not block `load()` or `navigate()` calls and is not a navigation guard. Use [lifecycle guards](./routing-lifecycle.md) to decide whether a transition may proceed.
 
-```typescript
-import { resolve } from '@aurelia/kernel';
-import { IRouter } from '@aurelia/router';
+## Troubleshooting configuration
 
-export class DebugPanel {
-  private readonly router = resolve(IRouter);
+- **A history-mode route works through a link but fails on reload:** check the deployment base and the server fallback for that route URL.
+- **A hash link opens a different document in a new tab:** if the application must retain a specific host document, enable `preserveHashDocument` in hash mode.
+- **An href changes even with `useHref: false`:** that option controls click interception. Add `external` to preserve a native link's authored value.
+- **The page changes while the address bar does not:** check for `historyStrategy: 'none'`, globally or on the individual navigation.
+- **Query changes do not refresh page data:** see [query changes and component reuse](./current-route.md#query-changes-and-component-reuse).
 
-  pauseRouting() {
-    this.router.stop();
-  }
-
-  resumeRouting() {
-    this.router.start(false);
-  }
-}
-```
-
-## Troubleshooting Configuration Issues
-
-### Common Problems and Solutions
-
-**Problem**: Routes not working with `useUrlFragmentHash: false`
-```typescript
-// Solution: Ensure base tag is set correctly
-// In your index.html:
-<base href="/">
-
-// And configure your server for SPA routing
-RouterConfiguration.customize({
-  useUrlFragmentHash: false
-})
-```
-
-**Problem**: External links being processed by router
-```typescript
-// Solution 1: Disable href processing
-RouterConfiguration.customize({
-  useHref: false  // Only use load attribute for routing
-})
-
-// Solution 2: Mark external links explicitly
-// <a href="mailto:test@example.com" external>Contact</a>
-```
-
-**Problem**: Navigation not updating browser history
-```typescript
-// Check your history strategy
-RouterConfiguration.customize({
-  historyStrategy: 'push'  // Ensure this is not 'none'
-})
-```
+See [router troubleshooting](./troubleshooting.md) for navigation and route-matching failures.

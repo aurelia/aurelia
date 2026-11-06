@@ -1,482 +1,269 @@
 ---
-description: Learn how to handle navigation errors, implement error recovery patterns, and create robust routing experiences.
+description: Respond when navigation is canceled or fails, and retry with the original destination intact.
 ---
 
 # Router Error Handling
 
-Navigation errors are inevitable in complex applications. The Aurelia router provides comprehensive error handling mechanisms to help you create resilient routing experiences. This section covers error types, recovery patterns, and best practices for handling routing failures.
+A guard can cancel navigation to protect unsaved work. A failed data request may warrant a retry. Handle these outcomes in the code that started the navigation, where you know what the user was trying to do. Use router events to report failures across the application.
 
-## Types of Router Errors
+## Handle the call and its result
 
-### Navigation Errors
-Errors that occur during the navigation process:
+Both contextual `load()` and application-URL `navigate()` report a guard cancellation with `false`. Failures can reject the returned promise, and input validation can throw before the navigation is queued. Put the call inside `try`, then await its result:
 
 ```typescript
-import { IRouterEvents, NavigationErrorEvent } from '@aurelia/router';
 import { resolve } from '@aurelia/kernel';
+import { IRouter } from '@aurelia/router';
 
-export class ErrorHandler {
-  private routerEvents = resolve(IRouterEvents);
+export class ReportLauncher {
+  private readonly router = resolve(IRouter);
+  error = '';
 
-  attached() {
-    this.routerEvents.subscribe('au:router:navigation-error', (event: NavigationErrorEvent) => {
-      console.error('Navigation failed:', event.error);
-      console.log('Failed instructions:', event.instructions);
-      console.log('Navigation ID:', event.id);
-      
-      this.handleNavigationError(event.error);
-    });
-  }
-
-  private handleNavigationError(error: unknown) {
-    if (error instanceof Error) {
-      // Handle specific error types
-      switch (error.name) {
-        case 'UnknownRouteError':
-          this.router.load('not-found');
-          break;
-        case 'NetworkError':
-          this.showRetryDialog();
-          break;
-        default:
-          this.showGenericError(error.message);
-      }
+  async openReports() {
+    this.error = '';
+    try {
+      const completed = await this.router.navigate('/reports');
+      if (!completed) return; // Respect a guard's decision to stay.
+    } catch (error) {
+      this.error = 'The report could not be opened. Please try again.';
+      console.error('Opening report failed', error);
     }
   }
 }
 ```
 
-### Component Loading Errors
-Errors that occur when loading route components:
+Do not turn `false` into `window.location.assign(...)` or automatically navigate to an error page. That would bypass the decision to stay, including an unsaved-changes guard.
+
+| Outcome | What the application can do |
+| --- | --- |
+| Guard returns `false` | Keep the current view; show any explanation where the guard's decision is made. |
+| Guard returns a navigation instruction | Let the router perform the redirect. |
+| Invalid application reference, such as a full URL passed to `navigate()` | Correct the input or use a native document link. This can fail before navigation events begin. |
+| Unknown route | Check route configuration and context; configure a fallback when unknown addresses should show a not-found page. |
+| Component import, lifecycle, or data-loading failure | Report the failure and offer recovery appropriate to the failed operation. |
+
+## Redirect from a guard
+
+Return the destination from `canLoad` so the router can perform the redirect. Calling `load()` inside the guard starts a separate navigation. This example assumes the application's `AuthService.ensureSession()` waits for its initial session check:
 
 ```typescript
-export class ComponentErrorHandler {
-  // Handle dynamic import failures
-  private async loadComponentSafely(importFn: () => Promise<any>) {
+import { resolve } from '@aurelia/kernel';
+import type { IRouteViewModel, NavigationInstruction } from '@aurelia/router';
+import { AuthService } from './auth-service';
+
+export class ProtectedPage implements IRouteViewModel {
+  private readonly auth = resolve(AuthService);
+
+  async canLoad(): Promise<boolean | NavigationInstruction> {
+    await this.auth.ensureSession();
+    return this.auth.isAuthenticated ? true : '/login';
+  }
+}
+```
+
+The `login` route must exist at the application routing root and allow unauthenticated access. If the session check itself fails, let that failure follow the application's error policy; a network error does not establish that the user is signed out. See the [authentication recipe](outcome-recipes.md#global-authentication-guard) for a shared guard.
+
+## Observe transition failures
+
+Use `IRouterEvents` in an application shell or reporting service to observe transitions that emit `au:router:navigation-error`. The event carries the navigation ID, attempted instructions, and error:
+
+```typescript
+import { resolve, type IDisposable } from '@aurelia/kernel';
+import { IRouterEvents } from '@aurelia/router';
+
+export class MyApp {
+  private readonly events = resolve(IRouterEvents);
+  private subscription: IDisposable | undefined;
+  navigationError = '';
+
+  binding() {
+    this.subscription = this.events.subscribe('au:router:navigation-error', event => {
+      this.navigationError = 'Navigation failed. You can retry from the current page.';
+      console.error('Navigation failed', {
+        id: event.id,
+        instructions: event.instructions,
+        error: event.error,
+      });
+    });
+  }
+
+  dismissError() {
+    this.navigationError = '';
+  }
+
+  unbinding() {
+    this.subscription?.dispose();
+    this.subscription = undefined;
+  }
+}
+```
+
+```html
+<div if.bind="navigationError" role="alert">
+  ${navigationError}
+  <button type="button" click.trigger="dismissError()">Dismiss</button>
+</div>
+<au-viewport></au-viewport>
+```
+
+Also catch errors at the call site. Input errors can occur before navigation is queued. Unknown-route failures follow the router's cancellation/restoration path and do not emit `navigation-error`; programmatic callers receive the rejection. A `navigation-cancel` event can also accompany recovery or a guard redirect, so it is not by itself evidence that the user refused navigation.
+
+Show the error in the application shell so the user can see it even if the destination component never reaches the screen. Avoid automatically navigating from every error event: the router may be restoring the previous route, and a failing error page can create a recovery loop.
+
+## What route restoration restores
+
+`restorePreviousRouteTreeOnError` defaults to `true`:
+
+```typescript
+RouterConfiguration.customize({
+  restorePreviousRouteTreeOnError: true,
+});
+```
+
+When a transition fails after a previous successful navigation, the router can restore the previous route tree and reactivate the previous route. The original request still reports its error, and recovery can run lifecycle hooks again. At startup there may be no previous page to restore.
+
+This recovery concerns routing state. It cannot undo an HTTP mutation, restore arbitrary service state changed by a hook, or guarantee the same component instances and local UI state. Handle irreversible work, such as submitting an order, in explicit application operations with their own recovery logic.
+
+Setting the option to `false` disables automatic recovery for ordinary transition errors. Your application then decides what to show after a failed transition. The router still maintains internal state for later navigation, and unknown-route failures have their own restoration behavior.
+
+## Retain the request for retry
+
+A route path alone is not the original navigation request. Rebuilding a retry from `event.instructions.toPath()`, `next.path`, or `ICurrentRoute.path` can lose query data, a fragment, viewport instructions, or the context from which the destination was selected.
+
+Keep the requested destination and options where the operation starts. This layout opens a configured `product-detail` child route and offers retry from the same context:
+
+```typescript
+import { resolve } from '@aurelia/kernel';
+import { IContextRouter, type INavigationOptions, type IViewportInstruction } from '@aurelia/router';
+
+export class ProductBrowser {
+  private readonly router = resolve(IContextRouter);
+  private retryRequest: (() => Promise<boolean>) | undefined;
+  error = '';
+  pending = false;
+
+  async openProduct(id: string, tab: string) {
+    if (this.pending) return;
+
+    const target: IViewportInstruction = {
+      component: 'product-detail',
+      params: { id },
+    };
+    const options: INavigationOptions = {
+      queryParams: { tab },
+      fragment: 'summary',
+    };
+
+    // Fresh objects capture this request rather than a mutable form model.
+    this.retryRequest = async () => this.router.load(target, options);
+    await this.retry();
+  }
+
+  async retry() {
+    const request = this.retryRequest;
+    if (request === undefined || this.pending) return;
+
+    this.pending = true;
+    this.error = '';
     try {
-      return await importFn();
+      await request();
+      this.retryRequest = undefined; // Success or intentional cancellation.
     } catch (error) {
-      console.error('Component loading failed:', error);
-      // Return fallback component
-      return { default: FallbackComponent };
+      this.error = 'The product could not be opened. Try again when the connection is available.';
+      console.error(error);
+    } finally {
+      this.pending = false;
+    }
+  }
+
+  unbinding() {
+    this.retryRequest = undefined;
+  }
+}
+```
+
+Keep the retry controls in the layout around the child viewport. Discard that contextual request when the layout leaves. For application-URL navigation, retain a root-relative application reference such as `/products/42?tab=reviews#summary`; retrying relative text after another successful navigation would resolve it against a different base.
+
+```html
+<div if.bind="error" role="alert">
+  ${error}
+  <button type="button" disabled.bind="pending" click.trigger="retry()">Retry</button>
+</div>
+<au-viewport></au-viewport>
+```
+
+Offer retry for recoverable failures. Automatically repeating every failed navigation also repeats lifecycle work, and will not fix an invalid route or missing registration. Retry a transient fetch in the data service when that is the actual operation that failed.
+
+## Let a destination show its own error
+
+Sometimes the intended page is useful even when one request fails. Catch that failure within the page and let `loading` finish normally so the page can render its error and retry controls:
+
+```typescript
+import type { IRouteViewModel, Params } from '@aurelia/router';
+
+interface Product {
+  id: string;
+  name: string;
+}
+
+export class ProductDetail implements IRouteViewModel {
+  private id = '';
+  product: Product | null = null;
+  error = '';
+  pending = false;
+
+  loading(params: Params) {
+    this.id = params.id ?? '';
+    return this.refresh();
+  }
+
+  async refresh() {
+    if (this.pending) return;
+    this.pending = true;
+    this.error = '';
+    try {
+      const response = await fetch(`/api/products/${encodeURIComponent(this.id)}`);
+      if (!response.ok) throw new Error(`Product request failed: ${response.status}`);
+      this.product = await response.json() as Product;
+    } catch (error) {
+      this.product = null;
+      this.error = 'The product is currently unavailable.';
+      console.error(error);
+    } finally {
+      this.pending = false;
     }
   }
 }
+```
 
-// In route configuration
+```html
+<p if.bind="error" role="alert">${error}</p>
+<button if.bind="error" type="button" disabled.bind="pending" click.trigger="refresh()">
+  Retry
+</button>
+<h1 if.bind="product">${product.name}</h1>
+```
+
+This example uses the normal replacement behavior for different product IDs. If you configure component reuse and allow overlapping requests, also protect the page from stale responses.
+
+If the page must not open without the data, let the error propagate instead and show feedback in the shell or caller. Setting an error property on a destination that fails before activation does not make its error template visible. See [Data preloading](outcome-recipes.md#data-preloading).
+
+## Use a fallback for unknown addresses
+
+Configure a fallback in the route context that owns the unknown address:
+
+```typescript
+import { route } from '@aurelia/router';
+import { Home } from './home';
+import { NotFound } from './not-found';
+
 @route({
   routes: [
-    {
-      path: 'lazy-route',
-      component: () => this.loadComponentSafely(() => import('./lazy-component'))
-    }
-  ]
+    { path: '', component: Home },
+    { path: 'not-found', component: NotFound },
+  ],
+  fallback: 'not-found',
 })
 export class MyApp {}
 ```
 
-### Hook Validation Errors
-Errors thrown by lifecycle hooks:
-
-```typescript
-export class ProtectedComponent implements IRouteViewModel {
-  async canLoad(params: Params): Promise<boolean> {
-    try {
-      await this.validateAccess(params);
-      return true;
-    } catch (error) {
-      console.error('Access validation failed:', error);
-      // Redirect to login or show error
-      this.router.load('login');
-      return false;
-    }
-  }
-
-  private async validateAccess(params: Params): Promise<void> {
-    const hasPermission = await this.authService.checkPermission(params.id);
-    if (!hasPermission) {
-      throw new Error('Insufficient permissions');
-    }
-  }
-}
-```
-
-## Error Recovery Configuration
-
-### Automatic Route Tree Restoration
-
-Configure the router to automatically restore the previous route tree on errors:
-
-```typescript
-// main.ts
-RouterConfiguration.customize({
-  restorePreviousRouteTreeOnError: true, // Default behavior
-})
-```
-
-With this setting enabled (default), navigation failures automatically restore the previous working route state:
-
-```typescript
-export class NavigationService {
-  private router = resolve(IRouter);
-
-  async navigateWithFallback(route: string) {
-    try {
-      const success = await this.router.load(route);
-      if (!success) {
-        console.log('Navigation cancelled, previous route restored');
-      }
-    } catch (error) {
-      console.log('Navigation failed, previous route restored automatically');
-      // The router has already restored the previous route tree
-    }
-  }
-}
-```
-
-### Strict Error Handling
-
-For applications requiring stricter error handling, disable automatic restoration:
-
-```typescript
-RouterConfiguration.customize({
-  restorePreviousRouteTreeOnError: false
-})
-```
-
-In strict mode, handle errors explicitly:
-
-```typescript
-import { IRouter, IRouterEvents, NavigationErrorEvent } from '@aurelia/router';
-import { resolve } from '@aurelia/kernel';
-
-export class StrictErrorHandler {
-  private readonly router = resolve(IRouter);
-  private readonly routerEvents = resolve(IRouterEvents);
-
-  public constructor() {
-    this.routerEvents.subscribe('au:router:navigation-error', (event: NavigationErrorEvent) => {
-      // Manual error handling required
-      this.handleError(event.error);
-      
-      // Manually restore or navigate to error page
-      void this.router.load('error', {
-        queryParams: { from: event.instructions.toPath() },
-      });
-    });
-  }
-}
-```
-
-## Error Handling Patterns
-
-### Global Error Boundary
-
-Create a global error boundary for routing errors:
-
-```typescript
-@singleton
-export class GlobalRouterErrorHandler {
-  private router = resolve(IRouter);
-  private routerEvents = resolve(IRouterEvents);
-  private logger = resolve(ILogger);
-
-  initialize() {
-    this.routerEvents.subscribe('au:router:navigation-error', (event) => {
-      this.handleNavigationError(event);
-    });
-
-    this.routerEvents.subscribe('au:router:navigation-cancel', (event) => {
-      this.handleNavigationCancel(event);
-    });
-  }
-
-  private handleNavigationError(event: NavigationErrorEvent) {
-    this.logger.error('Navigation error:', event.error);
-
-    // Categorize and handle different error types
-    if (this.isNetworkError(event.error)) {
-      this.handleNetworkError(event);
-    } else if (this.isAuthError(event.error)) {
-      this.handleAuthError(event);
-    } else {
-      this.handleGenericError(event);
-    }
-  }
-
-  private handleNetworkError(event: NavigationErrorEvent) {
-    // Show retry dialog
-    this.showRetryDialog(() => {
-      this.router.load(event.instructions.toPath());
-    });
-  }
-
-  private handleAuthError(event: NavigationErrorEvent) {
-    // Redirect to login with return URL
-    this.router.load('login', {
-      queryParams: { returnUrl: event.instructions.toPath() }
-    });
-  }
-
-  private handleGenericError(event: NavigationErrorEvent) {
-    // Navigate to generic error page
-    // If you need to pass error details to the error page, store them in a service/store.
-    this.router.load('error', {
-      queryParams: { from: event.instructions.toPath() },
-    });
-  }
-}
-```
-
-### Component-Level Error Handling
-
-Handle errors at the component level for fine-grained control:
-
-```typescript
-export class ProductListComponent implements IRouteViewModel {
-  private products: Product[] = [];
-  private error: string | null = null;
-  private loading = false;
-
-  async canLoad(params: Params): Promise<boolean> {
-    try {
-      this.loading = true;
-      this.error = null;
-      
-      // Validate parameters
-      if (!params.categoryId || !this.isValidCategory(params.categoryId)) {
-        throw new Error('Invalid category');
-      }
-
-      // Pre-load critical data
-      await this.loadCriticalData(params.categoryId);
-      return true;
-    } catch (error) {
-      this.error = error instanceof Error ? error.message : 'Unknown error';
-      
-      // Decide whether to allow navigation
-      if (this.isCriticalError(error)) {
-        return false; // Prevent navigation
-      }
-      
-      return true; // Allow navigation with error state
-    } finally {
-      this.loading = false;
-    }
-  }
-
-  async loading(params: Params) {
-    try {
-      // Load non-critical data
-      this.products = await this.productService.getProducts(params.categoryId);
-    } catch (error) {
-      // Handle non-critical errors gracefully
-      this.error = 'Failed to load products. Please try again.';
-      this.products = [];
-    }
-  }
-
-  retry() {
-    // Retry current navigation
-    this.router.load(this.currentRoute.path);
-  }
-}
-```
-
-### Fallback Routes and Components
-
-Configure fallback handling for unknown routes:
-
-```typescript
-@route({
-  routes: [
-    { path: 'products', component: ProductList },
-    { path: 'users', component: UserList },
-  ],
-  fallback: (instruction, routeNode, context) => {
-    // Custom fallback logic
-    const path = instruction.component;
-    
-    if (typeof path === 'string' && path.startsWith('admin/')) {
-      // Redirect admin routes to login
-      return 'login';
-    }
-    
-    // Default fallback
-    return 'not-found';
-  }
-})
-export class AppRoot {}
-```
-
-## Error Recovery Strategies
-
-### Retry with Exponential Backoff
-
-Implement retry logic for transient errors:
-
-```typescript
-export class RetryNavigationService {
-  async navigateWithRetry(
-    route: string, 
-    options?: INavigationOptions,
-    maxRetries = 3
-  ): Promise<boolean> {
-    let attempt = 0;
-    
-    while (attempt < maxRetries) {
-      try {
-        return await this.router.load(route, options);
-      } catch (error) {
-        attempt++;
-        
-        if (attempt >= maxRetries) {
-          throw error;
-        }
-        
-        // Exponential backoff
-        const delay = Math.pow(2, attempt) * 1000;
-        await this.delay(delay);
-        
-        console.log(`Retry attempt ${attempt} for route: ${route}`);
-      }
-    }
-    
-    return false;
-  }
-
-  private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-}
-```
-
-### Graceful Degradation
-
-Provide fallback experiences when navigation fails:
-
-```typescript
-export class ResilientNavigationService {
-  async navigateOrDegrade(primaryRoute: string, fallbackRoute: string) {
-    try {
-      const success = await this.router.load(primaryRoute);
-      if (success) return;
-    } catch (error) {
-      console.warn('Primary navigation failed:', error);
-    }
-
-    // Try fallback route
-    try {
-      await this.router.load(fallbackRoute);
-    } catch (error) {
-      console.error('Fallback navigation also failed:', error);
-      // Show inline error message instead of navigating
-      this.showInlineError();
-    }
-  }
-
-  private showInlineError() {
-    // Show error UI without changing route
-    this.eventAggregator.publish('show-error-toast', {
-      message: 'Navigation failed. Please try again.',
-      type: 'warning'
-    });
-  }
-}
-```
-
-## Error Monitoring and Logging
-
-### Comprehensive Error Tracking
-
-```typescript
-@singleton
-export class RouterErrorMonitor {
-  private errorCounts = new Map<string, number>();
-  private routerEvents = resolve(IRouterEvents);
-
-  initialize() {
-    this.routerEvents.subscribe('au:router:navigation-error', (event) => {
-      this.trackError(event);
-      this.reportError(event);
-    });
-  }
-
-  private trackError(event: NavigationErrorEvent) {
-    const route = event.instructions.toPath();
-    const count = this.errorCounts.get(route) || 0;
-    this.errorCounts.set(route, count + 1);
-
-    // Alert if error rate is high
-    if (count > 5) {
-      console.warn(`High error rate for route: ${route}`);
-      this.alertHighErrorRate(route, count);
-    }
-  }
-
-  private reportError(event: NavigationErrorEvent) {
-    // Send to error reporting service
-    this.errorReportingService.captureException(event.error, {
-      tags: {
-        component: 'router',
-        route: event.instructions.toPath(),
-        navigationId: event.id.toString()
-      },
-      extra: {
-        instructions: event.instructions.toString(),
-        userAgent: navigator.userAgent,
-        timestamp: new Date().toISOString()
-      }
-    });
-  }
-}
-```
-
-## Best Practices
-
-### 1. Always Handle Navigation Errors
-```typescript
-// ✅ Good - Handle potential errors
-try {
-  await this.router.load('dashboard');
-} catch (error) {
-  this.handleNavigationError(error);
-}
-
-// ❌ Avoid - Ignoring potential errors
-this.router.load('dashboard'); // Could throw unhandled errors
-```
-
-### 2. Provide User Feedback
-```typescript
-// ✅ Good - Inform users about errors
-export class NavigationService {
-  async navigate(route: string) {
-    try {
-      this.showLoading();
-      await this.router.load(route);
-    } catch (error) {
-      this.showError('Navigation failed. Please try again.');
-    } finally {
-      this.hideLoading();
-    }
-  }
-}
-```
-
-### 3. Use Appropriate Error Recovery
-```typescript
-// ✅ Good - Context-appropriate recovery
-if (error.name === 'AuthenticationError') {
-  this.router.load('login');
-} else if (error.name === 'NetworkError') {
-  this.showRetryOption();
-} else {
-  this.router.load('error');
-}
-
-// ❌ Avoid - Generic error handling for all cases
-this.router.load('error'); // Not always appropriate
-```
-
-This comprehensive error handling documentation fills a significant gap by providing developers with patterns and strategies for creating robust routing experiences.
+A fallback handles an unrecognized route. It does not catch a rejected import or an exception from a recognized page's lifecycle hook. See [Fallbacks](configuring-routes.md) for configuration and [Router events](router-events.md) for observing transition failures.

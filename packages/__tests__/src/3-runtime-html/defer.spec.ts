@@ -191,7 +191,22 @@ describe('3-runtime-html/defer.spec.ts', function () {
     it('keeps the order of the bindings of the host element', function () {
       const def = compile('<div a.bind="x" class="c" defer b.bind="y" e.trigger="z"></div>');
 
-      assert.strictEqual(rawHtml(getDefer(def)), '<div class="c" a.bind="x" b.bind="y" e.trigger="z"></div>');
+      assert.strictEqual(rawHtml(getDefer(def)), '<div a.bind="x" class="c" b.bind="y" e.trigger="z"></div>');
+    });
+
+    it('keeps the order of custom attributes of the host element, including ones the block loads', function () {
+      const ctx = TestContext.create();
+      ctx.container.register(
+        DeferConfiguration,
+        CustomAttribute.define('ca-a', class { }),
+      );
+      // ca-lazy is unknown until the block loads it, and must still run after ca-a
+      const def = ctx.templateCompiler.compile(
+        { name: 'app', type: 'custom-element', template: '<div ca-a ca-lazy defer="idle" ca-b></div>' },
+        ctx.container,
+      );
+
+      assert.strictEqual(rawHtml(getDefer(def)), '<div ca-a="" ca-lazy="" ca-b=""></div>');
     });
 
     it('keeps as-element, containerless and captured attributes of the host element', function () {

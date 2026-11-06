@@ -7,6 +7,7 @@ import {
   emptyArray,
   toArray,
   ILogger,
+  noop,
   camelCase,
   getResourceKeyFor,
   allResources,
@@ -114,17 +115,6 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   public debug: boolean = false;
   public resolveResources: boolean = true;
-  /**
-   * Attributes consumed during classification, kept so an element that turns out to host a deferred
-   * template controller can be restored to its raw form.
-   * @internal
-   */
-  private readonly _consumedAttrs: Attr[] = [];
-  /**
-   * Template controller attributes of the element being classified, which debug mode leaves in place.
-   * @internal
-   */
-  private readonly _tcAttrs: Attr[] = [];
 
   public compile(
     definition: IElementComponentDefinition,
@@ -793,22 +783,63 @@ export class TemplateCompiler implements ITemplateCompiler {
    */
   private _hostsTemplateController(el: Element, elDef: IElementComponentDefinition | null, context: CompilationContext, deferredOnly: boolean): boolean {
     const attrs = el.attributes;
-    let syntax: AttrSyntax;
-    let attrDef: IAttributeComponentDefinition | null;
     for (let i = 0, ii = attrs.length; ii > i; ++i) {
-      syntax = context._attrParser.parse(attrs[i].name, attrs[i].value);
-      // A bindable of the element takes the attribute before a custom attribute can, as in _classifyAttributes
-      if (elDef !== null && context._getBindables(elDef).attrs[syntax.target] != null) {
-        continue;
-      }
-      attrDef = findHostableAttr(el, syntax.target, context);
-      // So do commands such as .attr. The command is only resolved for a matching template controller,
-      // as the commands of other attributes may come from a module the block loads later.
-      if (attrDef?.isTemplateController && (!deferredOnly || attrDef.compileContent === 'deferred') && !context._getCommand(syntax)?.ignoreAttr) {
+      if (getTemplateController(el, elDef, attrs[i], context, deferredOnly) !== null) {
         return true;
       }
     }
     return false;
+  }
+
+  /**
+   * Classify the attributes of an element that hosts a template controller deferring its content.
+   * Only that template controller and the ones written before it, which wrap it, are compiled now.
+   * Every other attribute belongs to the deferred content, wherever it's written, so it stays on the element
+   * as authored and compiles with the content, against the resources available then.
+   * @internal
+   */
+  private _classifyDeferredHost(
+    el: Element,
+    elDef: IElementComponentDefinition | null,
+    context: CompilationContext,
+  ): IAttrClassificationResult | null {
+    const attrs = el.attributes;
+    let deferIndex = -1;
+    for (let i = 0, ii = attrs.length; ii > i; ++i) {
+      if (getTemplateController(el, elDef, attrs[i], context, true) !== null) {
+        deferIndex = i;
+        break;
+      }
+    }
+    if (deferIndex === -1) {
+      return null;
+    }
+    const tcAttrs: Attr[] = [];
+    for (let i = 0; deferIndex >= i; ++i) {
+      if (i === deferIndex || getTemplateController(el, elDef, attrs[i], context, false) !== null) {
+        tcAttrs.push(attrs[i]);
+      }
+    }
+    const tcInstructions: HydrateTemplateController[] = [];
+    let attrSyntax: AttrSyntax;
+    let attrDef: IAttributeComponentDefinition;
+    for (const attr of tcAttrs) {
+      attrSyntax = context._attrParser.parse(attr.name, attr.value);
+      attrDef = findHostableAttr(el, attrSyntax.target, context)!;
+      tcInstructions.push({
+        type: itHydrateTemplateController,
+        def: voidDefinition,
+        res: this.resolveResources ? attrDef : attrDef.name,
+        alias: void 0,
+        props: this._compileCustomAttributeBindables(
+          el, attrDef, attrSyntax, attrSyntax.rawValue, context._getCommand(attrSyntax), context,
+          /* treatEmptyAsNoBinding */ true
+        ),
+      } satisfies HydrateTemplateController);
+      // Removed in debug mode too, as a template controller left on the element would compile again with the content
+      el.removeAttributeNode(attr);
+    }
+    return { tcInstructions, hasContainerless: false, deferred: true };
   }
 
   /**
@@ -843,6 +874,11 @@ export class TemplateCompiler implements ITemplateCompiler {
     context: CompilationContext,
     generateStaticAttrInstructions: boolean = false,
   ): IAttrClassificationResult {
+    const deferredHost = this._classifyDeferredHost(el, elDef, context);
+    if (deferredHost !== null) {
+      return deferredHost;
+    }
+
     const isCustomElement = elDef !== null;
     const capture = elDef?.capture;
     const hasCaptureFilter = capture != null && typeof capture !== 'boolean';
@@ -872,21 +908,14 @@ export class TemplateCompiler implements ITemplateCompiler {
     let hasContainerless = false;
     let canCapture = false;
     let spreadIndex = 0;
-    // A deferred element is unknown until its block loads, so its spreads are only invalid when no defer follows
-    let reservedSyntaxError: Error | undefined;
 
-    const debug = this.debug;
-    const consumedAttrs = this._consumedAttrs;
-    const tcAttrs = this._tcAttrs;
-    consumedAttrs.length = tcAttrs.length = 0;
-    const removeAttr = () => {
-      consumedAttrs.push(attr);
-      if (!debug) {
+    const removeAttr = this.debug
+      ? noop
+      : () => {
         el.removeAttribute(attrName);
         --i;
         --ii;
-      }
-    };
+      };
 
     for (; ii > i; ++i) {
       attr = attrs[i];
@@ -968,8 +997,7 @@ export class TemplateCompiler implements ITemplateCompiler {
           }
         }
 
-        reservedSyntaxError ??= createMappedError(ErrorNames.compiler_no_reserved_spread_syntax, realAttrTarget);
-        continue;
+        throw createMappedError(ErrorNames.compiler_no_reserved_spread_syntax, realAttrTarget);
       }
 
       // 6. Custom element bindable properties
@@ -1037,8 +1065,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
       // Disallow $bindables on non-custom elements
       if (realAttrTarget === '$bindables') {
-        reservedSyntaxError ??= createMappedError(ErrorNames.compiler_no_reserved_$bindable, el.nodeName, realAttrTarget, realAttrValue);
-        continue;
+        throw createMappedError(ErrorNames.compiler_no_reserved_$bindable, el.nodeName, realAttrTarget, realAttrValue);
       }
 
       // 7. Custom attributes and template controllers
@@ -1062,32 +1089,6 @@ export class TemplateCompiler implements ITemplateCompiler {
             alias: void 0,
             props: attrBindableInstructions,
           } satisfies HydrateTemplateController);
-
-          // Template controllers wrap the element, so they never belong to its raw form
-          consumedAttrs.pop();
-          if (debug) {
-            tcAttrs.push(attr);
-          }
-          if (attrDef.compileContent === 'deferred') {
-            // Everything except the outer template controllers is part of the deferred content,
-            // including attributes already classified. Put the element back into its authored form,
-            // so it can be compiled later against the resources available then. Attributes that were
-            // consumed or not yet classified are re-added in their authored order, after the static ones.
-            // Attr nodes are moved rather than recreated, as setAttribute() rejects names such as "@click".
-            // Re-adding an attribute debug mode left in place keeps its position.
-            const rest = Array.prototype.slice.call(attrs, i + 1, ii) as Attr[];
-            for (const tcAttr of tcAttrs) {
-              el.removeAttributeNode(tcAttr);
-            }
-            for (const restAttr of rest) {
-              el.removeAttributeNode(restAttr);
-            }
-            for (const consumedAttr of consumedAttrs.concat(rest)) {
-              el.setAttributeNode(consumedAttr);
-            }
-            consumedAttrs.length = tcAttrs.length = 0;
-            return { tcInstructions, hasContainerless: false, deferred: true };
-          }
         } else {
           (attrInstructions ??= []).push({
             type: itHydrateAttribute,
@@ -1135,10 +1136,6 @@ export class TemplateCompiler implements ITemplateCompiler {
       removeAttr();
     }
 
-    consumedAttrs.length = tcAttrs.length = 0;
-    if (reservedSyntaxError !== void 0) {
-      throw reservedSyntaxError;
-    }
     return {
       tcInstructions,
       attrInstructions,
@@ -1664,6 +1661,36 @@ const TEMPLATE_NODE_NAME = 'TEMPLATE';
 const findHostableAttr = (el: Element, name: string, context: CompilationContext): IAttributeComponentDefinition | null => {
   const attrDef = context._findAttr(name);
   return attrDef?.compileContent === 'deferred' && el.nodeName === 'SCRIPT' ? null : attrDef;
+};
+
+/**
+ * The template controller an attribute of an element hydrates, if any, or with `deferredOnly`,
+ * only one that defers its content. Mirrors the precedence of `_classifyAttributes`.
+ */
+const getTemplateController = (
+  el: Element,
+  elDef: IElementComponentDefinition | null,
+  attr: Attr,
+  context: CompilationContext,
+  deferredOnly: boolean,
+): IAttributeComponentDefinition | null => {
+  const name = attr.name;
+  if (name === 'as-element' || name === 'containerless') {
+    return null;
+  }
+  const syntax = context._attrParser.parse(name, attr.value);
+  // A bindable of the element takes the attribute before a custom attribute can
+  if (elDef !== null && context._getBindables(elDef).attrs[syntax.target] != null) {
+    return null;
+  }
+  const attrDef = findHostableAttr(el, syntax.target, context);
+  // So do commands such as .attr. The command is only resolved for a matching template controller,
+  // as the commands of other attributes may come from a module a deferred block loads later.
+  return attrDef?.isTemplateController === true
+    && (!deferredOnly || attrDef.compileContent === 'deferred')
+    && context._getCommand(syntax)?.ignoreAttr !== true
+    ? attrDef
+    : null;
 };
 /** Check if a node is an <!--au--> marker comment */
 const isMarker = (el: Node): el is Comment =>

@@ -416,6 +416,24 @@ describe('3-runtime-html/head.spec.ts', function () {
       await stop(true);
     });
 
+    it('keeps an unkeyed JSON-LD script in place when its value changes', async function () {
+      const { component, doc, stop } = await startHead(
+        '<au-head><script type="application/ld+json" json.bind="product"></script><meta name="description" content="Kettles"></au-head>',
+        { product: { name: 'Kettle' } },
+      );
+      const script = doc.head.querySelector('script[data-au-head]');
+      const meta = doc.head.querySelector('meta[name="description"]');
+      assert.strictEqual(script.nextElementSibling, meta);
+
+      component.product = { name: 'Toaster' };
+      await tasksSettled();
+      assert.strictEqual(doc.head.querySelectorAll('script[data-au-head]').length, 1);
+      assert.strictEqual(doc.head.querySelector('script[data-au-head]'), script);
+      assert.deepStrictEqual(JSON.parse(script.textContent), { name: 'Toaster' });
+      assert.strictEqual(script.nextElementSibling, meta, 'the script is patched where it is, not re-added at the end');
+      await stop(true);
+    });
+
     it('rejects children that do not belong in the head', function () {
       assert.throws(() => createFixture('<au-head><div></div></au-head>', {}, [HeadConfiguration]), /AUR0825/);
       assert.throws(() => createFixture('<au-head>stray text</au-head>', {}, [HeadConfiguration]), /AUR0825/);

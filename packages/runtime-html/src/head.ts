@@ -179,7 +179,15 @@ export class HeadSource implements IHeadSource {
    */
   public _setElement(el: Element, explicitKey: string | null): void {
     el.setAttribute(managedAttr, explicitKey ?? '');
-    const key = this._head._keyOf(el.localName, explicitKey, name => el.getAttribute(name));
+    // Keep the key the tag was added with: re-deriving it would give an unkeyed tag a new identity
+    // on every update, moving it to the end of the head.
+    let key: string | undefined;
+    for (const [k, entry] of this._entries) {
+      if (entry.el === el) {
+        key = k;
+      }
+    }
+    key ??= this._head._keyOf(el.localName, explicitKey, name => el.getAttribute(name));
     this._head._commit(this, new Map([[key, { kind: kElement, source: this, value: null, el }]]));
   }
 }

@@ -2,6 +2,7 @@ import {
   Aurelia,
   CustomElement,
   ISSRContext,
+  prepareSSRForSerialization,
   customElement,
   type IHydratedController,
   type ISSRScope,
@@ -968,6 +969,7 @@ describe('3-runtime-html/repeat.async-lifecycle.spec.ts', function () {
       let serverMarkup: string;
       try {
         await serverAu.start();
+        prepareSSRForSerialization(serverHost);
         serverMarkup = serverHost.innerHTML;
       } finally {
         await serverAu.stop(true);
@@ -1014,8 +1016,8 @@ describe('3-runtime-html/repeat.async-lifecycle.spec.ts', function () {
       assert.strictEqual(clientHost.querySelector('ssr-pending-repeat-row'), adoptedRow);
       assert.strictEqual(clientHost.textContent, '01');
 
-      await root.deactivate();
-      root.dispose();
+      assert.strictEqual(root, clientAu.root);
+      await clientAu.stop(true);
       clientAu.dispose();
       clientHost.remove();
     });

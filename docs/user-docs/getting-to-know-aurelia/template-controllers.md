@@ -166,7 +166,7 @@ private hide(initiator: IHydratedController) {
 
 A template controller owns the views it creates. Pass the lifecycle `initiator` through `attaching` and `detaching` so the parent and hosted view complete the same transition. Later bindable changes start from the hosted view. `accept(visitor)` lets parent traversal reach it, and `dispose()` releases it after teardown.
 
-Because the same view gets reused, you can cache work (see `If.cache` and `PromiseTemplateController` for examples). If you need a fresh container per instantiation—for example, each repeated row should get a unique dependency graph—set `containerStrategy: 'new'` on the definition so the renderer asks the DI container for a child scope before creating the view.
+Because the same view gets reused, you can cache work (see `If.cache` and `PromiseTemplateController` for examples). The default `containerStrategy: 'reuse'` borrows the rendering controller's container. Setting `containerStrategy: 'new'` creates one private child container for the template-controller instance's `IViewFactory`. All views from that factory share the container, including sibling views and views reused from its cache.
 
 ## Coordinating Multiple Template Controllers
 
@@ -220,7 +220,7 @@ The structural rule is strict:
 - **No surrogate usage** – Placing a template controller on `<template as-element="foo">` throws `compiler_no_tc_on_surrogate` because surrogates do not own render locations.
 - **No spread bindings** – `...attrs="bindable"` intentionally skips template controllers since spreading could hide structural markup (`packages/template-compiler/src/errors.ts`, `no_spread_template_controller`). Register them explicitly instead.
 - **One template per controller** – The compiler only emits one `IViewFactory` per controller. If you need secondary content (like the `else` branch), capture another controller's factory in `link()` or build an additional view manually using `ViewFactory`/`CustomElementDefinition` as shown earlier.
-- **Container strategy matters** – Setting `containerStrategy: 'new'` ensures each rendered view gets a fresh child container (see `PromiseTemplateController`); the default `'reuse'` is faster but shares services.
+- **Container strategy matters** – Disposing one synthetic view leaves the factory's registrations intact. With `'new'`, explicitly disposable registrations in the private container are released with the template controller, after its owned views are disposed. With `'reuse'`, the borrowed container stays with its existing owner.
 - **Lifecycle ownership** – A created view remains with its template controller through teardown. Deactivate it during `detaching`, include it in `accept(visitor)`, and release it from `dispose()`.
 
 **Async swaps are phased.** When one branch returns a promise from `detaching()` and the next returns a promise from `attaching()`, Aurelia processes the swap in stages. The old branch leaves first, then the new branch starts attaching, and the new DOM can be present before the async attach promise resolves.

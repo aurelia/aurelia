@@ -687,4 +687,7 @@ export {
   hydrateSSRDefinition,
   type ISSRDefinition,
   type IHydratedDefinition,
+  ITransferState,
+  TransferState,
+  transferStateId,
 } from '@aurelia/runtime-html';

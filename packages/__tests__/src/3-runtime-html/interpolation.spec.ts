@@ -14,7 +14,7 @@ import {
   IPlatform,
   ValueConverter,
 } from '@aurelia/runtime-html';
-import { type ArrayObserver, tasksSettled } from '@aurelia/runtime';
+import { type ArrayObserver, runTasks, tasksSettled } from '@aurelia/runtime';
 import { resolve } from '@aurelia/kernel';
 
 type CaseType = {
@@ -33,6 +33,82 @@ const ThreeHoursAheadDateString = new Date('Sat Feb 02 2002 03:00:00 GMT+0000 (C
 const ThreeDaysDateString = new Date('Sat Feb 03 2002 00:00:00 GMT+0000 (Coordinated Universal Time)').toString();
 
 describe('3-runtime-html/interpolation.spec.ts', function () {
+  describe('native textarea and title text', function () {
+    for (const tag of ['textarea', 'title'] as const) {
+      for (const initial of [undefined, null]) {
+        it(`keeps nullish ${tag} expressions empty (${initial})`, async function () {
+          const fixture = createFixture(
+            `<${tag}>Value: \${value} / \${suffix}</${tag}>`,
+            { value: initial as string | null | undefined, suffix: null as string | null },
+          );
+          try {
+            const element = fixture.getBy(tag);
+            assert.strictEqual(element.textContent, 'Value:  / ');
+            fixture.component.value = 'ready';
+            fixture.component.suffix = 'done';
+            await tasksSettled();
+            assert.strictEqual(element.textContent, 'Value: ready / done');
+            fixture.component.value = initial;
+            fixture.component.suffix = null;
+            await tasksSettled();
+            assert.strictEqual(element.textContent, 'Value:  / ');
+          } finally {
+            await fixture.stop(true);
+          }
+        });
+      }
+    }
+
+    for (const tag of ['div', 'textarea', 'title'] as const) {
+      it(`keeps a debounced ${tag} expression independent of another expression's update`, async function () {
+        const fixture = createFixture(
+          `<${tag}>\${draft & debounce:30000} / \${status}</${tag}>`,
+          { draft: 'initial', status: 'idle' },
+        );
+        try {
+          fixture.component.draft = 'edited';
+          fixture.component.status = 'busy';
+          // Drain immediate DOM work while the draft's debounce timer remains
+          // pending. Updating status must not publish the draft early.
+          runTasks();
+          assert.strictEqual(fixture.getBy(tag).textContent, 'initial / busy');
+        } finally {
+          // Unbinding cancels the deliberately long timer; the test never waits
+          // for wall-clock timing to decide whether the draft was debounced.
+          await fixture.stop(true);
+        }
+      });
+    }
+
+    for (const tag of ['textarea', 'title'] as const) {
+      it(`observes arrays and value converters in ${tag} content`, async function () {
+        const Upper = ValueConverter.define('contentUpper', class {
+          public toView(value: string | undefined): string | undefined { return value?.toUpperCase(); }
+        });
+        const fixture = createFixture(
+          `<${tag}>\${items} / \${label | contentUpper}</${tag}>`,
+          { items: ['first'], label: 'state' as string | undefined },
+          [Upper],
+        );
+        try {
+          const element = fixture.getBy(tag);
+          assert.strictEqual(element.textContent, 'first / STATE');
+          fixture.component.items.push('second');
+          fixture.component.label = undefined;
+          await tasksSettled();
+          assert.strictEqual(element.textContent, 'first,second / ');
+          fixture.component.items = ['replacement'];
+          await tasksSettled();
+          fixture.component.items.push('next');
+          await tasksSettled();
+          assert.strictEqual(element.textContent, 'replacement,next / ');
+        } finally {
+          await fixture.stop(true);
+        }
+      });
+    }
+  });
+
   describe('[UNIT]interpolation', function () {
     const cases: CaseType[] = [
       {

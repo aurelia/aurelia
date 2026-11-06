@@ -11,7 +11,7 @@ import { ErrorNames, createMappedError } from '../../errors';
 export type PortalTarget = string | Element | null | undefined;
 type ResolvedTarget = Element;
 
-export type PortalLifecycleCallback = (target: PortalTarget, view: ISyntheticView) => void | Promise<void>;
+export type PortalLifecycleCallback = (target: Element, view: ISyntheticView) => void | Promise<void>;
 
 export class Portal implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition<keyof Pick<
@@ -49,7 +49,24 @@ export class Portal implements ICustomAttributeViewModel {
 
   public view: ISyntheticView;
 
-  /** @internal */ private _resolvedTarget: ResolvedTarget;
+  /**
+   * The target and position the content is currently placed at.
+   *
+   * @internal
+   */
+  private _resolvedTarget: ResolvedTarget | null = null;
+  /** @internal */ private _resolvedPosition: InsertPosition = 'beforeend';
+  /**
+   * The in-flight attach, move or detach. Each one waits for the previous to finish, so async
+   * callbacks can't interleave and leave the content behind in an old target.
+   *
+   * @internal
+   */
+  private _pending: void | Promise<void> = void 0;
+  /** Whether a step is running synchronously, outside of `_pending`. @internal */
+  private _running: boolean = false;
+  /** Starts the changes a synchronous callback queued behind the running step. @internal */
+  private _release: (() => void) | null = null;
   /** @internal */ private readonly _platform: IPlatform;
   /** @internal */ private readonly _targetLocation: IRenderLocation;
 
@@ -58,9 +75,6 @@ export class Portal implements ICustomAttributeViewModel {
     const originalLoc = resolve(IRenderLocation);
     const p = resolve(IPlatform);
     this._platform = p;
-    // to make the shape of this object consistent.
-    // todo: is this necessary
-    this._resolvedTarget = p.document.createElement('div');
 
     (this.view = factory.create()).setLocation(
       this._targetLocation = createLocation(p)
@@ -74,56 +88,94 @@ export class Portal implements ICustomAttributeViewModel {
     if (this.callbackContext == null) {
       this.callbackContext = this.$controller.scope.bindingContext;
     }
-    const newTarget = this._resolvedTarget = this._getTarget();
-    this._moveLocation(newTarget, this.position);
-
-    return this._activating(initiator, newTarget);
+    return this._enqueue(() => {
+      const target = this._resolvedTarget = this._getTarget();
+      this._moveLocation(target, this._resolvedPosition = this.position);
+      return this._activating(initiator, target);
+    });
   }
 
   public detaching(
     initiator: IHydratedController,
   ): void | Promise<void> {
-    return this._deactivating(initiator, this._resolvedTarget);
+    return this._enqueue(() => this._deactivating(initiator, this._resolvedTarget!));
   }
 
   public targetChanged(): void {
-    const { $controller } = this;
-    if (!$controller.isActive) {
+    if (!this.$controller.isActive) {
       return;
     }
-
-    const newTarget = this._getTarget();
-
-    if (this._resolvedTarget === newTarget) {
-      return;
-    }
-    this._resolvedTarget = newTarget;
-
-    // TODO(fkleuver): fix and test possible race condition
-    const ret = onResolve(
-      this._deactivating(null, newTarget),
-      () => {
-        this._moveLocation(newTarget, this.position);
-        return this._activating(null, newTarget);
-      },
-    );
+    const ret = this._enqueue(() => this._move());
     if (isPromise(ret)) { ret.catch(rethrow); }
   }
 
   public positionChanged(): void {
-    const { $controller, _resolvedTarget } = this;
-    if (!$controller.isActive) {
+    this.targetChanged();
+  }
+
+  /** @internal */
+  private _enqueue(fn: () => void | Promise<void>): void | Promise<void> {
+    if (this._running) {
+      // a synchronous callback of the running step made this change. Applying it now would let the
+      // step carry on with the old placement afterwards, so it waits until the step is done
+      this._pending ??= new Promise<void>(r => { this._release = r; });
+    }
+    let ret: void | Promise<void>;
+    if (this._pending !== void 0) {
+      ret = this._pending.then(fn);
+    } else {
+      this._running = true;
+      try {
+        ret = fn();
+      } finally {
+        this._running = false;
+        const release = this._release;
+        if (release !== null) {
+          this._release = null;
+          const queued: Promise<void> = this._pending;
+          // start the queued changes once the step settles, even if it failed, and keep the queue
+          // busy until they're done. `queued` never rejects, so a failure is passed on after it
+          ret = isPromise(ret)
+            ? ret.finally(release).then(() => queued, err => queued.then(() => { throw err; }))
+            : (release(), queued);
+        }
+      }
+    }
+    if (isPromise(ret)) {
+      // clear the queue once idle so changes are applied synchronously again.
+      // the caller handles a rejection, the queue only needs to know it settled
+      const clear = () => {
+        if (this._pending === pending) {
+          this._pending = void 0;
+        }
+      };
+      const pending: Promise<void> = this._pending = ret.then(clear, clear);
+    }
+    return ret;
+  }
+
+  /** @internal */
+  private _move(): void | Promise<void> {
+    // a detach queued behind this move has already started
+    if (!this.$controller.isActive) {
       return;
     }
-    // TODO(fkleuver): fix and test possible race condition
-    const ret = onResolve(
-      this._deactivating(null, _resolvedTarget),
+    const oldTarget = this._resolvedTarget!;
+    // resolve before tearing anything down, so an invalid target leaves the content where it is
+    const newTarget = this._getTarget();
+    const position = this.position;
+    if (newTarget === oldTarget && position === this._resolvedPosition) {
+      return;
+    }
+
+    return onResolve(
+      this._deactivating(null, oldTarget),
       () => {
-        this._moveLocation(_resolvedTarget, this.position);
-        return this._activating(null, _resolvedTarget);
+        this._resolvedTarget = newTarget;
+        this._moveLocation(newTarget, this._resolvedPosition = position);
+        return this._activating(null, newTarget);
       },
     );
-    if (isPromise(ret)) { ret.catch(rethrow); }
   }
 
   /** @internal */
@@ -224,6 +276,18 @@ export class Portal implements ICustomAttributeViewModel {
 
   /** @internal */
   private _getTarget(): ResolvedTarget {
+    const target = this._queryTarget();
+    const position = this.position;
+    // without a parent the location markers can't be inserted, and the view would fail later
+    // with a TypeError when inserting its nodes
+    if (target.parentNode == null && (position === 'beforebegin' || position === 'afterend')) {
+      throw createMappedError(ErrorNames.portal_target_no_parent, position);
+    }
+    return target;
+  }
+
+  /** @internal */
+  private _queryTarget(): ResolvedTarget {
     const p = this._platform;
     // with a $ in front to make it less confusing/error prone
     const $document = p.document;

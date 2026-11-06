@@ -72,6 +72,8 @@ export interface InterpolationInstruction extends IInstruction {
   readonly type: typeof itInterpolation;
   readonly from: string | Interpolation;
   readonly to: string;
+  /** Render into the target element with independent text bindings. `to` must be `textContent`. */
+  readonly isTextContent?: true;
 }
 
 export interface PropertyBindingInstruction extends IInstruction {

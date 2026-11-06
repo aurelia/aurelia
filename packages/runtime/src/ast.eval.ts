@@ -12,6 +12,7 @@ import { Scope, type IOverrideContext } from './scope';
 import { ErrorNames, createMappedError } from './errors';
 import { rtSafeString as safeString } from './utilities';
 import { wrap } from './proxy-observation';
+import { growArray } from './array-observer';
 import { enterConnectable, exitConnectable } from './connectable-switcher';
 
 // -----------------------------------
@@ -114,6 +115,16 @@ export const {
   type TrackableFunction = AnyFunction & {
     [astTrackableMethodMarker]?: TrackableFunctionOptions;
   };
+
+  // writes go through splice/growArray so array observers are notified; growing fills the gap with undefined
+  // (plain JS would leave holes) and notifies once so a repeat reconciles once per write
+  function setArrayLength(arr: unknown[], length: number): void {
+    if (length < arr.length) {
+      arr.splice(length);
+    } else {
+      growArray(arr, length, void 0);
+    }
+  }
 
   function observeTrackableMethodDependencies(connectable: IConnectable, instance: unknown, options: TrackableFunctionOptions): void {
     if (instance == null) {
@@ -571,7 +582,7 @@ export const {
           astAssign(ast.object, s, e, c, { [ast.name]: val });
         } else if (isObjectOrFunction(obj)) {
           if (ast.name === 'length' && isArray(obj) && !isNaN(val as number)) {
-            obj.splice(val as number);
+            setArrayLength(obj, +(val as number));
           } else {
             obj[ast.name] = val;
           }
@@ -599,11 +610,17 @@ export const {
 
         if (isArray(instance)) {
           if (key === 'length' && !isNaN(val as number)) {
-            instance.splice(val as number);
+            setArrayLength(instance, +(val as number));
             return val;
           }
           if (isArrayIndex(key)) {
-            instance.splice(key as unknown as number, 1, val);
+            const index = +key;
+            if (index < instance.length) {
+              instance.splice(index, 1, val);
+            } else {
+              // splice clamps start to length, so an out of bounds index would otherwise append
+              growArray(instance, index + 1, val);
+            }
             return val;
           }
         }

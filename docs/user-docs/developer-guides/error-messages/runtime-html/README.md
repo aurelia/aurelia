@@ -103,6 +103,7 @@ Use this index to find the cause and recommended action for errors emitted by [@
 * [AUR0827](aur0827.md)
 * [AUR0828](aur0828.md)
 * [AUR0829](aur0829.md)
+* [AUR0830](aur0830.md)
 * [AUR9989](aur9989.md)
 * [AUR9990](aur9990.md)
 * [AUR9991](aur9991.md)

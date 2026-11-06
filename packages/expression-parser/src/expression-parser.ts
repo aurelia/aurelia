@@ -97,7 +97,8 @@ export class ExpressionParser<TCustom extends CustomExpression = CustomExpressio
       case etInterpolation:
         found = this._interpolationLookup[expression];
         if (found === void 0) {
-          found = this._interpolationLookup[expression] = this.$parse(expression, expressionType);
+          // Interpolation requires a literal '${'; possible escaped markers still need the parser.
+          found = this._interpolationLookup[expression] = expression.includes('${') ? this.$parse(expression, expressionType) : null!;
         }
         return found;
       case etIsIterator:

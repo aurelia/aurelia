@@ -226,9 +226,38 @@ describe('3-runtime-html/dialog/dialog-html-dom.spec.ts', function () {
     });
 
     assert.strictEqual(i, 1);
-    trigger('button', 'cancel', { bubbles: true });
+    trigger('dialog', 'cancel', { cancelable: true });
     await result.dialog.closed;
     assert.strictEqual(i, 2);
+  });
+
+  it('ignores cancel events bubbling from dialog descendants', async function () {
+    let hideCallCount = 0;
+    const { component, trigger, getBy } = createFixture(
+      '',
+      class {
+        host = resolve(INode) as HTMLElement;
+        dialogService = resolve(IDialogService);
+      },
+      [DialogConfigurationStandard]
+    );
+    const result = await component.dialogService.open<DialogRenderOptionsStandard>({
+      host: component.host,
+      template: '<input type="file">',
+      options: {
+        modal: true,
+        hide: () => { hideCallCount++; },
+      }
+    });
+
+    trigger('input', 'cancel', { bubbles: true });
+    await tasksSettled();
+
+    assert.strictEqual(hideCallCount, 0);
+    assert.strictEqual((getBy('dialog') as HTMLDialogElement).open, true);
+
+    await result.dialog.cancel();
+    assert.strictEqual(hideCallCount, 1);
   });
 
   it('calls hide only once on modal dialog close event', async function () {
@@ -250,7 +279,7 @@ describe('3-runtime-html/dialog/dialog-html-dom.spec.ts', function () {
       }
     });
 
-    trigger('button', 'cancel', { bubbles: true });
+    trigger('dialog', 'cancel', { cancelable: true });
     // await new Promise(resolve => setTimeout(resolve, 100));
     await result.dialog.closed;
     assert.strictEqual(i, 1);
@@ -290,7 +319,7 @@ describe('3-runtime-html/dialog/dialog-html-dom.spec.ts', function () {
         return component.dialogService.closeAll().then(() => resolve());
       });
 
-      trigger('button', 'cancel', { bubbles: true });
+      trigger('dialog', 'cancel', { cancelable: true });
     });
 
     assert.includes(error.message, 'deactivation failed');

@@ -8,7 +8,7 @@ import {
   LetBinding,
   PropertyBinding,
 } from '@aurelia/runtime-html';
-import { runTasks, tasksSettled } from '@aurelia/runtime';
+import { batch, cloneIndexMap, getCollectionObserver, type IndexMap, runTasks, tasksSettled } from '@aurelia/runtime';
 import {
   assert,
   createContainer,
@@ -414,6 +414,218 @@ describe('2-runtime/ast.integration.spec.ts', function () {
       runTasks();
 
       assert.strictEqual(getAllBy('li')[0].textContent, 'item at 0: 3');
+    });
+
+    // https://github.com/aurelia/aurelia/issues/2549
+    describe('out of bounds index/length (#2549)', function () {
+      const html = `<div repeat.for="q of questions"><input value.bind="answers[$index]"></div>`;
+      const inputValues = (inputs: HTMLInputElement[]) => inputs.map(i => i.value);
+
+      it('binds each input to its own index when filled out of order starting from an empty array', function () {
+        const { component, getAllBy, type } = createFixture
+          .component({ questions: ['q1', 'q2', 'q3'], answers: [] as string[] })
+          .html(html)
+          .build();
+
+        const inputs = getAllBy('input') as HTMLInputElement[];
+        type(inputs[2], 'C');
+        runTasks();
+        assert.deepStrictEqual(component.answers, [undefined, undefined, 'C']);
+        assert.deepStrictEqual(inputValues(inputs), ['', '', 'C']);
+
+        type(inputs[0], 'A');
+        runTasks();
+        assert.deepStrictEqual(component.answers, ['A', undefined, 'C']);
+        assert.deepStrictEqual(inputValues(inputs), ['A', '', 'C']);
+
+        type(inputs[1], 'B');
+        runTasks();
+        assert.deepStrictEqual(component.answers, ['A', 'B', 'C']);
+        assert.deepStrictEqual(inputValues(inputs), ['A', 'B', 'C']);
+      });
+
+      it('keeps in-order filling unchanged', function () {
+        const { component, getAllBy, type } = createFixture
+          .component({ questions: ['q1', 'q2', 'q3'], answers: [] as string[] })
+          .html(html)
+          .build();
+
+        const inputs = getAllBy('input') as HTMLInputElement[];
+        type(inputs[0], 'A');
+        type(inputs[1], 'B');
+        type(inputs[2], 'C');
+        runTasks();
+        assert.deepStrictEqual(component.answers, ['A', 'B', 'C']);
+        assert.deepStrictEqual(inputValues(inputs), ['A', 'B', 'C']);
+      });
+
+      it('extends the array when assigning past the end in an event handler', function () {
+        const { component, trigger, getAllBy } = createFixture
+          .component({ items: ['a'] })
+          .html`
+            <button click.trigger="items[3] = 'x'"></button>
+            <p repeat.for="i of items">\${i}</p>
+          `
+          .build();
+
+        trigger.click('button');
+        runTasks();
+        assert.strictEqual(component.items.length, 4);
+        assert.deepStrictEqual(component.items, ['a', undefined, undefined, 'x']);
+        assert.deepStrictEqual(getAllBy('p').map(p => p.textContent), ['a', '', '', 'x']);
+      });
+
+      it('fills a gap larger than the engine argument limit', function () {
+        const { component, trigger, assertText } = createFixture
+          .component({ items: ['a'], n: 300_000 })
+          .html`
+            <button click.trigger="items[n] = 'x'">\${items.length}</button>
+            <span click.trigger="items.length = n * 2"></span>
+          `
+          .build();
+
+        trigger.click('button');
+        runTasks();
+        assert.strictEqual(component.items.length, 300_001);
+        assert.strictEqual(component.items[300_000], 'x');
+        assert.strictEqual(299_999 in component.items, true);
+        assertText('button', '300001');
+
+        trigger.click('span');
+        runTasks();
+        assert.strictEqual(component.items.length, 600_000);
+        assert.strictEqual(599_999 in component.items, true);
+        assertText('button', '600000');
+      });
+
+      for (const [kind, expr] of [['keyed', `items['length']`], ['member', 'items.length']] as const) {
+        it(`grows and shrinks the array when assigning length (${kind})`, function () {
+          const { component, trigger, assertText, getAllBy } = createFixture
+            .component({ items: ['a'], n: 3 })
+            .html`
+              <button click.trigger="${expr} = n">\${items.length}</button>
+              <p repeat.for="i of items">\${i}</p>
+            `
+            .build();
+
+          assertText('button', '1');
+
+          trigger.click('button');
+          runTasks();
+          assert.strictEqual(component.items.length, 3);
+          assert.deepStrictEqual(component.items, ['a', undefined, undefined]);
+          assertText('button', '3');
+          assert.strictEqual(getAllBy('p').length, 3);
+
+          component.n = 1;
+          trigger.click('button');
+          runTasks();
+          assert.deepStrictEqual(component.items, ['a']);
+          assertText('button', '1');
+          assert.strictEqual(getAllBy('p').length, 1);
+
+          // same length is a no-op
+          trigger.click('button');
+          runTasks();
+          assert.deepStrictEqual(component.items, ['a']);
+          assertText('button', '1');
+        });
+      }
+    });
+  });
+
+  describe('array assignment growth (#2558)', function () {
+    for (const [target, value] of [['items[index]', 'D'], ['items[index]', undefined], ['items.length', 4], ["items['length']", 4]] as const) {
+      it(`keeps collection, length, index and repeat observers coherent after ${target} = ${value}`, async function () {
+        const isIndex = target === 'items[index]';
+        const fixture = createFixture(
+          `<button click.trigger="${target} = value"></button><span>\${items.length}</span><p repeat.for="item of items">\${item}</p>`,
+          { items: ['A'], index: 3, value },
+        );
+        const observer = getCollectionObserver(fixture.component.items);
+        const maps: IndexMap[] = [];
+        const lengths: unknown[][] = [];
+        const values: unknown[][] = [];
+        observer.subscribe({ handleCollectionChange: (_items, map) => { maps.push(cloneIndexMap(map)); } });
+        observer.getLengthObserver().subscribe({ handleChange: (value, oldValue) => { lengths.push([value, oldValue]); } });
+        observer.getIndexObserver(3).subscribe({ handleChange: (value, oldValue) => { values.push([value, oldValue]); } });
+        try {
+          const first = fixture.getAllBy('p')[0];
+          fixture.trigger.click('button');
+          runTasks();
+          assert.strictEqual(maps.length, 1, 'growth is one collection notification');
+          assert.deepStrictEqual(Array.from(maps[0]), [0, -2, -2, -2]);
+          assert.deepStrictEqual(maps[0].deletedIndices, []);
+          assert.deepStrictEqual(maps[0].deletedItems, []);
+          assert.deepStrictEqual(fixture.component.items, ['A', undefined, undefined, isIndex ? value : undefined]);
+          assert.deepStrictEqual(lengths, [[4, 1]]);
+          assert.deepStrictEqual(values, isIndex && value !== undefined ? [[value, undefined]] : []);
+          fixture.assertText('span', '4');
+          assert.deepStrictEqual(fixture.getAllBy('p').map(p => p.textContent), ['A', '', '', isIndex ? value ?? '' : '']);
+          assert.strictEqual(fixture.getAllBy('p')[0], first);
+
+          fixture.component.items.push('E');
+          runTasks();
+          assert.strictEqual(maps.length, 2);
+          assert.deepStrictEqual(Array.from(maps[1]), [0, 1, 2, 3, -2]);
+          assert.deepStrictEqual(lengths, [[4, 1], [5, 4]]);
+          fixture.assertText('span', '5');
+          assert.strictEqual(fixture.getAllBy('p').length, 5);
+        } finally {
+          await fixture.stop(true);
+        }
+      });
+    }
+
+    it('preserves earlier deletions and retained repeat views when growing in a batch', async function () {
+      const fixture = createFixture(
+        '<button click.trigger="items[3] = undefined"></button><p repeat.for="item of items">${item}</p>',
+        { items: ['A', 'B', 'C'] },
+      );
+      const maps: IndexMap[] = [];
+      getCollectionObserver(fixture.component.items).subscribe({
+        handleCollectionChange: (_items, map) => { maps.push(cloneIndexMap(map)); },
+      });
+      try {
+        const rows = fixture.getAllBy('p');
+        batch(() => {
+          fixture.component.items.splice(1, 1);
+          fixture.trigger.click('button');
+          assert.strictEqual(maps.length, 0, 'collection delivery is deferred until the batch ends');
+        });
+        runTasks();
+        assert.strictEqual(maps.length, 1);
+        assert.deepStrictEqual(Array.from(maps[0]), [0, 2, -2, -2]);
+        assert.deepStrictEqual(maps[0].deletedIndices, [1]);
+        assert.deepStrictEqual(maps[0].deletedItems, ['B']);
+        assert.deepStrictEqual(fixture.component.items, ['A', 'C', undefined, undefined]);
+        const updatedRows = fixture.getAllBy('p');
+        assert.deepStrictEqual(updatedRows.map(p => p.textContent), ['A', 'C', '', '']);
+        assert.strictEqual(updatedRows[0], rows[0]);
+        assert.strictEqual(updatedRows[1], rows[2]);
+      } finally {
+        await fixture.stop(true);
+      }
+    });
+
+    it('observes subsequent writes after growing an initially unobserved array', async function () {
+      const fixture = createFixture(
+        '<button click.trigger="items[3] = \'D\'"></button><div if.bind="show"><p repeat.for="item of items">${item}</p></div>',
+        { items: ['A'], show: false },
+      );
+      try {
+        // Before the list is first shown, no binding reads this collection or its length.
+        fixture.trigger.click('button');
+        assert.deepStrictEqual(fixture.component.items, ['A', undefined, undefined, 'D']);
+        fixture.component.show = true;
+        await tasksSettled();
+        assert.deepStrictEqual(fixture.getAllBy('p').map(p => p.textContent), ['A', '', '', 'D']);
+        fixture.component.items.push('E');
+        runTasks();
+        assert.deepStrictEqual(fixture.getAllBy('p').map(p => p.textContent), ['A', '', '', 'D', 'E']);
+      } finally {
+        await fixture.stop(true);
+      }
     });
   });
 

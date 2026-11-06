@@ -631,11 +631,12 @@ describe('3-runtime-html/head.spec.ts', function () {
         assert.strictEqual(doc.head.querySelector('meta[name="description"]').getAttribute('content'), 'Toaster');
         assert.strictEqual(host.textContent, 'Toasterafter Toaster');
 
-        await root.deactivate();
-        root.dispose();
+        // `hydrate()` starts the app, so it has to stop before it can be disposed.
+        await au.stop(true);
         assert.strictEqual(doc.head.querySelectorAll('meta[name="description"]').length, 0);
       } finally {
-        au.dispose();
+        // no-op once the app has stopped, so a failed assertion still cleans up
+        await au.stop(true);
         serverMeta.remove();
         host.remove();
       }

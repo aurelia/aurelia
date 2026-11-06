@@ -211,14 +211,11 @@ describe('3-runtime-html/transfer-state.spec.ts', function () {
       script.textContent = server.state.serialize();
       const au = new Aurelia(ctx.container);
       try {
-        const root = await au.hydrate({ host, component: ProductPage, ssrScope });
-        try {
-          test(host);
-        } finally {
-          await root.deactivate();
-          root.dispose();
-        }
+        await au.hydrate({ host, component: ProductPage, ssrScope });
+        test(host);
       } finally {
+        // `hydrate()` starts the app, so it has to stop before it can be disposed.
+        await au.stop(true);
         au.dispose();
         host.remove();
         script.remove();

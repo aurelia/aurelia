@@ -74,6 +74,33 @@ describe('2-runtime/binding-context.spec.ts', function () {
   });
 
   describe('getContext', function () {
+    it('checks each scope context at most once while resolving a name', function () {
+      const checks: string[] = [];
+      const createContext = (label: string, context: object) => new Proxy(context, {
+        has(target, key) {
+          checks.push(`${label}:${String(key)}`);
+          return Reflect.has(target, key);
+        },
+      });
+      const root = Scope.create(
+        createContext('root-binding', { foo: true }),
+        createContext('root-override', {}),
+      );
+      const child = Scope.fromParent(
+        root,
+        createContext('child-binding', {}),
+        createContext('child-override', {}),
+      );
+
+      assert.strictEqual(Scope.getContext(child, 'foo', 0), root.bindingContext);
+      assert.deepStrictEqual(checks, [
+        'child-override:foo',
+        'child-binding:foo',
+        'root-override:foo',
+        'root-binding:foo',
+      ]);
+    });
+
     it('undefined context', function () {
       assert.throws(() => Scope.getContext(
         { bindingContext: undefined, overrideContext: {} } as any,

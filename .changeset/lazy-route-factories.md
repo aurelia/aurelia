@@ -3,10 +3,13 @@
 "@aurelia/kernel": patch
 ---
 
-Child routes with a factory component, such as `component: () => import('./x')`, now load on first match instead of at startup, so chunks for routes the user never visits are not downloaded. A failed import fails only the current navigation and is retried on the next one. Set `useEagerLoading: true` to keep resolving every route at startup. Closes #2553.
+Routes configured with a path and component factory now register without loading the component. Navigation loads matched routes; component-type lookups and nested path generation can also resolve factories before a visit. `useEagerLoading: true` keeps eager startup loading.
 
-Behaviour change: until a lazy route is first visited, its navigation model entry and route id come from the parent route config. A `title`, `nav`, or `data` declared in the component's own `@route` updates the navigation model entry once the module loads, and an `id` declared only there cannot be used to navigate before then.
+- `load` links bound to component types wait for their configured URL and update active state when it resolves.
+- Failed child imports reject navigation even when the parent is already active, and later navigation can retry. The module loader forwards failures to callers without creating an extra unhandled rejection.
 
-The module loader no longer reports unhandled rejections for failed module promises; callers still receive the rejection.
+**Route metadata:** Until the factory resolves, menus and route-ID lookup use the parent route configuration. Declare values needed at startup there. Parent values take precedence over metadata supplied by the loaded component.
+
+Closes #2553.
 
 pr: #2556

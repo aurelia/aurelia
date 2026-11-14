@@ -586,6 +586,10 @@ You can see this in action below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-load-params-u8lfjw?ctl=1&embed=1&file=src/my-app.ts" %}
 
+For routes configured with lazy factories, a component-type link may invoke pending factories in its routing context to discover the type's configured path. This also applies to component types in arrays. While discovery is pending, the link has no `href`; once the mapping is known, the link receives its URL and updates its active state. Resolving the link does not navigate.
+
+An old pending result does not overwrite a changed or unbound link. A mapping failure during application startup rejects startup. To build links without invoking lazy factories, use IDs or paths declared in the parent configuration. This also works for structured ID/path instructions with child paths, such as `{ component: 'reports-id', children: ['details'] }`.
+
 ### Customize the routing context
 
 Just like the `href` attribute, the `load` attribute also supports navigating in the [current routing context](#navigate-in-current-and-ancestor-routing-context) by default.
@@ -1492,6 +1496,8 @@ Other than route id, one can also use the custom element class or the custom ele
 {% hint style="warning" %}
 Note that path generation does not support a component that is a promise (e.g. `import()`) or an instance of [navigation strategy](./configuring-routes.md#using-a-navigation-strategy), as those are inherently of lazy nature.
 {% endhint %}
+
+A route configured with a factory can still be addressed by its declared ID or component type. Looking up a type may invoke pending factories to discover its configured path. Generating a nested path may also resolve a parent factory to read its child route configuration, even when the instructions use route IDs.
 
 Path generation is supported for hierarchical routing configurations and sibling viewports.
 Following are few examples.

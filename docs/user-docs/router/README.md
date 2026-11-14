@@ -479,9 +479,11 @@ export class UserLayout {}
 })
 ```
 
-The factory runs the first time the route is matched, not when the router starts, so chunks for routes the user never visits are never downloaded. If the import fails, only that navigation fails and the router retries the import on the next navigation to the route.
+With the default `useEagerLoading: false`, a route configured with a path and a component factory is registered without invoking the factory. Navigation by ID or path loads the selected route. If its import fails, that navigation rejects through the router's error handling, and a later navigation can try again.
 
-Everything the router needs before the chunk loads — `id`, `title`, `nav`, and `data` for navigation menus, navigating by route id, or `fallback` by id — belongs in the parent route config rather than in the lazy component's own `@route`. Navigating by component type, such as `router.load(UserLayout)`, loads every pending lazy route in that context the first time, because the type of a lazy route is unknown until its module loads.
+Put the `id` and menu metadata (`title`, `nav`, and `data`) needed before loading in the parent route config. Parent values take precedence; the loaded component's `@route` can supply omitted values. An ID declared only on the component is unavailable until its factory resolves.
+
+Looking up a component type with `router.load(Type)`, `generatePath(Type)`, or `load.bind` can invoke pending factories to find its configured path, even before navigation. Generating a nested path may also load a parent to inspect its child routes. See [component-type links](./navigating.md#using-the-route-view-model-class-as-route) and [path generation](./navigating.md#path-generation).
 
 [Using inline import() →](./configuring-routes.md#using-inline-import)
 

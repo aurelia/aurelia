@@ -739,8 +739,8 @@ export class RouteContext {
   }
 }
 
-// A child route whose component is a factory such as `() => import('./x')`. The factory only runs when the route is
-// first needed, so routes the user never visits are never downloaded.
+// A child route registered from a component factory such as `() => import('./x')` without invoking it.
+// Navigation, component-type discovery, or nested path generation can resolve the factory.
 export class LazyRoute {
   public readonly id: string;
   public readonly path: string[];
@@ -850,7 +850,7 @@ export class RouteConfigContext {
    * The configured child routes of this context's `RouteConfig`.
    *
    * Entries are `RouteConfig`s, `Promise<RouteConfig>`s while promise-based modules are being resolved,
-   * or `LazyRoute`s for factory components (such as `() => import('./x')`) that are only loaded on first match.
+   * or `LazyRoute`s whose factories have not yet been resolved by navigation or route discovery.
    */
   public readonly childRoutes: RouteTableEntry[] = [];
 
@@ -960,8 +960,8 @@ export class RouteConfigContext {
         && ensureArrayOfStrings(childRoute.path).length > 0
         && typeof childRoute.component === 'function'
         && !CustomElement.isType(childRoute.component as Constructable)) {
-        // A factory component such as `component: () => import('./x')`: register the route's metadata only
-        // and defer the factory invocation (and thus the import) until the route is first matched.
+        // Register parent-provided metadata without invoking the component factory. Navigation or route
+        // discovery resolves it later when the component or its child configuration is needed.
         const idx = this.childRoutes.length;
         let navRoute: NavigationRoute | null = null;
         const lazy = new LazyRoute(

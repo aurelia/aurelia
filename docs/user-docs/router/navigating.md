@@ -588,7 +588,7 @@ You can see this in action below.
 
 For routes configured with lazy factories, a component-type link may invoke pending factories in its routing context to discover the type's configured path. This also applies to component types in arrays. While discovery is pending, the link has no `href`; once the mapping is known, the link receives its URL and updates its active state. Resolving the link does not navigate.
 
-An old pending result does not overwrite a changed or unbound link. A mapping failure during application startup rejects startup. To build links without invoking lazy factories, use IDs or paths declared in the parent configuration. This also works for structured ID/path instructions with child paths, such as `{ component: 'reports-id', children: ['details'] }`.
+An old pending result does not overwrite a changed or unbound link. A mapping failure during application startup rejects startup. A failure after a bound value changes is logged as an error and leaves the link without an `href`. To build links without invoking lazy factories, use IDs or paths declared in the parent configuration. This also works for structured ID/path instructions with child paths, such as `{ component: 'reports-id', children: ['details'] }`.
 
 ### Customize the routing context
 

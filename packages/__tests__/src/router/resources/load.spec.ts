@@ -197,6 +197,36 @@ describe('router/resources/load.spec.ts', function () {
       }
     });
 
+    it('handles a component mapping failure after a bound link changes', async function () {
+      const app = createApp();
+      await app.au.start();
+      const anchor = app.host.querySelector('a')!;
+      const unhandled: unknown[] = [];
+      const onNode = (reason: unknown): void => { unhandled.push(reason); };
+      const onBrowser = (event: PromiseRejectionEvent): void => { unhandled.push(event.reason); event.preventDefault(); };
+      const isNode = typeof process !== 'undefined' && typeof process.on === 'function';
+      if (isNode) process.on('unhandledRejection', onNode);
+      else addEventListener('unhandledrejection', onBrowser);
+      try {
+        // No lifecycle awaits a change made after binding, so the link must own the failed import.
+        app.root.target = app.Reports;
+        await tasksSettled();
+        app.chunk.reject(new Error('changed report chunk failed'));
+        // Unhandled rejections are reported on a later host turn.
+        await new Promise(resolve => setTimeout(resolve, 50));
+        assert.deepStrictEqual(unhandled, []);
+        assert.strictEqual(anchor.hasAttribute('href'), false, 'a failed mapping publishes no URL');
+
+        app.root.target = 'home';
+        await tasksSettled();
+        assert.strictEqual(anchor.getAttribute('href')!.endsWith('/home'), true, 'the link remains usable');
+      } finally {
+        if (isNode) process.off('unhandledRejection', onNode);
+        else removeEventListener('unhandledrejection', onBrowser);
+        await app.au.stop(true);
+      }
+    });
+
     it('reports an initial component mapping failure through application startup', async function () {
       const app = createApp({ initialType: true });
       const failure = new Error('initial report chunk failed');

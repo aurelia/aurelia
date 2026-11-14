@@ -188,7 +188,7 @@ export class Router {
 
   /** @internal */ private readonly _container: IContainer = resolve(IContainer);
   /** @internal */ private readonly _p: IPlatform = resolve(IPlatform);
-  /** @internal */ private readonly _logger: ILogger =  /*@__PURE__*/ resolve(ILogger).root.scopeTo('Router');
+  /** @internal */ public readonly _logger: ILogger =  /*@__PURE__*/ resolve(ILogger).root.scopeTo('Router');
   /** @internal */ private readonly _events: IRouterEvents = resolve(IRouterEvents);
   /** @internal */ private readonly _locationMgr: ILocationManager = resolve(ILocationManager);
   public readonly options: Readonly<RouterOptions> = resolve(IRouterOptions);

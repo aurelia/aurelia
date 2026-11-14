@@ -13,6 +13,8 @@ export class ContextRouter {
   /** @internal */
   public get _options() { return this._router.options; }
   /** @internal */
+  public get _logger() { return this._router._logger; }
+  /** @internal */
   public get _allResolved() { return this._context.routeConfigContext.allResolved; }
 
   public constructor(

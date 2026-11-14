@@ -12,6 +12,7 @@ import { IRouterEvents } from '../router-events';
 import { ILocationManager } from '../location-manager';
 import { bmFromView, bmToView } from '../util';
 import { IContextRouter } from '../context-router';
+import { Events, error } from '../events';
 
 export class LoadCustomAttribute implements ICustomAttributeViewModel {
 
@@ -48,14 +49,14 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
       this._el.addEventListener('click', this.onClick as EventListener);
     }
     this._navigationEndListener = this._events.subscribe('au:router:navigation-end', () => this._updateActive());
-    return this.valueChanged();
+    return this._update();
   }
 
   public attaching(): void | Promise<void> {
     const promise = this._ctxRouter._allResolved;
     if (promise !== null) {
       return promise.then(() => {
-        return this.valueChanged();
+        return this._update();
       });
     }
     return this._pending;
@@ -69,7 +70,14 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
     this._navigationEndListener!.dispose();
   }
 
-  public valueChanged(): void | Promise<void> {
+  public valueChanged(): void {
+    // Unlike binding and attaching, a bindable change has no lifecycle owner to receive
+    // a failed lazy mapping, so report it here instead of leaving the rejection unhandled.
+    this._update()?.catch(err => error(this._ctxRouter._logger, Events.rcEagerPathGenerationFailed, this.route, err));
+  }
+
+  /** @internal */
+  private _update(): void | Promise<void> {
     this._pending = void 0;
     const component = this.route as NavigationInstruction;
     // this allows binding context to null for navigation from root; unbound vs explicit null binding

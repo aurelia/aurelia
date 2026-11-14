@@ -614,8 +614,8 @@ export class RouteContext {
    * internal instruction snapshots remains downstream.
    */
   public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null): ViewportInstructionTree;
-  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren: true): ViewportInstructionTree | Promise<ViewportInstructionTree>;
-  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren?: boolean): ViewportInstructionTree | Promise<ViewportInstructionTree> {
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren: boolean, resolveLazyRoutes?: boolean): ViewportInstructionTree | Promise<ViewportInstructionTree>;
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren?: boolean, resolveLazyRoutes?: boolean): ViewportInstructionTree | Promise<ViewportInstructionTree> {
     if (instructionOrInstructions instanceof ViewportInstructionTree) return instructionOrInstructions;
 
     let context: IRouteContext | null = (options?.context ?? this) as IRouteContext | null;
@@ -642,6 +642,7 @@ export class RouteContext {
       this.root,
       parentRoutePath,
       traverseChildren as true,
+      resolveLazyRoutes,
     );
 
     function normalizeInstruction(this: RouteContext, instr: NavigationInstruction): NavigationInstruction {
@@ -785,7 +786,7 @@ export class LazyRoute {
 
 // A failing chunk must not fail the lookup of a component type from another chunk, so failures are
 // collected and only surface when `retry` still finds no route.
-function resolveLazyRoutesThen<T>(lazies: LazyRoute[], retry: () => T | null): T | null | Promise<T | null> {
+function resolveLazyRoutesThen<T>(lazies: LazyRoute[], retry: () => MaybePromise<T>): MaybePromise<T> {
   const errors: unknown[] = [];
   const collect = (err: unknown) => { errors.push(err); };
   return onResolve(
@@ -1121,10 +1122,10 @@ export class RouteConfigContext {
   /** @internal */
   public _generateViewportInstruction(instruction: { component: RouteConfig; params: Params }, parentRoutePath: string | null): PathGenerationResult;
   public _generateViewportInstruction(instruction: { component: string; params: Params }, parentRoutePath: string | null): PathGenerationResult | null;
-  public _generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction | IExtendedViewportInstruction, parentRoutePath: string | null): PathGenerationResult | Promise<PathGenerationResult> | null;
-  public _generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction | IExtendedViewportInstruction, parentRoutePath: string | null, traverseChildren: true): PathGenerationResult | Promise<PathGenerationResult> | null;
-  public _generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction | IExtendedViewportInstruction, parentRoutePath: string | null, traverseChildren: boolean | undefined, resolveLazyRoutes: boolean): PathGenerationResult | Promise<PathGenerationResult> | null;
-  public _generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction | IExtendedViewportInstruction, parentRoutePath: string | null, traverseChildren?: boolean, resolveLazyRoutes: boolean = false): PathGenerationResult | Promise<PathGenerationResult> | null {
+  public _generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction | IExtendedViewportInstruction, parentRoutePath: string | null): MaybePromise<PathGenerationResult | null>;
+  public _generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction | IExtendedViewportInstruction, parentRoutePath: string | null, traverseChildren: true): MaybePromise<PathGenerationResult | null>;
+  public _generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction | IExtendedViewportInstruction, parentRoutePath: string | null, traverseChildren: boolean | undefined, resolveLazyRoutes: boolean): MaybePromise<PathGenerationResult | null>;
+  public _generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction | IExtendedViewportInstruction, parentRoutePath: string | null, traverseChildren?: boolean, resolveLazyRoutes: boolean = false): MaybePromise<PathGenerationResult | null> {
     if (!isEagerInstruction(instruction)) return null;
     if (!this._options.useEagerLoading) parentRoutePath = null;
     else if (parentRoutePath == null) {
@@ -1162,9 +1163,8 @@ export class RouteConfigContext {
         const lazies = this.childRoutes.filter((x): x is LazyRoute => x instanceof LazyRoute);
         if (lazies.length > 0) {
           // The custom element type of a lazy route is unknown until its module is loaded.
-          // As the type might still be one of the pending lazies, synchronous callers (the `load`/`href`
-          // attributes, `isActive`, route-id lookups) get `null` and fall back to a plain instruction,
-          // instead of an error or an unexpected promise.
+          // Type discovery is opt-in: synchronous consumers such as `isActive` must not
+          // start imports. Links can request discovery without traversing child configurations.
           if (!resolveLazyRoutes) return null;
           // `_onLoad` replaces each loaded `LazyRoute` entry with its `RouteConfig`; failed ones remain,
           // so the retry must not resolve lazy routes again or it would loop.

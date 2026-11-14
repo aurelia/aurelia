@@ -1,11 +1,272 @@
-import { IRouteContext, IRouteViewModel, Params, route, RouteNode } from '@aurelia/router';
-import { CustomElement, customElement, ILocation, IWindow } from '@aurelia/runtime-html';
-import { assert, MockBrowserHistoryLocation } from '@aurelia/testing';
+import { IRouteContext, IRouterEvents, IRouteViewModel, LoadCustomAttribute, NavigationInstruction, Params, route, RouteNode, RouterConfiguration, RouteType } from '@aurelia/router';
+import { Aurelia, CustomAttribute, CustomElement, customElement, ILocation, IWindow } from '@aurelia/runtime-html';
+import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 import { start } from '../_shared/create-fixture.js';
-import { Registration, resolve } from '@aurelia/kernel';
+import { LogLevel, Registration, resolve } from '@aurelia/kernel';
 import { tasksSettled } from '@aurelia/runtime';
+import { TestRouterConfiguration } from '../_shared/configuration.js';
 
 describe('router/resources/load.spec.ts', function () {
+
+  describe('lazy component links', function () {
+    function deferred<T>() {
+      let resolve!: (value: T) => void;
+      let reject!: (reason: unknown) => void;
+      const promise = new Promise<T>((res, rej) => { resolve = res; reject = rej; });
+      return { promise, resolve, reject };
+    }
+
+    function createApp({ synchronous = false, initialType = false } = {}) {
+      @customElement({ name: 'link-home', template: 'home' })
+      class Home { }
+      @customElement({ name: 'report-page', template: 'reports' })
+      class Reports { }
+
+      const entered = deferred<void>();
+      const chunk = deferred<{ default: typeof Reports }>();
+      const calls = { reports: 0 };
+      @route({ routes: [
+        { path: '', redirectTo: 'home' },
+        { id: 'home', path: 'home', component: Home },
+        { id: 'reports-id', path: 'reports', component: (() => {
+          ++calls.reports;
+          entered.resolve();
+          return synchronous ? Reports : chunk.promise;
+        }) as unknown as RouteType },
+      ] })
+      @customElement({
+        name: 'lazy-link-root',
+        template: '<a if.bind="show" load.bind="target"></a><au-viewport></au-viewport>',
+      })
+      class Root {
+        public show = true;
+        public target: NavigationInstruction = initialType ? Reports : 'home';
+      }
+
+      const ctx = TestContext.create();
+      ctx.container.register(TestRouterConfiguration.for(LogLevel.fatal), RouterConfiguration.customize({ activeClass: 'selected' }));
+      const au = new Aurelia(ctx.container);
+      const host = ctx.createElement('div');
+      const root = new Root();
+      au.app({ component: root, host });
+      return { au, host, root, Reports, calls, chunk, entered };
+    }
+
+    it('keeps path, route-id and structured child links synchronous without importing their component', async function () {
+      const app = createApp();
+      await app.au.start();
+      const anchor = app.host.querySelector('a')!;
+      const load = CustomAttribute.for(anchor, 'load').viewModel as LoadCustomAttribute;
+      try {
+        for (const [target, suffix] of [
+          ['reports', '/reports'],
+          [{ component: 'reports-id' }, '/reports'],
+          [{ component: 'reports-id', children: ['details'] }, '/reports/details'],
+        ] as const) {
+          app.root.target = target;
+          await tasksSettled();
+          assert.strictEqual(load.attaching(), void 0, 'known paths do not create a pending link operation');
+          assert.strictEqual(anchor.getAttribute('href')!.endsWith(suffix), true, suffix);
+          assert.strictEqual(app.calls.reports, 0, 'formatting the child instruction does not load its parent');
+        }
+      } finally {
+        await app.au.stop(true);
+      }
+    });
+
+    it('publishes a synchronous factory and its cached type without a pending operation', async function () {
+      const app = createApp({ synchronous: true });
+      await app.au.start();
+      const anchor = app.host.querySelector('a')!;
+      const load = CustomAttribute.for(anchor, 'load').viewModel as LoadCustomAttribute;
+      try {
+        for (const target of [app.Reports, 'home', app.Reports]) {
+          app.root.target = target;
+          await tasksSettled();
+          assert.strictEqual(load.attaching(), void 0);
+          assert.strictEqual(anchor.getAttribute('href')!.endsWith(target === 'home' ? '/home' : '/reports'), true);
+        }
+        assert.strictEqual(app.calls.reports, 1, 'later type links reuse the resolved configuration');
+      } finally {
+        await app.au.stop(true);
+      }
+    });
+
+    it('resolves component arrays for multiple viewports and preserves string-array serialization', async function () {
+      @customElement({ name: 'report-page', template: 'reports' })
+      class Reports { }
+      @customElement({ name: 'summary-page', template: 'summary' })
+      class Summary { }
+      let calls = 0;
+      @route({ routes: [
+        { path: 'reports', component: (() => { ++calls; return Promise.resolve({ default: Reports }); }) as unknown as RouteType },
+        { path: 'summary', component: Summary },
+      ] })
+      @customElement({
+        name: 'multi-link-root',
+        template: '<a load.bind="target"></a><au-viewport default.bind="null"></au-viewport><au-viewport default.bind="null"></au-viewport>',
+      })
+      class Root { public target: readonly NavigationInstruction[] = [Reports, Summary]; }
+
+      const { au, host, container, rootVm } = await start({ appRoot: Root });
+      const anchor = host.querySelector('a')!;
+      const load = CustomAttribute.for(anchor, 'load').viewModel as LoadCustomAttribute;
+      try {
+        assert.strictEqual(anchor.getAttribute('href')!.endsWith('/reports+summary'), true);
+        assert.strictEqual(calls, 1);
+        const navigated = new Promise<void>(resolve => {
+          const sub = container.get(IRouterEvents).subscribe('au:router:navigation-end', () => { sub.dispose(); resolve(); });
+        });
+        anchor.click();
+        await navigated;
+        assert.deepStrictEqual(Array.from(host.querySelectorAll('au-viewport'), viewport => viewport.textContent), ['reports', 'summary']);
+
+        // String members keep their existing instruction spelling; only
+        // component mappings need the new asynchronous discovery path.
+        for (const [target, suffix] of [
+          [['reports', 'summary'], '/reports+summary'],
+          [['reports@main', 'summary@side'], '/reports@main+summary@side'],
+        ] as const) {
+          rootVm.target = target;
+          await tasksSettled();
+          assert.strictEqual(load.attaching(), void 0);
+          assert.strictEqual(anchor.getAttribute('href')!.endsWith(suffix), true, suffix);
+          assert.strictEqual(calls, 1);
+        }
+      } finally {
+        await au.stop(true);
+      }
+    });
+
+    for (const completion of ['resolve', 'reject'] as const) {
+      it(`keeps the newer route-id link when a pending type mapping later ${completion}s`, async function () {
+        const app = createApp();
+        await app.au.start();
+        const anchor = app.host.querySelector('a')!;
+        const load = CustomAttribute.for(anchor, 'load').viewModel as LoadCustomAttribute;
+        try {
+          app.root.target = app.Reports;
+          await tasksSettled();
+          // The module promise is outside the scheduler. Observe the resource's
+          // lifecycle boundary explicitly rather than treating tasksSettled as an import barrier.
+          const pending = load.attaching();
+          assert.instanceOf(pending, Promise);
+          const outcome = Promise.resolve(pending).then(() => void 0, error => error);
+          assert.strictEqual(anchor.hasAttribute('href'), false, 'an unknown mapping must not publish the element name');
+
+          app.root.target = { component: 'home' };
+          await tasksSettled();
+          const href = anchor.getAttribute('href');
+          assert.strictEqual(href!.endsWith('/home'), true);
+          if (completion === 'resolve') app.chunk.resolve({ default: app.Reports });
+          else app.chunk.reject(new Error('superseded report chunk failed'));
+          assert.strictEqual(await outcome, void 0, 'the superseded operation no longer owns a visible link');
+          assert.strictEqual(anchor.getAttribute('href'), href);
+        } finally {
+          app.chunk.resolve({ default: app.Reports });
+          await app.au.stop(true);
+        }
+      });
+    }
+
+    it('does not publish into a removed link when its component mapping resolves', async function () {
+      const app = createApp();
+      await app.au.start();
+      const anchor = app.host.querySelector('a')!;
+      const load = CustomAttribute.for(anchor, 'load').viewModel as LoadCustomAttribute;
+      try {
+        app.root.target = app.Reports;
+        await tasksSettled();
+        const pending = load.attaching();
+        assert.instanceOf(pending, Promise);
+        app.root.show = false;
+        await tasksSettled();
+        assert.strictEqual(app.host.querySelector('a'), null);
+
+        app.chunk.resolve({ default: app.Reports });
+        await pending;
+        assert.strictEqual(anchor.hasAttribute('href'), false, 'unbinding retired publication to the old element');
+
+        app.root.target = 'home';
+        app.root.show = true;
+        await tasksSettled();
+        assert.strictEqual(app.host.querySelector('a')!.getAttribute('href')!.endsWith('/home'), true);
+      } finally {
+        app.chunk.resolve({ default: app.Reports });
+        await app.au.stop(true);
+      }
+    });
+
+    it('reports an initial component mapping failure through application startup', async function () {
+      const app = createApp({ initialType: true });
+      const failure = new Error('initial report chunk failed');
+      const outcome = Promise.resolve(app.au.start()).then(() => void 0, error => error);
+      await app.entered.promise;
+      app.chunk.reject(failure);
+      assert.strictEqual(await outcome, failure, 'the lifecycle owner receives the failed mapping');
+      assert.strictEqual(app.host.querySelector('a')?.hasAttribute('href') ?? false, false);
+      // A failed root activation is terminal. Teardown must retain that error,
+      // rather than inventing recovery solely for this fixture.
+      await assert.rejects(async () => { await app.au.stop(true); }, error => error === failure);
+    });
+
+    it('waits for type-link discovery after a direct route import finishes', async function () {
+      @customElement({ name: 'link-home', template: 'home' })
+      class Home { }
+      @customElement({ name: 'settings-page', template: 'settings' })
+      class Settings { }
+      @customElement({ name: 'report-page', template: 'reports' })
+      class Reports { }
+      const settings = deferred<{ default: typeof Settings }>();
+      const reports = deferred<{ default: typeof Reports }>();
+      const reportRequested = deferred<void>();
+      let reportCalls = 0;
+      @route({ routes: [
+        { path: '', component: Home },
+        // Existing applications can mix direct imports with deferred factories.
+        { path: 'settings', component: settings.promise },
+        { path: 'reports', component: (() => {
+          ++reportCalls;
+          reportRequested.resolve();
+          return reports.promise;
+        }) as unknown as RouteType },
+      ] })
+      @customElement({ name: 'mixed-import-link-root', template: '<a ref="link" load.bind="target"></a><au-viewport></au-viewport>' })
+      class Root {
+        public readonly target = Reports;
+        public link!: HTMLAnchorElement;
+      }
+      const ctx = TestContext.create();
+      ctx.container.register(TestRouterConfiguration.for(LogLevel.fatal), RouterConfiguration);
+      const au = new Aurelia(ctx.container);
+      const root = new Root();
+      const host = ctx.createElement('div');
+      au.app({ component: root, host });
+      let started = false;
+      const startup = Promise.resolve(au.start()).then(() => { started = true; });
+      try {
+        assert.strictEqual(reportCalls, 0, 'binding waits for the existing direct import');
+        assert.strictEqual(root.link.hasAttribute('href'), false);
+        settings.resolve({ default: Settings });
+        await reportRequested.promise;
+        // Let unrelated startup work drain. The lazy factory is the only work
+        // still held, and attaching must return that second asynchronous step.
+        await new Promise(resolve => setTimeout(resolve, 0));
+        assert.strictEqual(started, false);
+        assert.strictEqual(root.link.hasAttribute('href'), false);
+
+        reports.resolve({ default: Reports });
+        await startup;
+        assert.strictEqual(root.link.getAttribute('href')!.endsWith('/reports'), true);
+        assert.html.textContent(host, 'home');
+      } finally {
+        settings.resolve({ default: Settings });
+        reports.resolve({ default: Reports });
+        await startup;
+        await au.stop(true);
+      }
+    });
+  });
 
   function assertAnchors(anchors: HTMLAnchorElement[] | NodeListOf<HTMLAnchorElement>, expected: { href: string; active?: boolean }[], message: string = '', assertActive: boolean = true): void {
     const len = anchors.length;

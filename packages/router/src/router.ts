@@ -422,13 +422,13 @@ export class Router {
   }
 
   public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null): ViewportInstructionTree;
-  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren: true): ViewportInstructionTree | Promise<ViewportInstructionTree>;
-  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren?: boolean): ViewportInstructionTree | Promise<ViewportInstructionTree> {
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren: boolean, resolveLazyRoutes?: boolean): ViewportInstructionTree | Promise<ViewportInstructionTree>;
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren?: boolean, resolveLazyRoutes?: boolean): ViewportInstructionTree | Promise<ViewportInstructionTree> {
     if (instructionOrInstructions instanceof ViewportInstructionTree) return instructionOrInstructions;
 
     let context: IRouteContext | null = (options?.context ?? null) as IRouteContext | null;
     if (context !== null) context = (options as Writable<INavigationOptions>).context = this._resolveContext(context);
-    return (context ?? this._$ctx)!.createViewportInstructions(instructionOrInstructions, options, parentRoutePath, traverseChildren as true);
+    return (context ?? this._$ctx)!.createViewportInstructions(instructionOrInstructions, options, parentRoutePath, traverseChildren as true, resolveLazyRoutes);
   }
 
   /**

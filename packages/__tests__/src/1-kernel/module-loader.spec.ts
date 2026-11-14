@@ -19,6 +19,31 @@ describe('1-kernel/module-loader.spec.ts', function () {
     return Object.assign(container.get(IModuleLoader), { container });
   }
 
+  async function collectUnhandledRejections(run: () => Promise<void>): Promise<unknown[]> {
+    const reasons: unknown[] = [];
+    let dispose: () => void;
+    if (typeof process !== 'undefined' && typeof process.on === 'function') {
+      const handler = (reason: unknown): void => { reasons.push(reason); };
+      process.on('unhandledRejection', handler);
+      dispose = () => { process.off('unhandledRejection', handler); };
+    } else {
+      const handler = (event: PromiseRejectionEvent): void => {
+        reasons.push(event.reason);
+        event.preventDefault();
+      };
+      addEventListener('unhandledrejection', handler);
+      dispose = () => { removeEventListener('unhandledrejection', handler); };
+    }
+    try {
+      await run();
+      // Chrome reports unhandled rejections on a later host turn than Node.
+      await new Promise<void>(resolve => setTimeout(resolve, 50));
+      return reasons;
+    } finally {
+      dispose();
+    }
+  }
+
   it('correctly analyzes ce_a_b_default', function () {
     const loader = createFixture();
 
@@ -291,6 +316,32 @@ describe('1-kernel/module-loader.spec.ts', function () {
 
     assert.strictEqual(calls1, 1, `calls1 === 1`);
     assert.strictEqual(calls2, 1, `calls2 === 1`);
+  });
+
+  it('propagates a module promise rejection without unhandled cache rejections', async function () {
+    const loader = createFixture();
+    const reason = new Error('Module failed to load');
+
+    const unhandled = await collectUnhandledRejections(async () => {
+      const result = loader.load(Promise.reject(reason));
+      const rejection = await Promise.resolve(result).then(() => null, err => err);
+      assert.strictEqual(rejection, reason, 'load preserves the original module rejection');
+    });
+
+    assert.deepStrictEqual(unhandled, [], 'the promise cache does not create an unhandled rejection');
+  });
+
+  it('propagates an async transform rejection without unhandled cache rejections', async function () {
+    const loader = createFixture();
+    const reason = new Error('Module transform failed');
+
+    const unhandled = await collectUnhandledRejections(async () => {
+      const result = loader.load(kitchen_sink, () => Promise.reject(reason));
+      const rejection = await Promise.resolve(result).then(() => null, err => err);
+      assert.strictEqual(rejection, reason, 'load preserves the original transform rejection');
+    });
+
+    assert.deepStrictEqual(unhandled, [], 'the object cache does not create an unhandled rejection');
   });
 
   describe('aliasedResourcesRegistry', function () {

@@ -293,6 +293,86 @@ describe('router/lazy-routes.spec.ts', function () {
     await au.stop(true);
   });
 
+  for (const transitionPlan of ['none', 'invoke-lifecycles'] as const) {
+    for (const failureMode of ['throw', 'reject'] as const) {
+      it(`handles a lazy child ${failureMode} under an active parent (${transitionPlan}) #2556`, async function () {
+        @customElement({ name: 'us-ers', template: 'users' })
+        class Users { }
+        @customElement({ name: 'rep-orts', template: 'reports' })
+        class Reports { }
+
+        const entered = deferred<void>();
+        const chunk = deferred<{ default: typeof Users }>();
+        const chunkError = new Error('failed child chunk');
+        let attempts = 0;
+        @route({ transitionPlan, routes: [
+          { path: 'users', component: lazyFactory(() => {
+            if (++attempts > 1) return Users;
+            entered.resolve();
+            if (failureMode === 'throw') throw chunkError;
+            return chunk.promise;
+          }) },
+          { path: 'reports', component: Reports },
+        ] })
+        @customElement({ name: 'ad-min', template: '<section data-admin>admin <au-viewport></au-viewport></section>' })
+        class Admin { }
+
+        @route({ routes: [{ path: '', component: Home }, { path: 'admin', component: Admin }] })
+        @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+        class Root { }
+
+        const { host, au, container } = await start({ appRoot: Root });
+        const router = container.get(IRouter);
+        const outcome: { status: string; error?: unknown } = { status: 'pending' };
+        const navErrors: unknown[] = [];
+        const subscription = container.get(IRouterEvents).subscribe('au:router:navigation-error', e => { navErrors.push(e); });
+        let pending: Promise<void> | undefined;
+        try {
+          await router.load('admin');
+          assert.html.textContent(host, 'admin', 'parent is already active');
+          const parentElement = host.querySelector('[data-admin]');
+          const unhandled = await collectUnhandledRejections(async () => {
+            pending = Promise.resolve(router.load('admin/users')).then(
+              () => { outcome.status = 'resolved'; },
+              error => { outcome.status = 'rejected'; outcome.error = error; },
+            );
+            await entered.promise;
+            if (failureMode === 'reject') chunk.reject(chunkError);
+            // Drain bounded turns so a missing error boundary fails an assertion instead of hanging this test.
+            for (let i = 0; i < 4; ++i) await new Promise(resolve => setTimeout(resolve, 0));
+          });
+          assert.deepStrictEqual(
+            { outcome: { ...outcome }, navigationErrors: navErrors.length, unhandled },
+            { outcome: { status: 'rejected', error: chunkError }, navigationErrors: 1, unhandled: [] },
+            'the child import failure must settle router.load and reach the navigation error boundary',
+          );
+          assert.html.textContent(host, 'admin', 'parent stays rendered');
+
+          // The router's existing error policy must leave ordinary navigation and a later import retry usable.
+          await tasksSettled();
+          assert.strictEqual(await router.load('admin/reports'), true);
+          assert.html.textContent(host, 'admin reports');
+          assert.strictEqual(await router.load('admin/users'), true);
+          assert.html.textContent(host, 'admin users');
+          assert.strictEqual(attempts, 2);
+          assert.strictEqual(host.querySelector('[data-admin]'), parentElement, 'the active layout is retained');
+          assert.strictEqual(navErrors.length, 1, 'subsequent navigations succeed');
+        } finally {
+          entered.resolve();
+          chunk.resolve({ default: Users });
+          // A broken error boundary leaves the batch paused. Reject only for fixture cleanup, after recording the result.
+          if (pending !== void 0 && outcome.status === 'pending') {
+            (router.currentTr as unknown as { _handleError(error: unknown): void })._handleError(chunkError);
+          }
+          await pending;
+          await tasksSettled();
+          subscription.dispose();
+          await au.stop(true);
+        }
+      });
+    }
+  }
+
   it('lists lazy routes in the navigation model from the parent config without loading them #2553', async function () {
     @customElement({ name: 'ad-min', template: 'admin' })
     class Admin { }
@@ -471,7 +551,7 @@ describe('router/lazy-routes.spec.ts', function () {
     await au.stop(true);
   });
 
-  it('renders a load attribute bound to a lazy component type without loading it #2553', async function () {
+  it('resolves a type-bound load link to its configured path before publishing it #2553', async function () {
     @customElement({ name: 'ad-min', template: 'admin' })
     class Admin { }
 
@@ -491,9 +571,11 @@ describe('router/lazy-routes.spec.ts', function () {
 
     const { host, au, container } = await start({ appRoot: Root });
 
-    // binding the link must not throw nor invoke the factory; the component type is only known after loading
+    // Unlike an ID/path link, an opaque factory's type-to-path mapping requires discovery.
+    // Resolving that mapping does not navigate, and the later click reuses the loaded module.
     assert.html.textContent(host, 'home', 'init');
-    assert.strictEqual(adminCalls, 0, 'admin factory called while rendering the link');
+    assert.strictEqual(adminCalls, 1, 'the factory supplies the type-to-path mapping');
+    assert.match(host.querySelector('a')!.getAttribute('href')!, /\/admin$/);
 
     const navEnd = new Promise<void>(r => {
       const sub = container.get(IRouterEvents).subscribe('au:router:navigation-end', () => {
@@ -509,6 +591,41 @@ describe('router/lazy-routes.spec.ts', function () {
 
     await au.stop(true);
   });
+
+  for (const behavior of ['native href', 'active state'] as const) {
+    it(`keeps a lazy type-bound link's ${behavior} consistent with a parent route-id link #2556`, async function () {
+      @customElement({ name: 'ad-min', template: 'admin' })
+      class Admin { }
+
+      @route({ routes: [
+        { path: '', component: Home },
+        { id: 'admin-id', path: 'admin', component: lazyFactory(() => Promise.resolve({ default: Admin })) },
+      ] })
+      @customElement({
+        name: 'ro-ot',
+        template: `<a data-type load.bind="adminType"></a><a data-id load.bind="{ component: 'admin-id' }"></a><au-viewport></au-viewport>`,
+      })
+      class Root { public readonly adminType = Admin; }
+
+      const { host, au, container } = await start({ appRoot: Root, activeClass: 'selected' });
+      try {
+        const typeLink = host.querySelector('[data-type]') as HTMLAnchorElement;
+        const idLink = host.querySelector('[data-id]') as HTMLAnchorElement;
+        assert.match(idLink.getAttribute('href')!, /\/admin$/, 'parent-id native URL control');
+        if (behavior === 'native href') {
+          assert.strictEqual(typeLink.getAttribute('href'), idLink.getAttribute('href'), 'native/modified clicks use the configured path');
+        } else {
+          await container.get(IRouter).load('admin-id');
+          await tasksSettled();
+          assert.html.textContent(host, 'admin', 'route loaded');
+          assert.strictEqual(idLink.classList.contains('selected'), true, 'parent-id active control');
+          assert.strictEqual(typeLink.classList.contains('selected'), true, 'type link becomes active after its lazy route loads');
+        }
+      } finally {
+        await au.stop(true);
+      }
+    });
+  }
 
   it('isActive does not load a pending lazy route for a component type #2553', async function () {
     @customElement({ name: 'ad-min', template: 'admin' })
@@ -626,6 +743,82 @@ describe('router/lazy-routes.spec.ts', function () {
     assert.html.textContent(host, 'admin', 'admin still rendered');
 
     await au.stop(true);
+  });
+
+  it('observes mixed sibling factory failures while discovering another component type', async function () {
+    @customElement({ name: 'report-page', template: 'reports' })
+    class Reports { }
+
+    const asyncError = new Error('async chunk failure');
+    const syncError = new Error('sync factory failure');
+    const calls: string[] = [];
+    @route({
+      routes: [
+        { path: '', component: Home },
+        { path: 'async-failure', component: lazyFactory(() => { calls.push('async'); return Promise.reject(asyncError); }) },
+        { path: 'sync-failure', component: lazyFactory(() => { calls.push('sync'); throw syncError; }) },
+        { path: 'reports', component: lazyFactory(() => { calls.push('reports'); return Reports; }) },
+      ],
+    })
+    @customElement({ name: 'mixed-lazy-root', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { host, au, container } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+    try {
+      assert.deepStrictEqual(calls, [], 'startup leaves all factories untouched');
+      const unhandled = await collectUnhandledRejections(async () => {
+        // A later synchronous throw must not abandon the earlier rejected
+        // promise or prevent discovery of the requested component.
+        assert.strictEqual(await router.load(Reports), true);
+        await tasksSettled();
+      });
+      assert.deepStrictEqual(calls, ['async', 'sync', 'reports']);
+      assert.deepStrictEqual(unhandled, []);
+      assert.html.textContent(host, 'reports');
+    } finally {
+      await au.stop(true);
+    }
+  });
+
+  it('shares a pending factory between overlapping component-type path requests', async function () {
+    @customElement({ name: 'report-page', template: 'reports' })
+    class Reports { }
+
+    const chunk = deferred<{ default: typeof Reports }>();
+    let calls = 0;
+    @route({
+      routes: [
+        { path: '', component: Home },
+        { path: 'reports', component: lazyFactory(() => { ++calls; return chunk.promise; }) },
+      ],
+    })
+    @customElement({ name: 'shared-lazy-root', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { host, au, container } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+    try {
+      assert.strictEqual(calls, 0);
+      // Unlike queued navigations, these public path requests overlap while
+      // the module is unresolved and must share the same factory invocation.
+      const first = router.generatePath(Reports);
+      const second = router.generatePath(Reports);
+      assert.instanceOf(first, Promise);
+      assert.instanceOf(second, Promise);
+      assert.strictEqual(calls, 1);
+      chunk.resolve({ default: Reports });
+      assert.deepStrictEqual(await Promise.all([first, second]), ['reports', 'reports']);
+      assert.html.textContent(host, 'home', 'path generation does not navigate');
+
+      assert.strictEqual(await router.load('reports'), true);
+      await tasksSettled();
+      assert.html.textContent(host, 'reports');
+      assert.strictEqual(calls, 1, 'navigation reuses the already loaded route');
+    } finally {
+      chunk.resolve({ default: Reports });
+      await au.stop(true);
+    }
   });
 
   it('supports synchronous component factories #2553', async function () {

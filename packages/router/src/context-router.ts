@@ -13,6 +13,8 @@ export class ContextRouter {
   /** @internal */
   public get _options() { return this._router.options; }
   /** @internal */
+  public get _logger() { return this._router._logger; }
+  /** @internal */
   public get _allResolved() { return this._context.routeConfigContext.allResolved; }
 
   public constructor(
@@ -105,9 +107,9 @@ export class ContextRouter {
   }
 
   public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null): ViewportInstructionTree;
-  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren: true): ViewportInstructionTree | Promise<ViewportInstructionTree>;
-  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren?: boolean): ViewportInstructionTree | Promise<ViewportInstructionTree> {
-    return this._router.createViewportInstructions(instructionOrInstructions, { context: this._context, ...options }, parentRoutePath, traverseChildren as true);
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren: boolean, resolveLazyRoutes?: boolean): ViewportInstructionTree | Promise<ViewportInstructionTree>;
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren?: boolean, resolveLazyRoutes?: boolean): ViewportInstructionTree | Promise<ViewportInstructionTree> {
+    return this._router.createViewportInstructions(instructionOrInstructions, { context: this._context, ...options }, parentRoutePath, traverseChildren as true, resolveLazyRoutes);
   }
 
   public isActive(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[]): boolean {

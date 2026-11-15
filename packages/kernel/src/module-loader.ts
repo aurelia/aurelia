@@ -1,4 +1,5 @@
 import { createInterface } from './di';
+import { noop } from './platform';
 import { resourceBaseName } from './resource';
 import { getMetadata, isFunction } from './utilities';
 import { ErrorNames, createMappedError } from './errors';
@@ -53,7 +54,8 @@ class ModuleTransformer<TMod extends IModule = IModule, TRet = AnalyzedModule<TM
     void ret.then(value => {
       // make it synchronous for future requests
       this._promiseCache.set(promise, value);
-    });
+      // nothing to cache on rejection; `ret` itself already propagates the failure to callers
+    }, noop);
     return ret;
   }
 
@@ -69,7 +71,8 @@ class ModuleTransformer<TMod extends IModule = IModule, TRet = AnalyzedModule<TM
       void ret.then(value => {
         // make it synchronous for future requests
         this._objectCache.set(obj, value);
-      });
+        // nothing to cache on rejection; `ret` itself already propagates the failure to callers
+      }, noop);
     }
     return ret;
   }

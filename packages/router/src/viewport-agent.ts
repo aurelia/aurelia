@@ -300,15 +300,15 @@ export class ViewportAgent {
           // first pass of activation, instead of lazily in a later pass after `processResidue`.
           // By calling `compileResidue` here on the current context, we're ensuring that such nodes are created and
           // their target viewports have the appropriate updates scheduled.
-          b1._push();
-          const ctx = next.context;
-          void onResolve(
-            ctx.routeConfigContext.allResolved,
-            () => onResolve(
-              onResolve(
-                onResolveAll(
-                  ...next.residue.splice(0).map(vi => createAndAppendNodes(this._logger, next, vi))
-                ),
+          // Reused parents can discover lazy children here. Their import failures
+          // belong to the transition, just as in _processDynamicChildren.
+          tr._run(() => {
+            b1._push();
+            const ctx = next.context;
+            return onResolve(
+              ctx.routeConfigContext.allResolved,
+              () => onResolve(
+                onResolveAll(...next.residue.splice(0).map(vi => createAndAppendNodes(this._logger, next, vi))),
                 () => onResolveAll(...ctx.getAvailableViewportAgents().reduce((acc, vpa) => {
                   const vp = vpa.viewport;
                   const component = vp.default;
@@ -317,9 +317,8 @@ export class ViewportAgent {
                   return acc;
                 }, ([] as (void | Promise<void>)[]))),
               ),
-              () => { b1._pop(); }
-            )
-          );
+            );
+          }, () => { b1._pop(); });
           return;
         }
         case 'replace':

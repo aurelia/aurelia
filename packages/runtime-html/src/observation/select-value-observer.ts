@@ -3,6 +3,7 @@ import {
   type AccessorType,
   type ICollectionObserver,
   type IObserverLocator,
+  type IRefreshable,
   type ISubscriberCollection,
 } from '@aurelia/runtime';
 
@@ -24,7 +25,7 @@ export interface IOptionElement extends HTMLOptionElement {
 
 export interface SelectValueObserver extends ISubscriberCollection {}
 
-export class SelectValueObserver implements INodeObserver {
+export class SelectValueObserver implements INodeObserver, IRefreshable {
   static {
     mixinNodeObserverUseConfig(SelectValueObserver);
     subscriberCollection(SelectValueObserver, null!);
@@ -124,6 +125,10 @@ export class SelectValueObserver implements INodeObserver {
     this._hasChanges = newValue !== this._oldValue;
     this._observeArray(newValue instanceof Array ? newValue : null);
     this._flushChanges();
+  }
+
+  public refresh(): void {
+    this.syncOptions();
   }
 
   /** @internal */

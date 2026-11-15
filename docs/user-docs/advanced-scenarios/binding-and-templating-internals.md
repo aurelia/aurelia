@@ -733,6 +733,16 @@ export class LocalStorageObserver {
 }
 ```
 
+#### Refreshing a binding target
+
+A target accessor or observer can expose a synchronous `refresh(): void` method when it needs to reapply its current value after other bindings have run. The `IRefreshable` interface is exported from `@aurelia/runtime` for type checking. `PropertyBinding` discovers the callable method directly; no separate registration of this capability is needed.
+
+Refresh participates in `.one-time`, `.to-view`, and `.two-way` bindings, including `.bind` when it selects one of those modes. A `.from-view`-only binding does not request it. The call preserves the accessor or observer as `this`, receives no arguments, and does not await a returned promise.
+
+The owning controller calls `refresh()` after its own bindings have bound. For Element targets, related DOM mounts can trigger further calls during that activation. Object-backed observers, such as those supplied for custom-element bindables through `ObserverLocator.addAdapter()`, receive the same post-binding call but do not participate in DOM-mount tracking.
+
+Implementations should safely reapply the current target state on repeated calls. Registrations retire at the owner's attached boundary and can be created again when a cached view rebinds. This timing does not establish that every descendant has finished binding or that asynchronous `attached()` hooks have settled. The [select initialization guidance](../developer-guides/forms/README.md#initial-selection) shows the effect on a built-in observer.
+
 ## Resources
 
 - [Template Compiler Source](https://github.com/aurelia/aurelia/tree/master/packages/template-compiler)

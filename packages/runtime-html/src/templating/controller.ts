@@ -43,6 +43,7 @@ import type {
 } from '@aurelia/kernel';
 import type {
   IObservable,
+  IRefreshable,
 } from '@aurelia/runtime';
 import type { INodeSequence, IRenderLocation } from '../dom';
 import type { INode } from '../dom.node';
@@ -55,6 +56,17 @@ import type { LifecycleHooksLookup } from './lifecycle-hooks';
 import type { IViewFactory } from './view';
 import { IBinding } from '../binding/interfaces-bindings';
 
+interface BindingRefreshRegistration {
+  readonly owner: Controller;
+  readonly target: IRefreshable;
+  readonly mountTargets: Node[];
+}
+
+const bindingRefreshRegistrations = new WeakMap<Node, Set<BindingRefreshRegistration>>();
+let bindingRefreshRegistrationCount = 0;
+let bindingRefreshAttachDepth = 0;
+let pendingBindingRefreshes: Set<BindingRefreshRegistration> | undefined;
+
 export class Controller<C extends IViewModel = IViewModel> implements IController<C> {
 
   public head: IHydratedController | null = null;
@@ -64,6 +76,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   public parent: IHydratedController | null = null;
   public bindings: IBinding[] | null = null;
   public children: Controller[] | null = null;
+
+  /** @internal */
+  private declare _bindingRefreshRegistrations: BindingRefreshRegistration[] | undefined;
 
   public scope: Scope | null = null;
   public isBound: boolean = false;
@@ -726,6 +741,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       }
     }
 
+    this._refreshBindingTargets();
+
     if (this.vmKind !== vmkSynth && this._lifecycleHooks!.bound != null) {
       /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.bound()`); }
@@ -784,56 +801,68 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     /* istanbul ignore next */
     if (__DEV__ && this.debug) { this.logger!.trace(`attach()`); }
 
-    switch (this.mountTarget) {
-      case targetHost:
-        this.nodes!.appendTo(this.host!, this.definition != null && (this.definition as CustomElementDefinition).enhance);
-        break;
-      case targetShadowRoot: {
-        const container = this.container;
-        const styles = container.has(IShadowDOMStyles, false)
-          ? container.get(IShadowDOMStyles)
-          : container.get(IShadowDOMGlobalStyles);
-        styles.applyTo(this.shadowRoot!);
-        this.nodes!.appendTo(this.shadowRoot!);
-        break;
-      }
-      case targetLocation:
-        this.nodes!.insertBefore(this.location!);
-        break;
-    }
-
     let i = 0;
     let ret: Promise<void> | void = void 0;
+    ++bindingRefreshAttachDepth;
+    try {
+      switch (this.mountTarget) {
+        case targetHost:
+          this.nodes!.appendTo(this.host!, this.definition != null && (this.definition as CustomElementDefinition).enhance);
+          if (bindingRefreshRegistrationCount > 0) {
+            requestMountedTargetRefreshes(this.host!, this.nodes!.childNodes);
+          }
+          break;
+        case targetShadowRoot: {
+          const container = this.container;
+          const styles = container.has(IShadowDOMStyles, false)
+            ? container.get(IShadowDOMStyles)
+            : container.get(IShadowDOMGlobalStyles);
+          styles.applyTo(this.shadowRoot!);
+          this.nodes!.appendTo(this.shadowRoot!);
+          break;
+        }
+        case targetLocation:
+          this.nodes!.insertBefore(this.location!);
+          if (bindingRefreshRegistrationCount > 0) {
+            requestMountedTargetRefreshes(this.location!.parentNode!, this.nodes!.childNodes);
+          }
+          break;
+      }
 
-    if (this.vmKind !== vmkSynth && this._lifecycleHooks!.attaching != null) {
-      /* istanbul ignore next */
-      if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.attaching()`); }
+      if (this.vmKind !== vmkSynth && this._lifecycleHooks!.attaching != null) {
+        /* istanbul ignore next */
+        if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.attaching()`); }
 
-      ret = onResolveAll(...this._lifecycleHooks!.attaching!.map(callAttachingHook, this));
-    }
+        ret = onResolveAll(...this._lifecycleHooks!.attaching!.map(callAttachingHook, this));
+      }
 
-    if (this._vmHooks._attaching) {
-      /* istanbul ignore next */
-      if (__DEV__ && this.debug) { this.logger!.trace(`attaching()`); }
+      if (this._vmHooks._attaching) {
+        /* istanbul ignore next */
+        if (__DEV__ && this.debug) { this.logger!.trace(`attaching()`); }
 
-      ret = onResolveAll(ret, this._vm!.attaching(this.$initiator, this.parent));
-    }
+        ret = onResolveAll(ret, this._vm!.attaching(this.$initiator, this.parent));
+      }
 
-    if (isPromise(ret)) {
-      this._ensurePromise();
-      this._enterActivating();
-      ret.then(() => {
-        this._leaveActivating();
-      }).catch((err: Error) => {
-        this._reject(err);
-      });
-    }
+      if (isPromise(ret)) {
+        this._ensurePromise();
+        this._enterActivating();
+        ret.then(() => {
+          this._leaveActivating();
+        }).catch((err: Error) => {
+          this._reject(err);
+        });
+      }
 
-    // attaching() and child activation run in parallel, and attached() is called when both are finished
-    if (this.children !== null) {
-      for (; i < this.children.length; ++i) {
-        // Any promises returned from child activation are cumulatively awaited before this.$promise resolves
-        void this.children[i].activate(this.$initiator, this as IHydratedController, this.scope);
+      // attaching() and child activation run in parallel, and attached() is called when both are finished
+      if (this.children !== null) {
+        for (; i < this.children.length; ++i) {
+          // Any promises returned from child activation are cumulatively awaited before this.$promise resolves
+          void this.children[i].activate(this.$initiator, this as IHydratedController, this.scope);
+        }
+      }
+    } finally {
+      if (--bindingRefreshAttachDepth === 0) {
+        flushPendingBindingRefreshes();
       }
     }
 
@@ -977,6 +1006,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         this.bindings[i].unbind();
       }
     }
+    this._clearBindingRefreshTargets();
 
     this.parent = null;
 
@@ -1060,7 +1090,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   /** @internal */
   private _leaveActivating(): void {
     if (this.state !== activating) {
-      --this._activatingStack;
+      if (--this._activatingStack === 0) {
+        this._clearBindingRefreshTargets();
+      }
       // skip doing rest of the work if the controller is deactivated.
       this._resolve();
       if (this.$initiator !== this) {
@@ -1069,6 +1101,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       return;
     }
     if (--this._activatingStack === 0) {
+      this._retireBindingRefreshTargets();
       if (this.vmKind !== vmkSynth && this._lifecycleHooks!.attached != null) {
         _retPromise = onResolveAll(...this._lifecycleHooks!.attached.map(callAttachedHook, this));
       }
@@ -1201,6 +1234,60 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       this.bindings = [binding];
     } else {
       this.bindings[this.bindings.length] = binding;
+    }
+  }
+
+  /** @internal */
+  public requestRefresh(target: IRefreshable, bindingTarget: object): void {
+    const registration: BindingRefreshRegistration = {
+      owner: this,
+      target,
+      mountTargets: [],
+    };
+    (this._bindingRefreshRegistrations ??= []).push(registration);
+    // Object-backed observers refresh after binding too; only element targets
+    // participate in the DOM-mount tracking used for late child content.
+    if ((bindingTarget as Node).nodeType === 1) {
+      addBindingRefreshRegistration(registration, bindingTarget as Node);
+    }
+    ++bindingRefreshRegistrationCount;
+  }
+
+  /** @internal */
+  private _refreshBindingTargets(): void {
+    const registrations = this._bindingRefreshRegistrations;
+    if (registrations !== void 0) {
+      for (let i = 0, ii = registrations.length; i < ii; ++i) {
+        registrations[i].target.refresh();
+      }
+    }
+  }
+
+  /** @internal */
+  private _clearBindingRefreshTargets(): void {
+    const registrations = this._bindingRefreshRegistrations;
+    if (registrations === void 0) {
+      return;
+    }
+    this._bindingRefreshRegistrations = void 0;
+    for (let i = 0, ii = registrations.length; i < ii; ++i) {
+      removeBindingRefreshRegistration(registrations[i]);
+    }
+  }
+
+  /** @internal */
+  private _retireBindingRefreshTargets(): void {
+    const registrations = this._bindingRefreshRegistrations;
+    if (registrations === void 0) {
+      return;
+    }
+    this._bindingRefreshRegistrations = void 0;
+    for (let i = 0, ii = registrations.length; i < ii; ++i) {
+      const registration = registrations[i];
+      if (pendingBindingRefreshes?.delete(registration)) {
+        registration.target.refresh();
+      }
+      removeBindingRefreshRegistration(registration);
     }
   }
 
@@ -2016,6 +2103,65 @@ export interface IControllerElementHydrationInstruction {
 
 function callDispose(disposable: IDisposable): void {
   disposable.dispose();
+}
+
+function requestMountedTargetRefreshes(target: Node, mountedNodes: ArrayLike<Node>): void {
+  const registrations = bindingRefreshRegistrations.get(target);
+  if (registrations === void 0) {
+    return;
+  }
+  const pending = pendingBindingRefreshes ??= new Set();
+  registrations.forEach(registration => {
+    pending.add(registration);
+    for (let i = 0, ii = mountedNodes.length; i < ii; ++i) {
+      addBindingRefreshRegistration(registration, mountedNodes[i]);
+    }
+  });
+}
+
+function flushPendingBindingRefreshes(): void {
+  const pending = pendingBindingRefreshes;
+  if (pending === void 0) {
+    return;
+  }
+  pendingBindingRefreshes = void 0;
+  pending.forEach(registration => {
+    if (registration.owner.isActive) {
+      registration.target.refresh();
+    }
+  });
+}
+
+function removeBindingRefreshRegistration(registration: BindingRefreshRegistration): void {
+  pendingBindingRefreshes?.delete(registration);
+  const mountTargets = registration.mountTargets;
+  for (let i = 0, ii = mountTargets.length; i < ii; ++i) {
+    const mountTarget = mountTargets[i];
+    const registrations = bindingRefreshRegistrations.get(mountTarget)!;
+    registrations.delete(registration);
+    if (registrations.size === 0) {
+      bindingRefreshRegistrations.delete(mountTarget);
+    }
+  }
+  --bindingRefreshRegistrationCount;
+}
+
+function addBindingRefreshRegistration(registration: BindingRefreshRegistration, node: Node): void {
+  if (node.nodeType === 1 /* Element */) {
+    let registrations = bindingRefreshRegistrations.get(node);
+    if (registrations === void 0) {
+      bindingRefreshRegistrations.set(node, registrations = new Set());
+    }
+    if (!registrations.has(registration)) {
+      registrations.add(registration);
+      registration.mountTargets.push(node);
+    }
+  }
+  let child = node.firstChild;
+  while (child !== null) {
+    addBindingRefreshRegistration(registration, child);
+    child = child.nextSibling;
+  }
 }
 
 function callCreatedHook(this: Controller, l: LifecycleHooksEntry<ICompileHooks, 'created'>) {

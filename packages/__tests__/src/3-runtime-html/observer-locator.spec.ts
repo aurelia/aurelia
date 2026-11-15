@@ -1,14 +1,16 @@
-import { CollectionLengthObserver, CollectionSizeObserver, ComputedObserver, DirtyCheckProperty, runTasks, PrimitiveObserver, PropertyAccessor, SetterObserver } from '@aurelia/runtime';
+import { CollectionLengthObserver, CollectionSizeObserver, ComputedObserver, DirtyCheckProperty, runTasks, PrimitiveObserver, PropertyAccessor, SetterObserver, tasksSettled, type IRefreshable } from '@aurelia/runtime';
 import {
   AttributeNSAccessor,
   CheckedObserver,
   ClassAttributeAccessor,
   DataAttributeAccessor,
+  CustomElement,
   SelectValueObserver,
   StyleAttributeAccessor,
   ValueAttributeObserver,
+  NodeObserverLocator,
 } from '@aurelia/runtime-html';
-import { _, TestContext, assert, PLATFORM } from '@aurelia/testing';
+import { _, TestContext, assert, PLATFORM, createFixture as createAppFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/observer-locator.spec.ts', function () {
   function createFixture() {
@@ -17,6 +19,104 @@ describe('3-runtime-html/observer-locator.spec.ts', function () {
 
     return { ctx, sut };
   }
+
+  describe('refreshable node observers', function () {
+    for (const mode of ['one-time', 'to-view', 'two-way', 'from-view']) {
+      it(`uses the public observer configuration with value.${mode}`, async function () {
+        const seen: { observer: ValueAttributeObserver; minimum: string }[] = [];
+        class FormValueObserver extends ValueAttributeObserver implements IRefreshable {
+          public readonly element: HTMLInputElement;
+          public constructor(...args: ConstructorParameters<typeof ValueAttributeObserver>) {
+            super(args[0], 'value', args[2]);
+            this.element = args[0] as HTMLInputElement;
+          }
+          public refresh(): void {
+            seen.push({ observer: this, minimum: this.element.min });
+          }
+        }
+        const ctx = TestContext.create();
+        const nodeObserverLocator = ctx.container.get(NodeObserverLocator);
+        nodeObserverLocator.useConfig('INPUT', 'draft', {
+          type: FormValueObserver,
+          events: ['input'],
+          default: '',
+        });
+        nodeObserverLocator.overrideAccessor('INPUT', 'draft');
+        const fixture = createAppFixture(
+          `<input value="native" draft.${mode}="value" min.bind="minimum"><p if.bind="help">Help</p>`,
+          { value: '3', minimum: 2, help: false },
+          [],
+          true,
+          ctx,
+        );
+        const input = fixture.getBy('input');
+        const observer = ctx.observerLocator.getObserver(input, 'draft');
+        assert.instanceOf(observer, FormValueObserver);
+        // Target-writing bindings opt in through the observer, not a custom
+        // controller. The callback retains its receiver and sees later bindings.
+        assert.strictEqual(seen.length > 0, mode !== 'from-view');
+        for (const snapshot of seen) {
+          assert.strictEqual(snapshot.observer, observer);
+          assert.strictEqual(snapshot.minimum, '2');
+        }
+        const initialRefreshes = seen.length;
+        fixture.component.value = '4';
+        fixture.component.help = true;
+        await tasksSettled();
+        assert.strictEqual(seen.length, initialRefreshes, 'ordinary updates do not restart initialization');
+        await fixture.stop();
+        fixture.component.value = '5';
+        await tasksSettled();
+        assert.strictEqual(seen.length, initialRefreshes, 'unbound targets are no longer refreshed');
+      });
+    }
+  });
+
+  it('refreshes an adapter-backed custom-element bindable after its sibling bindings', function () {
+    class Field {
+      [key: PropertyKey]: unknown;
+      private currentValue = '';
+      public minimum = 0;
+      public get value(): string { return this.currentValue; }
+      public set value(value: string) { this.currentValue = value; }
+    }
+    const RefreshableField = CustomElement.define({
+      name: 'refreshable-field',
+      template: '${value}',
+      bindables: ['value', 'minimum'],
+    }, Field);
+    const seen: { observer: FieldValueObserver; value: string; minimum: number }[] = [];
+    class FieldValueObserver extends SetterObserver implements IRefreshable {
+      public constructor(public readonly field: Field) {
+        super(field, 'value');
+      }
+      public refresh(): void {
+        seen.push({ observer: this, value: this.field.value, minimum: this.field.minimum });
+      }
+    }
+    const ctx = TestContext.create();
+    ctx.observerLocator.addAdapter({
+      getObserver(object, key) {
+        return object instanceof Field && key === 'value' ? new FieldValueObserver(object) : null;
+      },
+    });
+    // Bindable observers can come from the public object adapter too. Their
+    // binding target is the view model, not the custom element's DOM host.
+    const fixture = createAppFixture(
+      '<refreshable-field value.to-view="value" minimum.bind="minimum"></refreshable-field>',
+      { value: '3', minimum: 2 },
+      [RefreshableField],
+      true,
+      ctx,
+    );
+    fixture.assertText('3');
+    assert.strictEqual(seen.length > 0, true);
+    for (const snapshot of seen) {
+      assert.strictEqual(ctx.observerLocator.getObserver(snapshot.observer.field, 'value'), snapshot.observer);
+      assert.strictEqual(snapshot.value, '3');
+      assert.strictEqual(snapshot.minimum, 2);
+    }
+  });
 
   for (const markup of [
     `<div class="foo"></div>`,

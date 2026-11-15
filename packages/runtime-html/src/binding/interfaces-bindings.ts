@@ -1,5 +1,5 @@
 import { IDisposable, IServiceLocator } from '@aurelia/kernel';
-import { type Scope } from '@aurelia/runtime';
+import { type IRefreshable, type Scope } from '@aurelia/runtime';
 import { BindingMode } from '@aurelia/template-compiler';
 import { State } from '../templating/controller';
 
@@ -8,6 +8,8 @@ export { BindingMode } from '@aurelia/template-compiler';
 
 export interface IBindingController {
   readonly state: State;
+  /** @internal */
+  requestRefresh?(target: IRefreshable, bindingTarget: object): void;
 }
 
 export interface IBinding {

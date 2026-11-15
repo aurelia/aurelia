@@ -107,6 +107,24 @@ describe('fetch-client/transfer-cache-interceptor.spec.ts', function () {
     assert.notIncludes(json, 'secret');
   });
 
+  it('replays the status text and the listed headers', async function () {
+    const { clientState } = await record(
+      () => new Response(productJson, { status: 203, statusText: 'Non-Authoritative', headers: { 'Content-Type': 'Application/JSON', ETag: '"v1"', 'x-internal': 'secret' } }),
+      void 0,
+      { includeHeaders: ['ETag'] },
+    );
+    const client = createClient(clientState);
+
+    const replayed = await client.http.fetch(url);
+
+    assert.strictEqual(client.requests.length, 0);
+    assert.strictEqual(replayed.status, 203);
+    assert.strictEqual(replayed.statusText, 'Non-Authoritative');
+    assert.strictEqual(replayed.headers.get('etag'), '"v1"');
+    assert.strictEqual(replayed.headers.get('x-internal'), null);
+    assert.strictEqual(await replayed.text(), productJson);
+  });
+
   it('records a header listed twice or in another case once', async function () {
     const { clientState } = await record(void 0, void 0, { includeHeaders: ['Content-Type', 'content-type'] });
     const client = createClient(clientState);
@@ -123,6 +141,9 @@ describe('fetch-client/transfer-cache-interceptor.spec.ts', function () {
     ['error responses', () => new Response('missing', { status: 404 })],
     ['responses with Cache-Control: no-store', () => new Response(productJson, { headers: { 'cache-control': 'no-store' } })],
     ['responses with Cache-Control: private', () => new Response(productJson, { headers: { 'cache-control': 'private, max-age=60' } })],
+    ['responses with Cache-Control in another case', () => new Response(productJson, { headers: { 'content-type': 'application/json', 'cache-control': 'max-age=0, No-Store' } })],
+    ['requests with a Range header', () => new Response(productJson.slice(0, 5), { status: 206, headers: { 'content-type': 'application/json' } }), { headers: { range: 'bytes=0-4' } }],
+    ['event streams with a charset', () => new Response(new ReadableStream({ start: controller => controller.enqueue(new TextEncoder().encode('data: 1\n\n')) }), { headers: { 'content-type': 'Text/Event-Stream; charset=utf-8' } })],
     ['binary responses', () => new Response(new Uint8Array([0xff, 0xd8]), { headers: { 'content-type': 'image/jpeg' } })],
     ['binary types whose name contains xml', () => new Response(new Uint8Array([0x50, 0x4b]), { headers: { 'content-type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' } })],
     ['bodies without a content type', () => new Response(new Uint8Array([0xff, 0xd8]))],
@@ -153,6 +174,53 @@ describe('fetch-client/transfer-cache-interceptor.spec.ts', function () {
       assert.strictEqual(client.requests.length, 0);
     });
   }
+
+  it('leaves a response alone when an earlier interceptor read its body', async function () {
+    const serverState = new TransferState(void 0, true);
+    const { container } = TestContext.create();
+    container.register(Registration.instance(IFetchFn, () => Promise.resolve(new Response(productJson, { headers: { 'content-type': 'application/json' } }))));
+    const http = container.get(HttpClient);
+    const bodies: string[] = [];
+    http.configure(c => c
+      .withInterceptor({ async response(response) { bodies.push(await response.text()); return response; } })
+      .withInterceptor(new TransferCacheInterceptor(serverState)));
+
+    // Cloning a used body throws, so recording it would reject a request that otherwise succeeds.
+    const response = await http.fetch(url);
+
+    assert.strictEqual(response.status, 200);
+    assert.deepStrictEqual(bodies, [productJson]);
+    assert.strictEqual(serverState.serialize(), '{}');
+  });
+
+  it('does not replay a request the filter rejects on the client', async function () {
+    const { clientState } = await record();
+    const client = createClient(clientState, void 0, { filter: () => false });
+
+    await client.http.fetch(url);
+
+    assert.strictEqual(client.requests.length, 1);
+    assert.notStrictEqual(clientState.serialize(), '{}', 'the entry stays for a request that passes the filter');
+  });
+
+  it('does not record on the client', async function () {
+    const clientState = new TransferState();
+    const client = createClient(clientState);
+
+    assert.strictEqual(await (await client.http.fetch(url)).text(), productJson);
+    assert.strictEqual(client.requests.length, 1);
+    assert.strictEqual(clientState.serialize(), '{}');
+  });
+
+  it('records a 205 response without a content type', async function () {
+    const { clientState } = await record(() => new Response(null, { status: 205 }));
+    const client = createClient(clientState);
+
+    const replayed = await client.http.fetch(url);
+
+    assert.strictEqual(client.requests.length, 0);
+    assert.strictEqual(replayed.status, 205);
+  });
 
   it('records a 204 response without a content type', async function () {
     const { clientState } = await record(() => new Response(null, { status: 204 }));

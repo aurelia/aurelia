@@ -104,7 +104,9 @@ export class TransferCacheInterceptor implements IFetchInterceptor {
       // A response that sets a cookie or forbids shared caching is specific to the server's request.
       headers.has('set-cookie')
       || cacheControl !== null && /no-store|private/i.test(cacheControl)
-      || hasBody && !textContentType.test(headers.get('content-type') ?? '')
+      // An earlier response interceptor may have read the body. Cloning a used body throws, which
+      // would fail a request on the server that succeeds on the client.
+      || hasBody && (response.bodyUsed || !textContentType.test(headers.get('content-type') ?? ''))
     ) {
       return response;
     }
@@ -135,6 +137,8 @@ export class TransferCacheInterceptor implements IFetchInterceptor {
       // Credentialed responses can hold one user's data, which must not end up in HTML a CDN or shared cache serves to others.
       && !request.headers.has('authorization')
       && !request.headers.has('cookie')
+      // The key has no room for the requested range, so a partial body could answer a request for another part.
+      && !request.headers.has('range')
       && (this._filter?.(request) ?? true);
   }
 }

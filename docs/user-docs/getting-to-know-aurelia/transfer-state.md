@@ -58,7 +58,7 @@ const stateScript = `<script type="application/json" id="${transferStateId}">${s
 
 Create the store, and anything that holds it such as an http client with `TransferCacheInterceptor`, for each request. A store or http client shared between requests would put one visitor's data in another visitor's page.
 
-`serialize()` escapes `<`, so values containing `</script>` or `<!--` cannot end the element early. Values must survive `JSON.stringify`: dates become strings, and `Map`, `Set` and class instances lose their behavior.
+`serialize()` escapes `<`, so values containing `</script>` or `<!--` cannot end the element early. Values must survive `JSON.stringify`: dates become strings, and `Map`, `Set` and class instances lose their behavior. A loader that returns `undefined` records nothing, so the client runs it again.
 
 {% hint style="warning" %}
 Everything in the transfer state is visible in the page source. Do not record secrets, tokens or data that belongs to a different user than the one receiving the page.
@@ -66,7 +66,7 @@ Everything in the transfer state is visible in the page source. Do not record se
 
 ## Client setup
 
-Nothing to register. When nothing else has been registered, `ITransferState` resolves to a store seeded from the `<script id="au-state">` element. The script is read the first time the store is resolved. If the element is missing or holds invalid JSON, the store starts empty and components load their data as usual.
+Nothing to register. When nothing else has been registered, `ITransferState` resolves to a store seeded from the `<script id="au-state">` element. The script is read the first time the store is resolved, so the element has to be in the document by then. A module script or a script at the end of `<body>` runs late enough. If the element is missing or holds invalid JSON, the store starts empty and components load their data as usual.
 
 ## Reuse HTTP responses
 
@@ -89,9 +89,10 @@ Register `TransferCacheTask` with the app on both the server and the client. On 
 The interceptor records a response only when it is safe to share and to replay:
 
 - The request is a `GET` or `HEAD`. Responses are keyed by method and full URL, so by default the server and the client must request the same absolute URL. Use the `key` option when they don't (see below).
-- The request has no `Authorization` or `Cookie` header.
+- The request has no `Authorization`, `Cookie` or `Range` header.
 - The response is successful (2xx) and its `content-type` is text: `text/*` (except `text/event-stream`), JSON or XML (including `+json` and `+xml` types), JavaScript or form data. Bodies travel as text, so other types are left out. `HEAD`, 204 and 205 responses have no body and need no `content-type`.
 - The response has no `Set-Cookie` header, and its `Cache-Control` is not `no-store` or `private`.
+- No earlier response interceptor has read the body. Read a `response.clone()` in interceptors that need the body.
 
 Only the `content-type` response header is recorded by default. Add others with `includeHeaders`, and keep requests out of the cache with `filter`:
 
@@ -112,6 +113,8 @@ new TransferCacheInterceptor(state, {
   },
 });
 ```
+
+Keys are embedded in the page along with the responses, and the default key is the full request URL. If the server's URLs contain an internal host name or a secret in the query string, use `key` to leave those parts out, or `filter` to skip the request.
 
 The recorded response matches the HTML the server rendered, so headers listed in `Vary`, such as `Accept-Language`, are not part of the key. The browser's own headers apply from the next request on.
 

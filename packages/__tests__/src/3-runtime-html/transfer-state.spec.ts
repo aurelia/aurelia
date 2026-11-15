@@ -75,6 +75,41 @@ describe('3-runtime-html/transfer-state.spec.ts', function () {
       assert.deepStrictEqual(await state.getOrLoad('product', () => ({ name: 'Grinder' })), { name: 'Grinder' });
     });
 
+    it('rejects every concurrent server call when the shared load fails', async function () {
+      const state = new TransferState(void 0, true);
+      let loads = 0;
+      const load = () => { ++loads; return Promise.reject(new Error('offline')); };
+
+      const results = await Promise.allSettled([state.getOrLoad('product', load), state.getOrLoad('product', load)]);
+
+      assert.deepStrictEqual(results.map(r => r.status), ['rejected', 'rejected']);
+      assert.strictEqual(loads, 1);
+      assert.strictEqual(state.has('product'), false);
+    });
+
+    for (const value of [null, 0, false, '']) {
+      it(`serves a recorded ${JSON.stringify(value)} on the client without loading`, async function () {
+        const server = new TransferState(void 0, true);
+        await server.getOrLoad('value', () => value);
+        const state = new TransferState(JSON.parse(server.serialize()) as Record<string, unknown>);
+        let loads = 0;
+
+        assert.strictEqual(state.get('value', 'fallback'), value);
+        assert.strictEqual(await state.getOrLoad<unknown>('value', () => { ++loads; return 'loaded'; }), value);
+        assert.strictEqual(loads, 0);
+      });
+    }
+
+    it('loads on the client when the server recorded undefined', async function () {
+      const server = new TransferState(void 0, true);
+      await server.getOrLoad('value', () => void 0);
+      // JSON has no undefined, so the key does not reach the client.
+      assert.strictEqual(server.serialize(), '{}');
+
+      const state = new TransferState(JSON.parse(server.serialize()) as Record<string, unknown>);
+      assert.strictEqual(await state.getOrLoad('value', () => 'loaded'), 'loaded');
+    });
+
     it('serves a recorded value once on the client, then loads', async function () {
       const state = new TransferState({ product: { name: 'Espresso machine' } });
       let loads = 0;

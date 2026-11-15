@@ -48,14 +48,22 @@ export class Deserializer implements IExpressionHydrator {
     return deserializer.hydrate(raw);
   }
   public hydrate(raw: any): any {
+    const expression = this.hydrateExpression(raw);
+    // Parentheses end an optional chain, so keep them when restoring a saved rule.
+    if (raw?.parenthesized === true) {
+      expression.parenthesized = true;
+    }
+    return expression;
+  }
+  private hydrateExpression(raw: any): any {
     switch (raw.$TYPE) {
       case ASTExpressionTypes.AccessMemberExpression: {
-        const expr: Pick<AST.AccessMemberExpression, 'object' | 'name'> = raw;
-        return AST.createAccessMemberExpression(this.hydrate(expr.object), expr.name);
+        const expr: Pick<AST.AccessMemberExpression, 'object' | 'name' | 'optional'> = raw;
+        return AST.createAccessMemberExpression(this.hydrate(expr.object), expr.name, expr.optional);
       }
       case ASTExpressionTypes.AccessKeyedExpression: {
-        const expr: Pick<AST.AccessKeyedExpression, 'object' | 'key'> = raw;
-        return AST.createAccessKeyedExpression(this.hydrate(expr.object), this.hydrate(expr.key));
+        const expr: Pick<AST.AccessKeyedExpression, 'object' | 'key' | 'optional'> = raw;
+        return AST.createAccessKeyedExpression(this.hydrate(expr.object), this.hydrate(expr.key), expr.optional);
       }
       case ASTExpressionTypes.AccessThisExpression: {
         const expr: Pick<AST.AccessThisExpression, 'ancestor'> = raw;
@@ -81,12 +89,12 @@ export class Deserializer implements IExpressionHydrator {
         return AST.createPrimitiveLiteralExpression(this.hydrate(expr.value));
       }
       case ASTExpressionTypes.CallFunctionExpression: {
-        const expr: Pick<AST.CallFunctionExpression, 'func' | 'args'> = raw;
-        return AST.createCallFunctionExpression(this.hydrate(expr.func), this.hydrate(expr.args));
+        const expr: Pick<AST.CallFunctionExpression, 'func' | 'args' | 'optional'> = raw;
+        return AST.createCallFunctionExpression(this.hydrate(expr.func), this.hydrate(expr.args), expr.optional);
       }
       case ASTExpressionTypes.CallMemberExpression: {
-        const expr: Pick<AST.CallMemberExpression, 'object' | 'name' | 'args'> = raw;
-        return AST.createCallMemberExpression(this.hydrate(expr.object), expr.name, this.hydrate(expr.args));
+        const expr: Pick<AST.CallMemberExpression, 'object' | 'name' | 'args' | 'optionalMember' | 'optionalCall'> = raw;
+        return AST.createCallMemberExpression(this.hydrate(expr.object), expr.name, this.hydrate(expr.args), expr.optionalMember, expr.optionalCall);
       }
       case ASTExpressionTypes.CallScopeExpression: {
         const expr: Pick<AST.CallScopeExpression, 'name' | 'args' | 'ancestor' | 'optional' | 'optionalAncestor'> = raw;
@@ -191,10 +199,10 @@ export class Serializer implements AST.IVisitor<string> {
     return astVisit(expr, visitor);
   }
   public visitAccessMember(expr: AST.AccessMemberExpression): string {
-    return `{"$TYPE":"${ASTExpressionTypes.AccessMemberExpression}","name":"${expr.name}","object":${astVisit(expr.object, this)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.AccessMemberExpression}","name":"${expr.name}","object":${astVisit(expr.object, this)}${expr.optional ? ',"optional":true' : ''}${expr.parenthesized ? ',"parenthesized":true' : ''}}`;
   }
   public visitAccessKeyed(expr: AST.AccessKeyedExpression): string {
-    return `{"$TYPE":"${ASTExpressionTypes.AccessKeyedExpression}","object":${astVisit(expr.object, this)},"key":${astVisit(expr.key, this)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.AccessKeyedExpression}","object":${astVisit(expr.object, this)},"key":${astVisit(expr.key, this)}${expr.optional ? ',"optional":true' : ''}${expr.parenthesized ? ',"parenthesized":true' : ''}}`;
   }
   public visitAccessThis(expr: AST.AccessThisExpression): string {
     return `{"$TYPE":"${ASTExpressionTypes.AccessThisExpression}","ancestor":${expr.ancestor}}`;
@@ -204,7 +212,7 @@ export class Serializer implements AST.IVisitor<string> {
     return `{"$TYPE":"${ASTExpressionTypes.AccessBoundaryExpression}"}`;
   }
   public visitAccessScope(expr: AST.AccessScopeExpression): string {
-    return `{"$TYPE":"${ASTExpressionTypes.AccessScopeExpression}","name":"${expr.name}","ancestor":${expr.ancestor}${expr.optionalAncestor === void 0 ? '' : `,"optionalAncestor":${expr.optionalAncestor}`}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.AccessScopeExpression}","name":"${expr.name}","ancestor":${expr.ancestor}${expr.optionalAncestor === void 0 ? '' : `,"optionalAncestor":${expr.optionalAncestor}`}${expr.parenthesized ? ',"parenthesized":true' : ''}}`;
   }
   public visitArrayLiteral(expr: AST.ArrayLiteralExpression): string {
     return `{"$TYPE":"${ASTExpressionTypes.ArrayLiteralExpression}","elements":${this.serializeExpressions(expr.elements)}}`;
@@ -216,13 +224,13 @@ export class Serializer implements AST.IVisitor<string> {
     return `{"$TYPE":"${ASTExpressionTypes.PrimitiveLiteralExpression}","value":${serializePrimitive(expr.value)}}`;
   }
   public visitCallFunction(expr: AST.CallFunctionExpression): string {
-    return `{"$TYPE":"${ASTExpressionTypes.CallFunctionExpression}","func":${astVisit(expr.func, this)},"args":${this.serializeExpressions(expr.args)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.CallFunctionExpression}","func":${astVisit(expr.func, this)},"args":${this.serializeExpressions(expr.args)}${expr.optional ? ',"optional":true' : ''}${expr.parenthesized ? ',"parenthesized":true' : ''}}`;
   }
   public visitCallMember(expr: AST.CallMemberExpression): string {
-    return `{"$TYPE":"${ASTExpressionTypes.CallMemberExpression}","name":"${expr.name}","object":${astVisit(expr.object, this)},"args":${this.serializeExpressions(expr.args)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.CallMemberExpression}","name":"${expr.name}","object":${astVisit(expr.object, this)},"args":${this.serializeExpressions(expr.args)}${expr.optionalMember ? ',"optionalMember":true' : ''}${expr.optionalCall ? ',"optionalCall":true' : ''}${expr.parenthesized ? ',"parenthesized":true' : ''}}`;
   }
   public visitCallScope(expr: AST.CallScopeExpression): string {
-    return `{"$TYPE":"${ASTExpressionTypes.CallScopeExpression}","name":"${expr.name}","ancestor":${expr.ancestor},"args":${this.serializeExpressions(expr.args)}${expr.optional ? ',"optional":true' : ''}${expr.optionalAncestor === void 0 ? '' : `,"optionalAncestor":${expr.optionalAncestor}`}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.CallScopeExpression}","name":"${expr.name}","ancestor":${expr.ancestor},"args":${this.serializeExpressions(expr.args)}${expr.optional ? ',"optional":true' : ''}${expr.optionalAncestor === void 0 ? '' : `,"optionalAncestor":${expr.optionalAncestor}`}${expr.parenthesized ? ',"parenthesized":true' : ''}}`;
   }
   public visitTemplate(expr: AST.TemplateExpression): string {
     return `{"$TYPE":"${ASTExpressionTypes.TemplateExpression}","cooked":${serializePrimitives(expr.cooked)},"expressions":${this.serializeExpressions(expr.expressions)}}`;

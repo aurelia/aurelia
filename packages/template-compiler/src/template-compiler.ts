@@ -7,8 +7,8 @@ import {
   emptyArray,
   toArray,
   ILogger,
-  camelCase,
   noop,
+  camelCase,
   getResourceKeyFor,
   allResources,
   IPlatform,
@@ -74,6 +74,7 @@ import type {
 import type {
   IAttributeComponentDefinition,
   ICompiledElementComponentDefinition,
+  DeferredDependencyLoader,
   IComponentBindablePropDefinition,
   IDomPlatform,
   IElementComponentDefinition,
@@ -94,13 +95,19 @@ interface IAttrClassificationResult {
   /** Instructions for template controllers (if, repeat, etc.) */
   tcInstructions: HydrateTemplateController[] | undefined;
   /** Instructions for custom attributes */
-  attrInstructions: HydrateAttributeInstruction[] | undefined;
+  attrInstructions?: HydrateAttributeInstruction[];
   /** Instructions for custom element bindable properties */
-  elBindableInstructions: IInstruction[] | undefined;
+  elBindableInstructions?: IInstruction[];
   /** Instructions for plain attribute bindings/interpolations */
-  plainAttrInstructions: IInstruction[] | undefined;
+  plainAttrInstructions?: IInstruction[];
   /** Whether the element has the containerless attribute */
   hasContainerless: boolean;
+  /**
+   * Whether the innermost template controller defers its content.
+   * When true, the element keeps every attribute that belongs to the deferred content, and only
+   * `tcInstructions` is populated.
+   */
+  deferred: boolean;
 }
 
 export class TemplateCompiler implements ITemplateCompiler {
@@ -500,8 +507,9 @@ export class TemplateCompiler implements ITemplateCompiler {
     // maybe do not allow it to process its own attributes
     let processContentResult: boolean | undefined | void = true;
     const elementMetadata: Record<PropertyKey, unknown> = {};
-    if (isCustomElement) {
-      processContentResult = elDef.processContent?.call(elDef.Type, el as HTMLElement, context.p, elementMetadata);
+    // Deferred content is processed when it's compiled, processing it now as well would do it twice
+    if (isCustomElement && elDef.processContent != null && !this._hostsTemplateController(el, elDef, context, true)) {
+      processContentResult = elDef.processContent.call(elDef.Type, el as HTMLElement, context.p, elementMetadata);
     }
 
     // 1. Classify all attributes
@@ -511,7 +519,12 @@ export class TemplateCompiler implements ITemplateCompiler {
       elBindableInstructions,
       plainAttrInstructions,
       hasContainerless,
+      deferred,
     } = this._classifyAttributes(el, elDef, captures, context);
+
+    if (__DEV__ && !deferred && elDef === null && context.root.def.deferredDependencies?.[elName] != null) {
+      throw createMappedError(ErrorNames.compiler_deferred_dependency_unresolved, context.root.def.name, elName);
+    }
 
     // Reorder instructions for order-sensitive elements (checkbox, radio, select)
     if (this._shouldReorderAttrs(el, plainAttrInstructions) && plainAttrInstructions != null && plainAttrInstructions.length > 1) {
@@ -520,7 +533,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
     // 2. Create element instruction if this is a custom element
     let elementInstruction: HydrateElementInstruction | undefined;
-    if (isCustomElement) {
+    if (isCustomElement && !deferred) {
       // todo: def/ def.Type or def.name should be configurable
       //       example: AOT/runtime can use def.Type, but there are situations
       //       where instructions need to be serialized, def.name should be used
@@ -579,7 +592,15 @@ export class TemplateCompiler implements ITemplateCompiler {
       // Replace element with marker in parent DOM, wrap element in template
       this._replaceByMarker(el, context);
       let tcTemplate: HTMLTemplateElement;
-      if (el.nodeName === TEMPLATE_NODE_NAME) {
+      // Attributes left on a root <template> would be compiled as surrogates. A <template> that still hosts
+      // a template controller is kept inside a wrapper, so that controller compiles with the content.
+      // Other attributes are dropped, as a <template> under a template controller ignores them without defer too.
+      if (el.nodeName === TEMPLATE_NODE_NAME && deferred && el.attributes.length > 0 && !this._hostsTemplateController(el, null, context, false)) {
+        while (el.attributes.length > 0) {
+          el.removeAttributeNode(el.attributes[0]);
+        }
+      }
+      if (el.nodeName === TEMPLATE_NODE_NAME && !(deferred && el.attributes.length > 0)) {
         tcTemplate = el as HTMLTemplateElement;
       } else {
         tcTemplate = context.t();
@@ -587,50 +608,73 @@ export class TemplateCompiler implements ITemplateCompiler {
       }
       const innermostTemplate = tcTemplate;
 
-      // Step 2: Create child context for the innermost TC
-      // The element's own instructions (CE hydration, attrs) go into this child context
-      const tcChildContext = context._createChild(instructions == null ? [] : [instructions]);
-
-      // Step 3: Extract [au-slot] projections from children
-      if (processContentResult !== false) {
-        const projections = this._extractProjections(el, isCustomElement, isShadowDom, elName, context);
-        if (projections != null) {
-          (elementInstruction as { projections: typeof projections }).projections = projections;
-        }
-      }
-
-      // Step 4: Mark element as hydration target
-      // Use tcChildContext because the element is in the TC's template
-      // and its instructions are in tcChildContext.rows
-      if (needsMarker) {
-        if (isCustomElement && (hasContainerless || elDef.containerless)) {
-          this._replaceByMarker(el, tcChildContext);
-        } else {
-          this._markAsTarget(el, tcChildContext);
-        }
-      }
-
-      // Step 5: Compile children into the TC's child context
-      const shouldCompileContent = !isCustomElement || !elDef.containerless && !hasContainerless && processContentResult !== false;
-      if (shouldCompileContent) {
-        if (el.nodeName === TEMPLATE_NODE_NAME) {
-          this._compileNode((el as HTMLTemplateElement).content, tcChildContext);
-        } else {
-          let child = el.firstChild;
-          while (child !== null) {
-            child = this._compileNode(child, tcChildContext) as ChildNode | null;
+      if (deferred) {
+        // Step 2-6 (deferred): keep the content raw, it is compiled on first render
+        const rootDef = context.root.def;
+        const deferredDependencies = rootDef.deferredDependencies;
+        if (deferredDependencies != null) {
+          const loaders = this._collectDeferredLoaders(innermostTemplate.content, deferredDependencies, context, []);
+          if (loaders.length > 0) {
+            (tcInstruction as { deferredLoaders?: DeferredDependencyLoader[] }).deferredLoaders = loaders;
           }
         }
-      }
+        (tcInstruction as { def: IElementComponentDefinition }).def = {
+          // Errors from compiling the content later then name the element whose template it belongs to
+          name: rootDef.name,
+          type: definitionTypeElement,
+          template: innermostTemplate,
+          instructions: emptyArray,
+          needsCompile: true,
+          // Nested deferred blocks and <slot> validation still refer to the owning element
+          deferredDependencies,
+          shadowOptions: rootDef.shadowOptions,
+        };
+      } else {
+        // Step 2: Create child context for the innermost TC
+        // The element's own instructions (CE hydration, attrs) go into this child context
+        const tcChildContext = context._createChild(instructions == null ? [] : [instructions]);
 
-      // Step 6: Attach the compiled definition to the innermost TC
-      (tcInstruction as { def: IElementComponentDefinition }).def = {
-        name: generateElementName(),
-        type: definitionTypeElement,
-        template: innermostTemplate,
-        instructions: tcChildContext.rows,
-        needsCompile: false,
-      };
+        // Step 3: Extract [au-slot] projections from children
+        if (processContentResult !== false) {
+          const projections = this._extractProjections(el, isCustomElement, isShadowDom, elName, context);
+          if (projections != null) {
+            (elementInstruction as { projections: typeof projections }).projections = projections;
+          }
+        }
+
+        // Step 4: Mark element as hydration target
+        // Use tcChildContext because the element is in the TC's template
+        // and its instructions are in tcChildContext.rows
+        if (needsMarker) {
+          if (isCustomElement && (hasContainerless || elDef.containerless)) {
+            this._replaceByMarker(el, tcChildContext);
+          } else {
+            this._markAsTarget(el, tcChildContext);
+          }
+        }
+
+        // Step 5: Compile children into the TC's child context
+        const shouldCompileContent = !isCustomElement || !elDef.containerless && !hasContainerless && processContentResult !== false;
+        if (shouldCompileContent) {
+          if (el.nodeName === TEMPLATE_NODE_NAME) {
+            this._compileNode((el as HTMLTemplateElement).content, tcChildContext);
+          } else {
+            let child = el.firstChild;
+            while (child !== null) {
+              child = this._compileNode(child, tcChildContext) as ChildNode | null;
+            }
+          }
+        }
+
+        // Step 6: Attach the compiled definition to the innermost TC
+        (tcInstruction as { def: IElementComponentDefinition }).def = {
+          name: generateElementName(),
+          type: definitionTypeElement,
+          template: innermostTemplate,
+          instructions: tcChildContext.rows,
+          needsCompile: false,
+        };
+      }
 
       // Step 7: Chain outer TCs from inside-out
       // Each outer TC gets a template with just a marker; its instruction is the next-inner TC
@@ -704,6 +748,101 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   /**
+   * Collect the loaders of the deferred dependencies used in raw deferred content.
+   * Elements that host another deferred template controller are skipped with their subtree,
+   * as that nested content loads its own dependencies when it renders.
+   * @internal
+   */
+  private _collectDeferredLoaders(
+    parent: ParentNode,
+    deferredDependencies: Record<string, DeferredDependencyLoader>,
+    context: CompilationContext,
+    loaders: DeferredDependencyLoader[],
+  ): DeferredDependencyLoader[] {
+    let el = parent.firstElementChild;
+    let name: string;
+    let loader: DeferredDependencyLoader | undefined;
+    for (; el !== null; el = el.nextElementSibling) {
+      name = (el.getAttribute('as-element') ?? el.nodeName).toLowerCase();
+      if (this._hostsTemplateController(el, context._findElement(name), context, true)) {
+        continue;
+      }
+      loader = deferredDependencies[name];
+      if (loader != null && !loaders.includes(loader)) {
+        loaders.push(loader);
+      }
+      this._collectDeferredLoaders(el.nodeName === TEMPLATE_NODE_NAME ? (el as HTMLTemplateElement).content : el, deferredDependencies, context, loaders);
+    }
+    return loaders;
+  }
+
+  /**
+   * Whether classifying the attributes of an element would find a template controller,
+   * or with `deferredOnly`, one that defers its content.
+   * @internal
+   */
+  private _hostsTemplateController(el: Element, elDef: IElementComponentDefinition | null, context: CompilationContext, deferredOnly: boolean): boolean {
+    const attrs = el.attributes;
+    for (let i = 0, ii = attrs.length; ii > i; ++i) {
+      if (getTemplateController(el, elDef, attrs[i], context, deferredOnly) !== null) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Classify the attributes of an element that hosts a template controller deferring its content.
+   * Only that template controller and the ones written before it, which wrap it, are compiled now.
+   * Every other attribute belongs to the deferred content, wherever it's written, so it stays on the element
+   * as authored and compiles with the content, against the resources available then.
+   * @internal
+   */
+  private _classifyDeferredHost(
+    el: Element,
+    elDef: IElementComponentDefinition | null,
+    context: CompilationContext,
+  ): IAttrClassificationResult | null {
+    const attrs = el.attributes;
+    let deferIndex = -1;
+    for (let i = 0, ii = attrs.length; ii > i; ++i) {
+      if (getTemplateController(el, elDef, attrs[i], context, true) !== null) {
+        deferIndex = i;
+        break;
+      }
+    }
+    if (deferIndex === -1) {
+      return null;
+    }
+    const tcAttrs: Attr[] = [];
+    for (let i = 0; deferIndex >= i; ++i) {
+      if (i === deferIndex || getTemplateController(el, elDef, attrs[i], context, false) !== null) {
+        tcAttrs.push(attrs[i]);
+      }
+    }
+    const tcInstructions: HydrateTemplateController[] = [];
+    let attrSyntax: AttrSyntax;
+    let attrDef: IAttributeComponentDefinition;
+    for (const attr of tcAttrs) {
+      attrSyntax = context._attrParser.parse(attr.name, attr.value);
+      attrDef = findHostableAttr(el, attrSyntax.target, context)!;
+      tcInstructions.push({
+        type: itHydrateTemplateController,
+        def: voidDefinition,
+        res: this.resolveResources ? attrDef : attrDef.name,
+        alias: void 0,
+        props: this._compileCustomAttributeBindables(
+          el, attrDef, attrSyntax, attrSyntax.rawValue, context._getCommand(attrSyntax), context,
+          /* treatEmptyAsNoBinding */ true
+        ),
+      } satisfies HydrateTemplateController);
+      // Removed in debug mode too, as a template controller left on the element would compile again with the content
+      el.removeAttributeNode(attr);
+    }
+    return { tcInstructions, hasContainerless: false, deferred: true };
+  }
+
+  /**
    * Classify all attributes on an element into their semantic categories.
    *
    * This is the core "attribute semantic decision" algorithm. Each attribute is
@@ -735,6 +874,11 @@ export class TemplateCompiler implements ITemplateCompiler {
     context: CompilationContext,
     generateStaticAttrInstructions: boolean = false,
   ): IAttrClassificationResult {
+    const deferredHost = this._classifyDeferredHost(el, elDef, context);
+    if (deferredHost !== null) {
+      return deferredHost;
+    }
+
     const isCustomElement = elDef !== null;
     const capture = elDef?.capture;
     const hasCaptureFilter = capture != null && typeof capture !== 'boolean';
@@ -925,7 +1069,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       }
 
       // 7. Custom attributes and template controllers
-      attrDef = context._findAttr(realAttrTarget);
+      attrDef = findHostableAttr(el, realAttrTarget, context);
       if (attrDef !== null) {
         attrBindableInstructions = this._compileCustomAttributeBindables(
           el, attrDef, attrSyntax, realAttrValue, bindingCommand, context,
@@ -998,6 +1142,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       elBindableInstructions,
       plainAttrInstructions,
       hasContainerless,
+      deferred: false,
     };
   }
 
@@ -1201,6 +1346,8 @@ export class TemplateCompiler implements ITemplateCompiler {
           name,
           template: localTemplate,
           bindables,
+          // Blocks in a local template load the deferred imports of the file, like its ordinary dependencies
+          deferredDependencies: context.root.def.deferredDependencies,
         };
       }
       Reflect.defineProperty(LocalDepType, 'name', { value: pascalCase(name) });
@@ -1504,6 +1651,47 @@ function normalizeLetBindingTarget(target: string): string {
 }
 
 const TEMPLATE_NODE_NAME = 'TEMPLATE';
+
+/**
+ * Find the custom attribute an attribute of an element refers to.
+ * `defer` is also a native attribute of `<script>`, and deferring the content of a script has no use,
+ * so no template controller that defers its content is looked up on a `<script>`.
+ * This keeps `<script defer>` working as the browser defines it.
+ */
+const findHostableAttr = (el: Element, name: string, context: CompilationContext): IAttributeComponentDefinition | null => {
+  const attrDef = context._findAttr(name);
+  return attrDef?.compileContent === 'deferred' && el.nodeName === 'SCRIPT' ? null : attrDef;
+};
+
+/**
+ * The template controller an attribute of an element hydrates, if any, or with `deferredOnly`,
+ * only one that defers its content. Mirrors the precedence of `_classifyAttributes`.
+ */
+const getTemplateController = (
+  el: Element,
+  elDef: IElementComponentDefinition | null,
+  attr: Attr,
+  context: CompilationContext,
+  deferredOnly: boolean,
+): IAttributeComponentDefinition | null => {
+  const name = attr.name;
+  if (name === 'as-element' || name === 'containerless') {
+    return null;
+  }
+  const syntax = context._attrParser.parse(name, attr.value);
+  // A bindable of the element takes the attribute before a custom attribute can
+  if (elDef !== null && context._getBindables(elDef).attrs[syntax.target] != null) {
+    return null;
+  }
+  const attrDef = findHostableAttr(el, syntax.target, context);
+  // So do commands such as .attr. The command is only resolved for a matching template controller,
+  // as the commands of other attributes may come from a module a deferred block loads later.
+  return attrDef?.isTemplateController === true
+    && (!deferredOnly || attrDef.compileContent === 'deferred')
+    && context._getCommand(syntax)?.ignoreAttr !== true
+    ? attrDef
+    : null;
+};
 /** Check if a node is an <!--au--> marker comment */
 const isMarker = (el: Node): el is Comment =>
   el.nodeType === 8 && (el as Comment).textContent === 'au';

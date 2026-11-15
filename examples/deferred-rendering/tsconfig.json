@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "lib": ["esnext", "dom"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "skipLibCheck": true,
+    "rootDir": "src",
+    "target": "es2022",
+    "useDefineForClassFields": true
+  },
+  "include": ["./src/**/*"]
+}

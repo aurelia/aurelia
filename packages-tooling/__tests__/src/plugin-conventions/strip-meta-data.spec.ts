@@ -9,6 +9,7 @@ describe('stripMetaData', function () {
       html: ' ',
       shadowMode: null,
       deps: [],
+      deferredDeps: [],
       depsAliases: {},
       containerless: false,
       hasSlot: false,
@@ -34,6 +35,7 @@ describe('stripMetaData', function () {
       html: expected,
       shadowMode: null,
       deps: ['./a'],
+      deferredDeps: [],
       depsAliases: {},
       containerless: false,
       hasSlot: false,
@@ -63,6 +65,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: ['./a', 'b', './c.css'],
+      deferredDeps: [],
       depsAliases: {},
       containerless: false,
       hasSlot: false,
@@ -88,6 +91,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: ['./a'],
+      deferredDeps: [],
       depsAliases: {},
       containerless: false,
       hasSlot: false,
@@ -117,6 +121,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: ['./a', 'foo', 'b', './c.css'],
+      deferredDeps: [],
       depsAliases: {},
       containerless: false,
       hasSlot: false,
@@ -138,6 +143,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: ['./a'],
+      deferredDeps: [],
       depsAliases: { './a': { __MAIN__: 'b' }},
       containerless: false,
       hasSlot: false,
@@ -159,6 +165,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: ['./a'],
+      deferredDeps: [],
       depsAliases: { './a': { __MAIN__: null, a: 'b' }},
       containerless: false,
       hasSlot: false,
@@ -181,6 +188,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: 'open',
       deps: [],
+      deferredDeps: [],
       depsAliases: {},
       containerless: false,
       hasSlot: false,
@@ -207,6 +215,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: 'closed',
       deps: ['./a'],
+      deferredDeps: [],
       depsAliases: {},
       containerless: false,
       capture: false,
@@ -227,6 +236,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: 'open',
       deps: [],
+      deferredDeps: [],
       depsAliases: {},
       containerless: false,
       hasSlot: false,
@@ -249,6 +259,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: 'closed',
       deps: ['./a'],
+      deferredDeps: [],
       depsAliases: {},
       containerless: false,
       hasSlot: false,
@@ -271,6 +282,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: [],
+      deferredDeps: [],
       depsAliases: {},
       containerless: true,
       capture: false,
@@ -293,6 +305,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: [],
+      deferredDeps: [],
       depsAliases: {},
       containerless: true,
       capture: false,
@@ -313,6 +326,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: [],
+      deferredDeps: [],
       depsAliases: {},
       containerless: true,
       capture: false,
@@ -370,6 +384,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: [],
+      deferredDeps: [],
       depsAliases: {},
       containerless: false,
       hasSlot: false,
@@ -400,6 +415,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: [],
+      deferredDeps: [],
       depsAliases: {},
       containerless: false,
       hasSlot: false,
@@ -426,6 +442,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: [],
+      deferredDeps: [],
       depsAliases: {},
       containerless: false,
       hasSlot: false,
@@ -446,6 +463,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: [],
+      deferredDeps: [],
       depsAliases: {},
       containerless: false,
       hasSlot: false,
@@ -468,6 +486,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: [],
+      deferredDeps: [],
       depsAliases: {},
       containerless: false,
       hasSlot: false,
@@ -489,6 +508,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: [],
+      deferredDeps: [],
       depsAliases: {},
       containerless: false,
       hasSlot: false,
@@ -509,6 +529,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: [],
+      deferredDeps: [],
       depsAliases: {},
       containerless: false,
       hasSlot: false,
@@ -529,6 +550,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: [],
+      deferredDeps: [],
       depsAliases: {},
       containerless: false,
       hasSlot: false,
@@ -549,6 +571,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: [],
+      deferredDeps: [],
       depsAliases: {},
       containerless: false,
       hasSlot: false,
@@ -569,6 +592,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: [],
+      deferredDeps: [],
       depsAliases: {},
       containerless: false,
       hasSlot: false,
@@ -589,6 +613,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: [],
+      deferredDeps: [],
       depsAliases: {},
       containerless: false,
       hasSlot: false,
@@ -609,6 +634,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: [],
+      deferredDeps: [],
       depsAliases: {},
       containerless: false,
       hasSlot: false,
@@ -631,6 +657,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: [],
+      deferredDeps: [],
       depsAliases: {},
       containerless: false,
       capture: false,
@@ -659,11 +686,44 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: [],
+      deferredDeps: [],
       depsAliases: {},
       containerless: false,
       hasSlot: false,
       capture: false,
       bindables: { firstName: {} }
     });
+  });
+  it('strips deferred import tags into deferred dependencies', function () {
+    const html = `<import from="./a" defer>
+<import from="./b.html" defer as="c-el"></import>
+<import from="./d">
+<template></template>
+`;
+    const expected = `
+
+
+<template></template>
+`;
+
+    assert.deepEqual(stripMetaData(html), {
+      aliases: [],
+      html: expected,
+      shadowMode: null,
+      deps: ['./d'],
+      deferredDeps: [{ from: './a', as: null }, { from: './b.html', as: 'c-el' }],
+      depsAliases: {},
+      containerless: false,
+      hasSlot: false,
+      capture: false,
+      bindables: {}
+    });
+  });
+
+  it('rejects export aliases on a deferred import', function () {
+    assert.throws(
+      () => stripMetaData('<import from="./a" defer foo.as="bar"><template></template>'),
+      /only supports the "as" attribute, found "foo.as"/,
+    );
   });
 });

@@ -3,6 +3,7 @@ import { IRenderLocation, setEffectiveParentNode } from '../../dom';
 import { IPlatform } from '../../platform';
 import { IViewFactory } from '../../templating/view';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
+import { runReported } from '../../templating/error-handling';
 import { rethrow } from '../../utilities';
 import { createLocation, insertManyBefore } from '../../utilities-dom';
 import type { ControllerVisitor, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, ISyntheticView } from '../../templating/controller';
@@ -105,7 +106,9 @@ export class Portal implements ICustomAttributeViewModel {
     if (!this.$controller.isActive) {
       return;
     }
-    const ret = this._enqueue(() => this._move());
+    // a failed move is reported to an enclosing error boundary, and keeps
+    // its rejection when none takes it over
+    const ret = runReported(this.$controller, () => this._enqueue(() => this._move()));
     if (isPromise(ret)) { ret.catch(rethrow); }
   }
 

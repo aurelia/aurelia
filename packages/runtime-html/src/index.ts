@@ -256,6 +256,16 @@ export {
 } from './resources/custom-elements/au-slot';
 
 export {
+  ErrorBoundary,
+} from './resources/custom-elements/error-boundary';
+
+export {
+  IErrorHandler,
+  type ErrorInfo,
+  type ErrorPhase,
+} from './templating/error-handling';
+
+export {
   capture,
   containerless,
   customElement,

@@ -189,7 +189,7 @@ export class SpreadValueBinding implements IBinding {
   public readonly boundFn = false;
 
   /** @internal */
-  private readonly _controller: IBindingController;
+  public readonly _controller: IBindingController;
 
   /** @internal */
   private readonly _bindingCache: Record<PropertyKey, PropertyBinding> = {};

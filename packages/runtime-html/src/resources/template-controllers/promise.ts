@@ -16,6 +16,7 @@ import { IViewFactory } from '../../templating/view';
 import { IInstruction, AttrSyntax, AttributePattern } from '@aurelia/template-compiler';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
 import { safeString, tsRunning } from '../../utilities';
+import { runReported } from '../../templating/error-handling';
 import { ErrorNames, createMappedError } from '../../errors';
 
 // NOTE: The "SSR pending -> client resolves" case is not currently handled.
@@ -199,12 +200,7 @@ export class PendingTemplateController implements ICustomAttributeViewModel {
   }
 
   public activate(initiator: IHydratedController | null, scope: Scope): void | Promise<void> {
-    let view = this.view;
-    if (view === void 0) {
-      view = this.view = this._factory.create(this.$controller).setLocation(this._location);
-    }
-    if (view.isActive) { return; }
-    return view.activate(view, this.$controller, scope);
+    return activateBranchView(this, this._factory, this._location, scope);
   }
 
   public deactivate(_initiator: IHydratedController | null): void | Promise<void> {
@@ -253,12 +249,7 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
 
   public activate(initiator: IHydratedController | null, scope: Scope, resolvedValue: unknown): void | Promise<void> {
     this.value = resolvedValue;
-    let view = this.view;
-    if (view === void 0) {
-      view = this.view = this._factory.create(this.$controller).setLocation(this._location);
-    }
-    if (view.isActive) { return; }
-    return view.activate(view, this.$controller, scope);
+    return activateBranchView(this, this._factory, this._location, scope);
   }
 
   public deactivate(_initiator: IHydratedController | null): void | Promise<void> {
@@ -307,12 +298,7 @@ export class RejectedTemplateController implements ICustomAttributeViewModel {
 
   public activate(initiator: IHydratedController | null, scope: Scope, error: unknown): void | Promise<void> {
     this.value = error;
-    let view = this.view;
-    if (view === void 0) {
-      view = this.view = this._factory.create(this.$controller).setLocation(this._location);
-    }
-    if (view.isActive) { return; }
-    return view.activate(view, this.$controller, scope);
+    return activateBranchView(this, this._factory, this._location, scope);
   }
 
   public deactivate(_initiator: IHydratedController | null): void | Promise<void> {
@@ -329,6 +315,28 @@ export class RejectedTemplateController implements ICustomAttributeViewModel {
     this.view?.dispose();
     this.view = (void 0)!;
   }
+}
+
+/**
+ * Branch views always self-activate inside queued tasks, outside any ancestor
+ * activation, so a failure reports to an enclosing error boundary first. When
+ * nothing handles it, the error keeps reaching the task's host channel.
+ * Creating the view constructs its components, so it runs inside the same
+ * reporting as activation.
+ */
+function activateBranchView(
+  branch: { view: ISyntheticView | undefined; readonly $controller: ICustomAttributeController },
+  factory: IViewFactory,
+  location: IRenderLocation,
+  scope: Scope,
+): void | Promise<void> {
+  const controller = branch.$controller;
+  return runReported(controller, () => {
+    const view = branch.view ??= factory.create(controller).setLocation(location);
+    if (!view.isActive) {
+      return view.activate(view, controller, scope);
+    }
+  });
 }
 
 function getPromiseController(controller: IHydratableController) {

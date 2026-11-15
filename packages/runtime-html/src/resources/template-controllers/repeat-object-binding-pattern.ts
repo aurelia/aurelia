@@ -146,7 +146,7 @@ class RepeatObjectBindingPatternBinding implements IBinding, ISubscriber, IColle
   /** @internal */ private readonly _values: unknown[];
 
   public constructor(
-    /** @internal */ private readonly _controller: ISyntheticView,
+    /** @internal */ public readonly _controller: ISyntheticView,
     /** @internal */ private readonly _pattern: RepeatObjectBindingPattern,
   ) {
     this.oL = _pattern.observerLocator;

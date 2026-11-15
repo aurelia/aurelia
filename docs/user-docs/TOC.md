@@ -78,6 +78,7 @@
 
 * [Component basics](components/components.md)
 * [Component lifecycles](components/component-lifecycles.md)
+* [Error boundaries](components/error-boundaries.md)
 * [Lifecycle Visual Diagrams](components/lifecycle-diagrams.md)
 * [Bindable properties](components/bindable-properties.md)
 * [Styling components](components/class-and-style-binding.md)

@@ -11,6 +11,7 @@ import type { INode } from '../../dom.node';
 import { ErrorNames, createMappedError } from '../../errors';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
 import { isSSRTemplateController, adoptSSRView, type ISSRScope, type ISSRTemplateController } from '../../templating/ssr';
+import { deactivateFailedView, reportOrRethrow } from '../../templating/error-handling';
 
 export class If implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
@@ -107,51 +108,62 @@ export class If implements ICustomAttributeViewModel {
           if (!isCurrent()) {
             return;
           }
-          // falsy -> truthy
-          if (value) {
-            view = (this.view = this.ifView = this.cache && this.ifView != null
-              ? this.ifView
-              : this._ifFactory.create(ctrl)
-            );
-          } else {
-            // truthy -> falsy
-            view = (this.view = this.elseView = this.cache && this.elseView != null
-              ? this.elseView
-              : this.elseFactory?.create(ctrl)
-            );
-          }
-          // if the value is falsy
-          // and there's no [else], `view` will be null
-          if (view == null) {
-            return;
-          }
-          // todo: location should be based on either the [if]/[else] attribute
-          //       instead of always of the [if]
-          view.setLocation(this._location);
-
           const complete = (): void => {
             if (isCurrent()) {
               this.pending = void 0;
             }
           };
-          const result = view.activate(view, ctrl, ctrl.scope);
+          let result: void | Promise<void>;
+          try {
+            // Creating the branch view constructs its components, so their
+            // constructor and `created` failures are routed like activation's.
+            // falsy -> truthy
+            if (value) {
+              view = (this.view = this.ifView = this.cache && this.ifView != null
+                ? this.ifView
+                : this._ifFactory.create(ctrl)
+              );
+            } else {
+              // truthy -> falsy
+              view = (this.view = this.elseView = this.cache && this.elseView != null
+                ? this.elseView
+                : this.elseFactory?.create(ctrl)
+              );
+            }
+            // if the value is falsy
+            // and there's no [else], `view` will be null
+            if (view == null) {
+              return;
+            }
+            // todo: location should be based on either the [if]/[else] attribute
+            //       instead of always of the [if]
+            view.setLocation(this._location);
+            result = view.activate(view, ctrl, ctrl.scope);
+          } catch (err) {
+            // Post-activation swaps report to an enclosing error boundary before
+            // the error escapes through the observer notification call site.
+            if (!recoverAfterFailure) {
+              throw err;
+            }
+            reportOrRethrow(ctrl, err);
+            return;
+          }
           if (recoverAfterFailure && isPromise(result)) {
-            return result.then(complete, () => {
+            return result.then(complete, (err) => {
               // A successor or owner teardown already owns stale-view cleanup.
               if (!isCurrent()) {
                 return;
               }
-              return onResolve(
-                // Value-driven swaps historically remain reusable after an async
-                // branch failure. Initial activation uses the rejecting path so
-                // application start still reports an invalid initial tree. Keep
-                // teardown in this chain so a successor cannot overlap the failed view.
-                view!.deactivate(view!, ctrl),
-                () => {
-                  this._disposeViewsIfUncached(view);
-                  complete();
-                },
-              );
+              // Value-driven swaps historically remain reusable after an async
+              // branch failure. Initial activation uses the rejecting path so
+              // application start still reports an invalid initial tree. Keep
+              // teardown in this chain so a successor cannot overlap the failed view.
+              return deactivateFailedView(ctrl, view!, err, () => {
+                // Settle the swap before disposing, so a throwing dispose()
+                // can't leave the failed swap as the pending one.
+                complete();
+                this._disposeViewsIfUncached(view);
+              });
             });
           }
           return onResolve(result, complete);

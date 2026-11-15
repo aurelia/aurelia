@@ -22,6 +22,7 @@ import type {
 import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
 import { type Interpolation, IsExpression } from '@aurelia/expression-parser';
 import { activated, activating } from '../templating/controller';
+import { reportTaskError } from '../templating/error-handling';
 import { atLayout } from '../utilities';
 
 // a pseudo binding to manage multiple InterpolationBinding s
@@ -53,7 +54,7 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
   public readonly oL: IObserverLocator;
 
   /** @internal */
-  private readonly _controller: IBindingController;
+  public readonly _controller: IBindingController;
 
   public constructor(
     controller: IBindingController,
@@ -88,10 +89,15 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
       this._isQueued = true;
 
       queueTask(() => {
-        this._isQueued = false;
-        if (!this.isBound || this._controller.state > activated) return;
+        try {
+          this._isQueued = false;
+          if (!this.isBound || this._controller.state > activated) return;
 
-        this.updateTarget();
+          this.updateTarget();
+        } catch (err) {
+          reportTaskError(this.partBindings[0].l, this._controller, err);
+          throw err;
+        }
       });
     } else {
       this.updateTarget();
@@ -206,6 +212,11 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
   ) {
     this.l = locator;
     this.oL = observerLocator;
+  }
+
+  /** @internal */
+  public get _controller(): IBindingController {
+    return this.owner._controller;
   }
 
   public updateTarget() {

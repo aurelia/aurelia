@@ -33,6 +33,14 @@ interface INavigationRoute {
 
 The navigation model contains a view-friendly subset of each route's configuration (`id`, `path`, `title`, and `data`) plus an `isActive` flag. Redirect-only routes are excluded.
 
+{% hint style="info" %}
+With the default lazy configuration, routes that declare a path and a component factory can appear in the navigation model without loading the module. Until the factory resolves, the entry uses the parent route config. Declare the `id`, `title`, `nav`, and `data` needed at startup there.
+
+Once the module loads, the entry uses the resolved route configuration: parent-provided values take precedence, and the component's own `@route` supplies omitted values. For example, a component's `title` is used when the parent omits it, and its `nav: false` removes the entry unless the parent overrides it with `nav: true`. A parent `data` object is used as a whole; missing keys are not filled from the component's `data`.
+
+Factories can resolve during component-type discovery as well as navigation. `INavigationModel.resolve()` does not invoke pending factories.
+{% endhint %}
+
 This section provides example of how to use navigation model while discussing different aspects of it.
 
 ## Create a navigation menu using a navigation model
@@ -67,9 +75,7 @@ Then the information from the model is used in the view to create the navigation
 </nav>
 ```
 
-It additionally shows that from the `NavBar#binding`, `INavigationModel#resolve()` is awaited.
-This is recommended, when dealing with async route configuration.
-This allows all the promises to be resolved and thereafter building the navigation information correctly.
+`NavBar#binding` awaits `INavigationModel#resolve()` to wait for the model's already-pending asynchronous route configurations. This does not start pending lazy factories or wait for all future component-type discovery.
 
 {% hint style="info" %}
 Note that in the example above we aren't dealing with async routing.

@@ -478,6 +478,13 @@ export class UserLayout {}
   ]
 })
 ```
+
+With the default `useEagerLoading: false`, a route configured with a path and a component factory is registered without invoking the factory. Navigation by ID or path loads the selected route. If its import fails, that navigation rejects through the router's error handling, and a later navigation can try again.
+
+Put the `id` and menu metadata (`title`, `nav`, and `data`) needed before loading in the parent route config. Parent values take precedence; the loaded component's `@route` can supply omitted values. An ID declared only on the component is unavailable until its factory resolves.
+
+Looking up a component type with `router.load(Type)`, `generatePath(Type)`, or `load.bind` can invoke pending factories to find its configured path, even before navigation. Generating a nested path may also load a parent to inspect its child routes. See [component-type links](./navigating.md#using-the-route-view-model-class-as-route) and [path generation](./navigating.md#path-generation).
+
 [Using inline import() →](./configuring-routes.md#using-inline-import)
 
 ### How do I set/change the page title?

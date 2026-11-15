@@ -29,7 +29,10 @@ import {
 } from './instructions';
 import {
   $RecognizedRoute,
+  LazyRoute,
   type IRouteContext,
+  type PathGenerationResult,
+  type RouteTableEntry,
 } from './route-context';
 import {
   RouteExpression,
@@ -82,7 +85,7 @@ export class RouteNode {
   private _isInstructionsFinalized: boolean = false;
   public get isInstructionsFinalized(): boolean { return this._isInstructionsFinalized; }
   public readonly children: RouteNode[] = [];
-  public readonly pathFromRoot: RecognizedRoute<RouteConfig | Promise<RouteConfig>>[] | null = null;
+  public readonly pathFromRoot: RecognizedRoute<RouteTableEntry>[] | null = null;
 
   private constructor(
     /**
@@ -137,7 +140,7 @@ export class RouteNode {
   ) {
     this._originalInstruction ??= instruction;
     if (context.options.useEagerLoading) {
-      const pathFromRoot: RecognizedRoute<RouteConfig | Promise<RouteConfig>>[] = [];
+      const pathFromRoot: RecognizedRoute<RouteTableEntry>[] = [];
 
       // eslint-disable-next-line @typescript-eslint/no-this-alias
       let cur: RouteNode | null = this;
@@ -421,7 +424,7 @@ export function createAndAppendNodes(
           // However, when that's not the case, then we perhaps try to lookup the route-id.
           // This is another early termination.
           if (vi.children.length === 0) {
-            const result = ctx.routeConfigContext._generateViewportInstruction(vi, node.instruction?.recognizedRoute?.route.endpoint.route.path ?? null);
+            const result = ctx.routeConfigContext._generateViewportInstruction(vi, node.instruction?.recognizedRoute?.route.endpoint.route.path ?? null) as PathGenerationResult | null;
             if (result !== null) {
               node._tree._mergeQuery(result.query);
               const newVi = result.vi;
@@ -476,7 +479,7 @@ export function createAndAppendNodes(
                 children: vi.children,
               },
               node.instruction?.recognizedRoute?.route.endpoint.route.path ?? null
-            );
+            ) as PathGenerationResult | null;
             if (eagerResult !== null) {
               node._tree._mergeQuery(eagerResult.query);
               return appendNode(log, node, createConfiguredNode(
@@ -490,8 +493,10 @@ export function createAndAppendNodes(
             // If no route was recognized at all, or the matched empty-path component has no child routes
             // configured: use the fallback. Otherwise (matched component has child routes), fall through
             // to the normal path so the child context can handle the residue.
+            // a still-unresolved lazy route might still have child routes once loaded, so it is treated like a pending promise
             const handler = rr?.route.endpoint.route.handler;
-            if (rr === null || (!isPromise(handler) && handler.routes.length === 0)) {
+            const routes = handler instanceof LazyRoute ? handler._config?.routes : isPromise(handler) ? null : handler?.routes;
+            if (rr === null || routes?.length === 0) {
               return createFallbackNode(vi, node, log);
             }
             // rr is not null and the component has child routes: fall through to the normal path.
@@ -561,32 +566,45 @@ export function createAndAppendNodes(
       }
     case NavigationInstructionType.Promise:
     case NavigationInstructionType.IRouteViewModel:
-    case NavigationInstructionType.CustomElementDefinition: {
-      const rc = node.context;
-      return onResolve(
-        (resolveCustomElementDefinition(vi.component.value, rc.routeConfigContext) as [instruction: ITypedNavigationInstruction_Component, ceDef: CustomElementDefinition | Promise<CustomElementDefinition>])[1],
-        ced => {
-          const { vi: newVi, query } = rc.routeConfigContext._generateViewportInstruction(
-            {
-              component: ced,
-              params: vi.params ?? emptyObject,
-              open: vi.open,
-              close: vi.close,
-              viewport: vi.viewport,
-              children: vi.children,
-            },
-            node.instruction?.recognizedRoute?.route.endpoint.route.path ?? null
-          )!;
-          node._tree._mergeQuery(query);
-          return appendNode(log, node, createConfiguredNode(
-            log,
-            node,
-            newVi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>,
-            newVi.recognizedRoute!,
-            vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>));
-        });
-    }
+    case NavigationInstructionType.CustomElementDefinition:
+      return createNodeFromComponentInstruction(log, node, vi);
   }
+}
+
+function createNodeFromComponentInstruction(
+  log: ILogger,
+  node: RouteNode,
+  vi: ViewportInstruction,
+): void | Promise<void> {
+  const rc = node.context;
+  return onResolve(
+    (resolveCustomElementDefinition(vi.component.value, rc.routeConfigContext) as [instruction: ITypedNavigationInstruction_Component, ceDef: CustomElementDefinition | Promise<CustomElementDefinition>])[1],
+    ced => onResolve(
+      // a component-type instruction may need to resolve lazy routes before the route can be looked up
+      rc.routeConfigContext._generateViewportInstruction(
+        {
+          component: ced,
+          params: vi.params ?? emptyObject,
+          open: vi.open,
+          close: vi.close,
+          viewport: vi.viewport,
+          children: vi.children,
+        },
+        node.instruction?.recognizedRoute?.route.endpoint.route.path ?? null,
+        void 0,
+        true,
+      ),
+      result => {
+        const { vi: newVi, query } = result!;
+        node._tree._mergeQuery(query);
+        return appendNode(log, node, createConfiguredNode(
+          log,
+          node,
+          newVi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>,
+          newVi.recognizedRoute!,
+          vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>));
+      })
+    );
 }
 
 function createFallbackNode(
@@ -609,8 +627,13 @@ function createFallbackNode(
     // fallback: id -> route -> CEDefn (Route configuration)
     // look for a route first
     log.trace(`Fallback is set to '${fallback}'. Looking for a recognized route.`);
-    const rd = (ctx.routeConfigContext.childRoutes as RouteConfig[]).find(x => x.id === fallback);
-    if (rd !== void 0) return appendNode(log, node, createNode(log, rd, node, vi as ViewportInstruction<ITypedNavigationInstruction_string>));
+    const rd = ctx.routeConfigContext.childRoutes.find(x => !(x instanceof Promise) && x.id === fallback);
+    if (rd !== void 0) {
+      return appendNode(log, node, onResolve(
+        rd instanceof LazyRoute ? rd._resolve() : rd,
+        $rd => createNode(log, $rd, node, vi as ViewportInstruction<ITypedNavigationInstruction_string>)
+      ));
+    }
 
     log.trace(`No route configuration for the fallback '${fallback}' is found; trying to recognize the route.`);
     const [rr] = ctx.routeConfigContext.recognize(fallback, true) ?? [null];
@@ -657,11 +680,12 @@ function createConfiguredNode(
   vi: ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>,
   rr: $RecognizedRoute,
   originalVi: ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent> | null,
-  route: ConfigurableRoute<RouteConfig | Promise<RouteConfig>> = rr.route.endpoint.route,
+  route: ConfigurableRoute<RouteTableEntry> = rr.route.endpoint.route,
 ): RouteNode | Promise<RouteNode> {
   const ctx = node.context;
   const rt = node._tree;
-  return onResolve(route.handler, $handler => {
+  // a matched lazy route is resolved here - i.e. the factory such as `() => import('./x')` runs on first match
+  return onResolve(route.handler instanceof LazyRoute ? route.handler._resolve() : route.handler, $handler => {
     route.handler = $handler;
 
     log.trace(`creatingConfiguredNode(rdc:%s, vi:%s)`, $handler, vi);

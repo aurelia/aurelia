@@ -1,4 +1,5 @@
 import { DI } from '@aurelia/kernel';
+import type { HeadInput } from '@aurelia/runtime-html';
 import type { IViewportInstruction, Params, RouteContextLike, RouteableComponent, ViewportInstructionTree } from './instructions';
 import type { IRouteContext } from './route-context';
 import type { RouteNode } from './route-tree';
@@ -189,6 +190,8 @@ export type FallbackFunction = (viewportInstruction: IViewportInstruction, route
  */
 export type Routeable = string | IChildRouteConfig | IRedirectRouteConfig | RouteableComponent;
 
+export type RouteHead = Omit<HeadInput, 'title'>;
+
 export interface IRouteConfig {
   /**
    * The id for this route, which can be used in the view for generating hrefs.
@@ -206,6 +209,14 @@ export interface IRouteConfig {
    * If left blank, this route will not contribute to the generated title.
    */
   readonly title?: string | ((node: RouteNode) => string | null) | null;
+  /**
+   * Head tags (meta, link, script, html attributes) to apply while this route is active.
+   * Requires `HeadConfiguration` from `@aurelia/runtime-html`, and is ignored without it.
+   *
+   * Tags from child routes replace tags with the same key from parent routes.
+   * The title comes from `title`, not from here.
+   */
+  readonly head?: RouteHead | ((node: RouteNode) => RouteHead | null) | null;
   /**
    * The path to which to redirect when the url matches the path in this config.
    */

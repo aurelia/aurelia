@@ -566,6 +566,18 @@ export {
   IAuSlotWatcher,
   slotted,
 
+  HeadConfiguration,
+  IHead,
+  IHeadOptions,
+  HeadPriority,
+  type IHeadSource,
+  type IHeadSourceOptions,
+  type IHeadCanonicalOptions,
+  type HeadInput,
+  type HeadTagInput,
+  type HeadScriptInput,
+  type HeadAttributeValue,
+
   // DefaultComponents as RuntimeHtmlDefaultComponents,
 
   // CompiledTemplate,

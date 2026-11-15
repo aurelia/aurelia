@@ -109,6 +109,7 @@
 * Startup & enhancement
   * [App configuration and startup](getting-to-know-aurelia/app-configuration-and-startup.md)
   * [Enhance](getting-to-know-aurelia/enhance.md)
+  * [Transferring server state](getting-to-know-aurelia/transfer-state.md)
 * [Routing](getting-to-know-aurelia/routing/aurelia-router.md)
   * [Quick Reference ("How Do I...")](router/README.md)
   * [Visual Diagrams](router/DIAGRAMS.md)

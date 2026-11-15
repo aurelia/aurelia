@@ -71,6 +71,11 @@ export {
   hydrateSSRDefinition,
 } from './templating/ssr';
 export {
+  ITransferState,
+  TransferState,
+  transferStateId,
+} from './transfer-state';
+export {
   type IAppRootConfig,
   AppRoot,
   IAppRoot,

@@ -239,7 +239,10 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
   }
 
   public dispose(): void {
-    this.view.dispose();
+    const view = this.view;
+    view.dispose();
+    // The view's container was created for this slot alone; a synthetic view leaves it to the owner.
+    view.container.disposeResolvers();
     (this as Writable<this>).view = (void 0)!;
   }
 

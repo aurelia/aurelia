@@ -74,4 +74,29 @@ describe('3-runtime-html/array-length-observer.spec.ts', function () {
     type('input', '1');
     assertText('1');
   });
+
+  // https://github.com/aurelia/aurelia/issues/2583
+  it('updates a guarded length binding after the array changed while the guard skipped it', function () {
+    const { assertText, component } = createFixture(
+      '${!loading && items.length === 0}',
+      class {
+        loading = false;
+        items = [1];
+      },
+    );
+
+    assertText('false');
+
+    // the && short-circuits, so the binding stops observing the length
+    component.loading = true;
+    runTasks();
+    component.items.splice(0);
+    component.loading = false;
+    runTasks();
+    assertText('true');
+
+    component.items.push(1);
+    runTasks();
+    assertText('false');
+  });
 });

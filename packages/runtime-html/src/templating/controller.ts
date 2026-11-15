@@ -1303,7 +1303,10 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this._vm = null;
     this.host = null;
     this.shadowRoot = null;
-    this.container.disposeResolvers();
+    // A synthetic view shares its factory's container with its owner or sibling views, so the owner releases it.
+    if (this.vmKind !== vmkSynth) {
+      this.container.disposeResolvers();
+    }
   }
 
   public accept(visitor: ControllerVisitor): void | true {

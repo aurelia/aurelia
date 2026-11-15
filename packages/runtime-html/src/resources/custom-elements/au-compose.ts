@@ -171,8 +171,12 @@ export class AuCompose {
     composition: ICompositionController,
   ): void | Promise<void> {
     const dispose = () => {
+      const controller = composition.controller;
       try {
-        composition.controller.dispose();
+        controller.dispose();
+        // compose() created this container for the composition alone. A synthetic view
+        // leaves its container to the owner, so release it here.
+        controller.container.disposeResolvers();
       } finally {
         this._ownedCompositions.delete(composition);
       }

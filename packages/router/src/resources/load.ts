@@ -1,4 +1,4 @@
-import { IDisposable, IIndexable, resolve } from '@aurelia/kernel';
+import { IDisposable, IIndexable, isPromise, resolve } from '@aurelia/kernel';
 import {
   ICustomAttributeViewModel,
   INode,
@@ -12,6 +12,7 @@ import { IRouterEvents } from '../router-events';
 import { ILocationManager } from '../location-manager';
 import { bmFromView, bmToView } from '../util';
 import { IContextRouter } from '../context-router';
+import { Events, error } from '../events';
 
 export class LoadCustomAttribute implements ICustomAttributeViewModel {
 
@@ -30,8 +31,8 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
    */
   public context?: IRouteContext;
 
-  /** @internal */ private _href: string | null = null;
   /** @internal */ private _instructions: ViewportInstructionTree | null = null;
+  /** @internal */ private _pending: Promise<void> | undefined = void 0;
   /** @internal */ private _navigationEndListener: IDisposable | null = null;
   /** @internal */ private readonly _isEnabled: boolean;
   /** @internal */ private readonly _activeClass: string | null;
@@ -43,29 +44,26 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
     this._activeClass = this._ctxRouter._options.activeClass;
   }
 
-  public binding(): void {
+  public binding(): void | Promise<void> {
     if (this._isEnabled) {
       this._el.addEventListener('click', this.onClick as EventListener);
     }
-    this.valueChanged();
-    this._navigationEndListener = this._events.subscribe('au:router:navigation-end', _e => {
-      const active = this.active = this._instructions !== null && this._ctxRouter.isActive(this._instructions);
-      const activeClass = this._activeClass;
-      if (activeClass === null) return;
-      this._el.classList.toggle(activeClass, active);
-    });
+    this._navigationEndListener = this._events.subscribe('au:router:navigation-end', () => this._updateActive());
+    return this._update();
   }
 
   public attaching(): void | Promise<void> {
     const promise = this._ctxRouter._allResolved;
     if (promise !== null) {
       return promise.then(() => {
-        this.valueChanged();
+        return this._update();
       });
     }
+    return this._pending;
   }
 
   public unbinding(): void {
+    this._pending = void 0;
     if (this._isEnabled) {
       this._el.removeEventListener('click', this.onClick);
     }
@@ -73,7 +71,14 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
   }
 
   public valueChanged(): void {
-    const options = this._ctxRouter._options;
+    // Unlike binding and attaching, a bindable change has no lifecycle owner to receive
+    // a failed lazy mapping, so report it here instead of leaving the rejection unhandled.
+    this._update()?.catch(err => error(this._ctxRouter._logger, Events.rcEagerPathGenerationFailed, this.route, err));
+  }
+
+  /** @internal */
+  private _update(): void | Promise<void> {
+    this._pending = void 0;
     const component = this.route as NavigationInstruction;
     // this allows binding context to null for navigation from root; unbound vs explicit null binding
     const ctx = this.context;
@@ -82,28 +87,54 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
     } else if (ctx !== void 0 && !this._ctxRouter._isOfContext(ctx)) {
       this._ctxRouter = this._ctxRouter._copyWith(ctx);
     }
+    let instructions: ViewportInstructionTree | Promise<ViewportInstructionTree> | null = null;
     if (component != null && this._ctxRouter._allResolved === null) {
       const params = this.params;
-      const instructions = this._instructions = this._ctxRouter.createViewportInstructions(
+      instructions = this._ctxRouter.createViewportInstructions(
         typeof params === 'object' && params !== null
           ? { component, params }
           : component,
         null,
-        null
+        null,
+        false,
+        true,
       );
-      this._href = instructions.toUrl(false, options._urlParser, true);
-    } else {
-      this._instructions = null;
-      this._href = null;
     }
 
-    const hasHref = this._href !== null;
+    if (isPromise(instructions)) {
+      // An opaque factory must resolve before a type-bound link has a truthful href.
+      // The promise also owns publication: a changed or unbound link retires it.
+      this._updateInstructions(null);
+      const pending = this._pending = instructions.then(
+        resolved => {
+          if (this._pending === pending) {
+            this._pending = void 0;
+            this._updateInstructions(resolved);
+          }
+        },
+        error => {
+          if (this._pending === pending) {
+            this._pending = void 0;
+            throw error;
+          }
+        },
+      );
+      return pending;
+    }
+    this._updateInstructions(instructions);
+  }
+
+  /** @internal */
+  private _updateInstructions(instructions: ViewportInstructionTree | null): void {
+    this._instructions = instructions;
+    const href = instructions?.toUrl(false, this._ctxRouter._options._urlParser, true) ?? null;
+    const hasHref = href !== null;
     // `toUrl` owns route serialization; the location manager owns the
     // deployment base. In hash mode the serialized value is application-rooted
     // (`/#/...`) but still not deployment-qualified. Materialize both modes
     // here so `load` and `href`, including native or modified-click activation,
     // target the same URL.
-    const url = hasHref ? this._locationMgr.addBaseHref(this._href!) : null;
+    const url = hasHref ? this._locationMgr.addBaseHref(href) : null;
     const controller = CustomElement.for(this._el, { optional: true });
     if (controller !== null) {
       (controller.viewModel as IIndexable)[this.attribute] = url;
@@ -113,6 +144,16 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
       } else {
         this._el.setAttribute(this.attribute, url!);
       }
+    }
+    // A mapping may finish after navigation-end, or be bound to an already active route.
+    this._updateActive();
+  }
+
+  /** @internal */
+  private _updateActive(): void {
+    const active = this.active = this._instructions !== null && this._ctxRouter.isActive(this._instructions);
+    if (this._activeClass !== null) {
+      this._el.classList.toggle(this._activeClass, active);
     }
   }
 

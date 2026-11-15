@@ -317,6 +317,69 @@ describe('fetch-client/fetch-client.spec.ts', function () {
       });
     });
 
+    describe('with a default Content-Type header', function () {
+      beforeEach(function () {
+        client.configure(c => c.withDefaults({ headers: { 'Content-Type': 'application/json' } }));
+      });
+
+      async function postContentType(body: BodyInit, init?: RequestInit): Promise<string> {
+        const result = await client.post('http://example.com/some/cool/path', body, init) as unknown as { headers: Record<string, string> };
+        return result.headers['content-type'];
+      }
+
+      it('keeps the multipart Content-Type of a FormData body', async function () {
+        const body = new FormData();
+        body.append('file', new Blob(['abc'], { type: 'text/plain' }), 'a.txt');
+        assert.match(await postContentType(body), /^multipart\/form-data; boundary=/);
+      });
+
+      it('keeps the Content-Type of a URLSearchParams body', async function () {
+        assert.match(await postContentType(new URLSearchParams({ a: '1' })), /^application\/x-www-form-urlencoded/);
+      });
+
+      it('keeps the type of a Blob body', async function () {
+        assert.strictEqual(await postContentType(new Blob(['abc'], { type: 'image/png' })), 'image/png');
+      });
+
+      it('applies the default to a Blob body without a type', async function () {
+        assert.strictEqual(await postContentType(new Blob(['abc'])), 'application/json');
+      });
+
+      it('applies the default to json() and string bodies', async function () {
+        assert.strictEqual(await postContentType(json({ a: 1 })), 'application/json');
+        assert.strictEqual(await postContentType('abc'), 'application/json');
+      });
+
+      it('lets a per-request Content-Type win over a FormData body', async function () {
+        assert.strictEqual(await postContentType(new FormData(), { headers: { 'Content-Type': 'text/csv' } }), 'text/csv');
+      });
+
+      it('does not warn about a lowercase header when the default is written as Content-Type', async function () {
+        const originalWarn = console.warn;
+        const warnings: unknown[][] = [];
+        console.warn = (...args: unknown[]) => { warnings.push(args); };
+        try {
+          await postContentType('abc');
+        } finally {
+          console.warn = originalWarn;
+        }
+        assert.strictEqual(warnings.length, 0);
+      });
+
+      it('warns when the default is written as lowercase content-type', async function () {
+        client.configure(c => c.withDefaults({ headers: { 'content-type': 'application/json' } }));
+        const originalWarn = console.warn;
+        const warnings: unknown[][] = [];
+        console.warn = (...args: unknown[]) => { warnings.push(args); };
+        try {
+          assert.strictEqual(await postContentType('abc'), 'application/json');
+        } finally {
+          console.warn = originalWarn;
+        }
+        assert.strictEqual(warnings.length, 1);
+      });
+    });
+
     function getRequestHeaders(request: Request) {
       const headers: Record<string, string> = {};
       request.headers.forEach((value, key) => {

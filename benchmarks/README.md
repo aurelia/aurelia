@@ -87,6 +87,22 @@ investigation before that revision can be compared.
 Use the repository's pinned Node and npm versions. Install the root workspace and make sure Chrome is available.
 Commands below run from `benchmarks/`.
 
+### Node microbenchmarks
+
+Use the Node microbenchmark runner for isolated runtime hot paths where a browser application would add more noise
+than useful work:
+
+```sh
+npm run bench:micro
+npm run bench:micro -- --case scope
+npm run bench:micro -- --case subscribers
+```
+
+The runner bundles the target runtime source file from `HEAD` as its baseline and the working-tree version as its
+candidate. Both variants use production feature flags, warm up before measurement, and alternate sample order in an
+isolated worker. Dependencies outside the target file come from the working tree, so use this loop for focused local
+changes and retain the exact-revision browser workflow for cross-package or release-level evidence.
+
 ### Live optimization loop
 
 For fast local iteration against the workspace package watchers, run from the repository root:

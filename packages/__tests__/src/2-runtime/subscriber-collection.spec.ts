@@ -246,6 +246,66 @@ describe('2-runtime/subscriber-collection.spec.ts', function () {
     assert.strictEqual(observer.subs.remove({} as any), false, `observer.subs.remove({} as any)`);
   });
 
+  it('preserves subscriber order and uniqueness for large subscriber lists', function () {
+    const observer = new Test();
+    const calls: number[] = [];
+    const subscribers = Array.from({ length: 100 }, (_, i) => ({
+      handleChange() { calls.push(i); },
+    }));
+
+    for (const subscriber of subscribers) {
+      assert.strictEqual(observer.subs.add(subscriber), true);
+    }
+    assert.strictEqual(observer.subs.add(subscribers[50]), false);
+
+    for (let i = 1; i < subscribers.length; i += 2) {
+      assert.strictEqual(observer.subs.remove(subscribers[i]), true);
+    }
+    observer.subs.notify(void 0, void 0);
+
+    assert.deepStrictEqual(calls, subscribers.map((_, i) => i).filter(i => i % 2 === 0));
+    assert.strictEqual(observer.subs.count, 50);
+
+    for (let i = 0; i < subscribers.length; i += 2) {
+      assert.strictEqual(observer.subs.remove(subscribers[i]), true);
+    }
+    assert.strictEqual(observer.subs.count, 0);
+
+    calls.length = 0;
+    assert.strictEqual(observer.subs.add(subscribers[0]), true);
+    observer.subs.notify(void 0, void 0);
+    assert.deepStrictEqual(calls, [0]);
+  });
+
+  it('snapshots a large subscriber list during notification', function () {
+    const observer = new Test();
+    const calls: string[] = [];
+    const added = { handleChange: () => calls.push('added') };
+    const subscribers = Array.from({ length: 20 }, (_, i) => ({
+      handleChange() {
+        calls.push(`${i}`);
+        if (i === 0) {
+          observer.subs.remove(subscribers[1]);
+          observer.subs.add(added);
+        }
+      },
+    }));
+    for (const subscriber of subscribers) {
+      observer.subs.add(subscriber);
+    }
+
+    observer.subs.notify(void 0, void 0);
+    assert.deepStrictEqual(calls, subscribers.map((_, i) => `${i}`));
+
+    calls.length = 0;
+    observer.subs.notify(void 0, void 0);
+    assert.deepStrictEqual(calls, [
+      '0',
+      ...Array.from({ length: 18 }, (_, i) => `${i + 2}`),
+      'added',
+    ]);
+  });
+
   it('removes and re-adds a sole subscriber', function () {
     const observer = new Test();
     const subscriber = { handleChange: createSpy() };

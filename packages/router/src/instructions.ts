@@ -278,7 +278,8 @@ export class ViewportInstructionTree {
     options: INavigationOptions | NavigationOptions | null,
     rootCtx: IRouteContext | null,
     parentRoutePath: string | null,
-    traverseChildren: true,
+    traverseChildren: boolean,
+    resolveLazyRoutes?: boolean,
   ): ViewportInstructionTree | Promise<ViewportInstructionTree>;
   public static create(
     instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[],
@@ -287,6 +288,7 @@ export class ViewportInstructionTree {
     rootCtx: IRouteContext | null,
     parentRoutePath: string | null,
     traverseChildren?: boolean,
+    resolveLazyRoutes: boolean = traverseChildren === true,
   ): ViewportInstructionTree | Promise<ViewportInstructionTree> {
     options = options instanceof NavigationOptions ? options : NavigationOptions.create(routerOptions, options ?? emptyObject);
 
@@ -297,7 +299,7 @@ export class ViewportInstructionTree {
     const hasContext = context != null;
 
     if (instructionOrInstructions instanceof Array) {
-      // This whole process is synchronous, if traverseChildren is not true.
+      // Links may discover a component type without loading its child route configuration.
       const len = instructionOrInstructions.length;
       const children = new Array(len);
       const query = new URLSearchParams(options.queryParams ?? emptyObject);
@@ -305,7 +307,17 @@ export class ViewportInstructionTree {
       for (let i = 0; i < len; i++) {
         const instruction = instructionOrInstructions[i];
         promises[i] = onResolve(
-          hasContext ? context.routeConfigContext._generateViewportInstruction(instruction, parentRoutePath, traverseChildren as true) : null,
+          hasContext ? context.routeConfigContext._generateViewportInstruction(
+            // Preserve string/DSL entries; component targets need the same normalization as a scalar target.
+            typeof instruction === 'string'
+              ? instruction
+              : isPartialViewportInstruction(instruction)
+                ? { ...instruction, params: instruction.params ?? emptyObject }
+                : { component: instruction, params: emptyObject },
+            parentRoutePath,
+            traverseChildren as true,
+            resolveLazyRoutes,
+          ) : null,
           eagerVi => {
             if (eagerVi !== null) {
               children[i] = eagerVi.vi;
@@ -331,7 +343,8 @@ export class ViewportInstructionTree {
             ? { ...instructionOrInstructions, params: instructionOrInstructions.params ?? emptyObject }
             : { component: instructionOrInstructions, params: emptyObject },
           parentRoutePath,
-          traverseChildren as true
+          traverseChildren as true,
+          resolveLazyRoutes
         )
         : null,
       eagerVi => {

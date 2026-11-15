@@ -202,7 +202,7 @@ export class Router {
 
   /** @internal */ private readonly _container: IContainer = resolve(IContainer);
   /** @internal */ private readonly _p: IPlatform = resolve(IPlatform);
-  /** @internal */ private readonly _logger: ILogger =  /*@__PURE__*/ resolve(ILogger).root.scopeTo('Router');
+  /** @internal */ public readonly _logger: ILogger =  /*@__PURE__*/ resolve(ILogger).root.scopeTo('Router');
   /** @internal */ private readonly _events: IRouterEvents = resolve(IRouterEvents);
   /** @internal */ private readonly _locationMgr: ILocationManager = resolve(ILocationManager);
   /** @internal */ private readonly _head: IHead | undefined = resolve(optional(IHead));
@@ -442,13 +442,13 @@ export class Router {
   }
 
   public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null): ViewportInstructionTree;
-  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren: true): ViewportInstructionTree | Promise<ViewportInstructionTree>;
-  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren?: boolean): ViewportInstructionTree | Promise<ViewportInstructionTree> {
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren: boolean, resolveLazyRoutes?: boolean): ViewportInstructionTree | Promise<ViewportInstructionTree>;
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren?: boolean, resolveLazyRoutes?: boolean): ViewportInstructionTree | Promise<ViewportInstructionTree> {
     if (instructionOrInstructions instanceof ViewportInstructionTree) return instructionOrInstructions;
 
     let context: IRouteContext | null = (options?.context ?? null) as IRouteContext | null;
     if (context !== null) context = (options as Writable<INavigationOptions>).context = this._resolveContext(context);
-    return (context ?? this._$ctx)!.createViewportInstructions(instructionOrInstructions, options, parentRoutePath, traverseChildren as true);
+    return (context ?? this._$ctx)!.createViewportInstructions(instructionOrInstructions, options, parentRoutePath, traverseChildren as true, resolveLazyRoutes);
   }
 
   /**

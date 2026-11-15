@@ -1,7 +1,7 @@
 import { LogLevel, Constructable, kebabCase, ILogConfig, Registration, IModule, inject, resolve, isArray } from '@aurelia/kernel';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 import { tasksSettled } from '@aurelia/runtime';
-import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, ICurrentRoute, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, Router, HistoryStrategy, IRouterEvents, ITypedNavigationInstruction_string, IViewportInstruction, RouteConfig, Routeable, RouterOptions, RouteContext, ViewportInstruction, INavigationOptions, ILocationManager } from '@aurelia/router';
+import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, ICurrentRoute, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, Router, HistoryStrategy, IRouterEvents, ITypedNavigationInstruction_string, IViewportInstruction, RouteConfig, Routeable, type RouteType, RouterOptions, RouteContext, ViewportInstruction, INavigationOptions, ILocationManager } from '@aurelia/router';
 import { Aurelia, valueConverter, customElement, CustomElement, ICustomElementViewModel, IHistory, IHydratedController, ILocation, INode, IPlatform, IWindow, watch } from '@aurelia/runtime-html';
 
 import { getLocationChangeHandlerRegistration, TestRouterConfiguration } from './_shared/configuration.js';
@@ -3598,6 +3598,76 @@ describe('router/smoke-tests.spec.ts', function () {
   // TODO(sayan): add tests here for the location URL building in relation for viewport name
 
   describe('navigation model', function () {
+
+    it('updates a rendered lazy menu while retaining explicit parent metadata #2556', async function () {
+      @customElement({ name: 'menu-home', template: 'home' })
+      class Home { }
+      @route({ title: 'Information', data: { icon: 'info' } })
+      @customElement({ name: 'menu-info', template: 'info' })
+      class Info { }
+      @route({ title: 'Component title', data: { icon: 'component' }, nav: false })
+      @customElement({ name: 'menu-fixed', template: 'fixed' })
+      class Fixed { }
+      @route({ nav: false })
+      @customElement({ name: 'menu-hidden', template: 'hidden' })
+      class Hidden { }
+
+      const calls: string[] = [];
+      const lazy = (name: string, Type: RouteType): RouteType => (() => {
+        calls.push(name);
+        return Promise.resolve({ default: Type });
+      }) as unknown as RouteType;
+      @customElement({
+        name: 'lazy-menu',
+        template: '<nav><a repeat.for="entry of model.routes" href.bind="entry.path[0]" data-icon.bind="entry.data.icon" active.class="entry.isActive">${entry.title}</a></nav>',
+      })
+      class Menu {
+        public readonly model = resolve(IRouteContext).routeConfigContext.navigationModel!;
+      }
+      @route({ routes: [
+        { path: '', component: Home, nav: false },
+        { path: 'info', component: lazy('info', Info) },
+        { path: 'fixed', component: lazy('fixed', Fixed), title: 'Parent title', data: { icon: 'parent' }, nav: true },
+        { path: 'hidden', component: lazy('hidden', Hidden) },
+      ] })
+      @customElement({ name: 'lazy-menu-root', template: '<lazy-menu></lazy-menu><au-viewport></au-viewport>' })
+      class Root { }
+
+      const { au, host, container } = await start({ appRoot: Root, registrations: [Menu] });
+      const router = container.get(IRouter);
+      const anchors = () => Array.from(host.querySelectorAll<HTMLAnchorElement>('nav a'));
+      try {
+        await tasksSettled();
+        const [infoAnchor, fixedAnchor] = anchors();
+        assert.deepStrictEqual(calls, []);
+        assert.deepStrictEqual(anchors().map(anchor => anchor.textContent), ['', 'Parent title', '']);
+
+        await router.load('info');
+        await tasksSettled();
+        // The menu is already bound when the module supplies its metadata.
+        // Mutating the existing entry must update its bindings, not replace it.
+        assert.strictEqual(anchors()[0], infoAnchor);
+        assert.strictEqual(infoAnchor.textContent, 'Information');
+        assert.strictEqual(infoAnchor.dataset.icon, 'info');
+        assert.strictEqual(infoAnchor.classList.contains('active'), true);
+
+        await router.load('fixed');
+        await tasksSettled();
+        assert.strictEqual(anchors()[1], fixedAnchor);
+        assert.strictEqual(fixedAnchor.textContent, 'Parent title');
+        assert.strictEqual(fixedAnchor.dataset.icon, 'parent');
+        assert.strictEqual(fixedAnchor.classList.contains('active'), true);
+
+        await router.load('hidden');
+        await tasksSettled();
+        assert.deepStrictEqual(calls, ['info', 'fixed', 'hidden']);
+        assert.deepStrictEqual(anchors(), [infoAnchor, fixedAnchor]);
+        assert.strictEqual(infoAnchor.classList.contains('active'), false);
+        assert.strictEqual(fixedAnchor.classList.contains('active'), false);
+      } finally {
+        await au.stop(true);
+      }
+    });
 
     function getNavBarCe(
       hasAsyncRouteConfig: boolean = false,

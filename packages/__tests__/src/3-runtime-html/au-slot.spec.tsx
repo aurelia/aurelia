@@ -1,11 +1,97 @@
 import { delegateSyntax } from '@aurelia/compat-v1';
-import { IContainer, inject, newInstanceForScope, resolve } from '@aurelia/kernel';
+import { DI, IContainer, inject, newInstanceForScope, resolve } from '@aurelia/kernel';
 import { BindingMode, Aurelia, AuSlotsInfo, bindable, customElement, CustomElement, IAuSlotsInfo, IPlatform, ValueConverter } from '@aurelia/runtime-html';
 import { assert, createFixture, hJsx, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
-import { runTasks } from '@aurelia/runtime';
+import { runTasks, tasksSettled } from '@aurelia/runtime';
 
 describe('3-runtime-html/au-slot.spec.tsx', function () {
+  for (const projected of [false, true]) {
+    it(`keeps a cached ${projected ? 'projection' : 'fallback'} scope and releases it with its slot`, async function () {
+      class SlotState { }
+      const slotCleanupKey = DI.createInterface('slot-cleanup');
+      const ownerCleanupKey = DI.createInterface('slot-owner-cleanup');
+      let slotCleanups = 0;
+      let ownerCleanups = 0;
+      const probes: { container: IContainer; state: SlotState }[] = [];
+      const Probe = CustomElement.define({ name: 'slot-cleanup-probe', template: 'content' }, class {
+        public readonly container = resolve(IContainer);
+        public readonly state = resolve(SlotState);
+        public constructor() { probes.push(this); }
+      });
+      const Card = CustomElement.define({
+        name: 'slot-cleanup-card',
+        template: '<au-slot if="value.bind: showSlot; cache.bind: cacheSlot"><slot-cleanup-probe></slot-cleanup-probe></au-slot>',
+      }, class {
+        public readonly container = resolve(IContainer);
+        public readonly state = resolve(newInstanceForScope(SlotState));
+        public showSlot = true;
+        public cacheSlot = true;
+      });
+      const fixture = createFixture(
+        projected
+          ? '<slot-cleanup-card if.bind="show"><slot-cleanup-probe></slot-cleanup-probe></slot-cleanup-card>'
+          : '<slot-cleanup-card if.bind="show"></slot-cleanup-card>',
+        { show: true },
+        [Card, Probe],
+      );
+      const registerSlotCleanup = (container: IContainer) => container.registerResolver(slotCleanupKey, {
+        $isResolver: true,
+        resolve: () => null,
+        dispose: () => { ++slotCleanups; },
+      }, true);
+      try {
+        await fixture.started;
+        const card = CustomElement.for(fixture.getBy('slot-cleanup-card')).viewModel as InstanceType<typeof Card>;
+        const originalHost = fixture.getBy('slot-cleanup-probe');
+        const originalScope = probes[0].container.parent!;
+        assert.notStrictEqual(originalScope, card.container);
+        assert.strictEqual(probes[0].state, card.state);
+        registerSlotCleanup(originalScope);
+        card.container.registerResolver(ownerCleanupKey, {
+          $isResolver: true,
+          resolve: () => null,
+          dispose: () => { ++ownerCleanups; },
+        }, true);
+
+        // Both If views are cached here. Hiding the card must leave its slot
+        // and private scope usable when the same view is shown again.
+        fixture.component.show = false;
+        await tasksSettled();
+        assert.strictEqual(fixture.queryBy('slot-cleanup-card'), null);
+        assert.deepStrictEqual([slotCleanups, ownerCleanups], [0, 0]);
+        fixture.component.show = true;
+        await tasksSettled();
+        assert.strictEqual(fixture.getBy('slot-cleanup-probe'), originalHost);
+        assert.strictEqual(probes.length, 1);
+
+        // Removing just the uncached slot ends its scope, not the card's scope.
+        card.cacheSlot = false;
+        card.showSlot = false;
+        await tasksSettled();
+        assert.strictEqual(fixture.queryBy('slot-cleanup-probe'), null);
+        assert.deepStrictEqual([slotCleanups, ownerCleanups], [1, 0]);
+        assert.strictEqual(originalScope.has(slotCleanupKey, false), false);
+        assert.strictEqual(card.container.has(ownerCleanupKey, false), true);
+
+        card.showSlot = true;
+        await tasksSettled();
+        assert.strictEqual(probes.length, 2);
+        const replacementScope = probes[1].container.parent!;
+        assert.notStrictEqual(replacementScope, originalScope);
+        assert.strictEqual(probes[1].state, card.state, 'the replacement still resolves the owning card state');
+        registerSlotCleanup(replacementScope);
+
+        await fixture.stop(true);
+        assert.deepStrictEqual([slotCleanups, ownerCleanups], [2, 1]);
+        assert.strictEqual(replacementScope.has(slotCleanupKey, false), false);
+        assert.strictEqual(card.container.has(ownerCleanupKey, false), false);
+      } finally {
+        if (!fixture.torn) await fixture.stop(true);
+      }
+    });
+  }
+
   interface TestSetupContext {
     template: string;
     registrations: any[];
